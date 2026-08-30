@@ -1,0 +1,10 @@
+  keys:
+    - &operator age1fpwv6ne2cnq6h63fkdag6q2qvhfp6z2734fe8druajwa7rkeafxqv7end5
+    - &pang14 age1u9vjethkehj45wylw2dseya2tak992xfvelh7ky76hfvfjfmnyzqfmdzw0
+
+  creation_rules:
+    - path_regex: secrets/pang14\.yaml$
+      key_groups:
+        - age:
+            - *operator
+            - *pang14
