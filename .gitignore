@@ -9,3 +9,4 @@ result-*
 *.age
 secrets/*.dec.yaml
 secrets/*.plain.yaml
+.sops.yaml
