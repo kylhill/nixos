@@ -38,7 +38,7 @@ in
     file = secretsFile;
   };
 
-  fonts.packages = [ pkgs.cascadia-code ];
+  fonts.packages = [ pkgs.nerd-fonts.caskaydia-cove ];
 
   home-manager = {
     useGlobalPkgs = true;
