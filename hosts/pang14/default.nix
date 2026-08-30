@@ -1,13 +1,8 @@
 {
-  config,
   inputs,
   pkgs,
   ...
 }:
-let
-  secretsFile = "${toString ../..}/secrets/pang14.yaml";
-  secretsAvailable = builtins.pathExists secretsFile;
-in
 {
   imports = [
     ./disko.nix
@@ -34,8 +29,10 @@ in
   };
 
   tacomafia.secrets = {
-    enable = secretsAvailable;
-    file = secretsFile;
+    enable = true;
+    # Keep this as a Nix path, rather than converting the repository root to a
+    # string, so the encrypted file is an explicit flake/store dependency.
+    file = ../../secrets/pang14.yaml;
   };
 
   fonts.packages = [ pkgs.nerd-fonts.caskaydia-cove ];
@@ -48,8 +45,6 @@ in
     users.kyleh = import ../../modules/home/kyleh;
   };
 
-  # Keep evaluation possible while secrets are bootstrapped. If the encrypted
-  # file is absent, set a local password from the installer before rebooting.
   users.users.kyleh = {
     createHome = true;
     home = "/home/kyleh";

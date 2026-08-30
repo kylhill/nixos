@@ -10,8 +10,8 @@ in
   options.tacomafia.secrets = {
     enable = lib.mkEnableOption "host secrets managed by sops-nix";
     file = lib.mkOption {
-      type = lib.types.str;
-      description = "Absolute path to the host's encrypted SOPS file.";
+      type = lib.types.path;
+      description = "Path to the host's encrypted SOPS file.";
     };
   };
 
