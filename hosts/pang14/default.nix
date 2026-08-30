@@ -25,7 +25,10 @@
       enable = true;
       configurationLimit = 10;
     };
-    efi.canTouchEfiVariables = true;
+    # Ubuntu's GRUB on the WD disk is the primary multi-boot menu. Keep the
+    # existing NixOS firmware entry, but do not let later rebuilds reorder UEFI
+    # boot entries.
+    efi.canTouchEfiVariables = false;
   };
 
   tacomafia.secrets = {

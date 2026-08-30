@@ -13,7 +13,10 @@
     ];
 
     zfs = {
-      forceImportRoot = false;
+      # rpool belongs exclusively to this laptop. Allow initrd to recover it
+      # after an unclean shutdown or after it was last imported by an installer
+      # environment with a different host ID.
+      forceImportRoot = true;
       forceImportAll = false;
     };
   };
