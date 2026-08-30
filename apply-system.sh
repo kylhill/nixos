@@ -1,5 +1,5 @@
-#!/bin/sh
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-cd ~/nixos
-sudo nixos-rebuild switch -I nixos-config=./system/configuration.nix
+cd "$(dirname "$0")"
+exec nh os switch .#pang14

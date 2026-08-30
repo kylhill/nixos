@@ -1,5 +1,6 @@
-#!/bin/sh
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-cd ~/nixos
-sudo home-manager switch -f ./users/kyleh/home.nix
+# Home Manager is integrated into the NixOS configuration.
+cd "$(dirname "$0")"
+exec nh os switch .#pang14

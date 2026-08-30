@@ -1,4 +1,6 @@
-#!/bin/sh
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-nix-channel --update
+# System and Home Manager inputs share one lock file.
+cd "$(dirname "$0")"
+exec nix flake update

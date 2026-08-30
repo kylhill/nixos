@@ -1,4 +1,5 @@
-#!/bin/sh
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-sudo nix-channel --update
+cd "$(dirname "$0")"
+exec nix flake update

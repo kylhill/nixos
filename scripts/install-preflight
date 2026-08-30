@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+target="/dev/disk/by-id/nvme-KINGSTON_SKC3000S1024G_50026B7686B97472"
+target_serial="50026B7686B97472"
+protected_serial="24144M801597"
+
+fail() {
+    echo "preflight failed: $*" >&2
+    exit 1
+}
+
+[[ -d /sys/firmware/efi/efivars ]] || fail "installer is not booted in UEFI mode"
+[[ -b "$target" ]] || fail "target by-id device does not exist: $target"
+
+resolved=$(readlink -f "$target")
+actual_serial=$(lsblk -dn -o SERIAL "$resolved" | xargs)
+[[ "$actual_serial" == "$target_serial" ]] ||
+    fail "target serial is $actual_serial, expected $target_serial"
+
+protected_path=$(lsblk -dpn -o PATH,SERIAL | awk -v serial="$protected_serial" '$2 == serial { print $1 }')
+[[ -n "$protected_path" ]] || fail "protected WD disk was not found"
+[[ "$resolved" != "$protected_path" ]] || fail "target resolves to protected WD disk"
+
+if lsblk -nr -o MOUNTPOINTS "$resolved" | grep -q '[^[:space:]]'; then
+    fail "the target disk or one of its partitions is mounted"
+fi
+
+[[ -f .sops.yaml ]] || fail ".sops.yaml is missing"
+[[ -f secrets/pang14.yaml ]] || fail "encrypted secrets/pang14.yaml is missing"
+
+echo "Destructive target: $resolved (KINGSTON KC3000, $target_serial)"
+echo "Protected disk:     $protected_path (WD Blue SN580, $protected_serial)"
+echo "UEFI and repository prerequisites passed. No disk changes were made."

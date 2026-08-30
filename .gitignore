@@ -4,3 +4,8 @@ result-*
 
 # Ignore automatically generated direnv output
 .direnv
+
+# Secrets must remain encrypted; never commit private age identities or exports.
+*.age
+secrets/*.dec.yaml
+secrets/*.plain.yaml

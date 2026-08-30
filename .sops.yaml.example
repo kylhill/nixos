@@ -1,0 +1,10 @@
+keys:
+  - &operator age1REPLACE_WITH_OPERATOR_RECIPIENT
+  - &pang14 age1REPLACE_WITH_PANG14_RECIPIENT
+
+creation_rules:
+  - path_regex: secrets/pang14\.yaml$
+    key_groups:
+      - age:
+          - *operator
+          - *pang14
