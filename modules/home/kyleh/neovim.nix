@@ -76,7 +76,7 @@
       bash-language-server
       lua-language-server
       nixd
-      nixfmt-rfc-style
+      nixfmt
       shellcheck
       stylua
       yaml-language-server

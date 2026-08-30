@@ -68,11 +68,12 @@
       };
 
       checks.${system}.pang14 = self.nixosConfigurations.pang14.config.system.build.toplevel;
-      formatter.${system} = pkgs.nixfmt-rfc-style;
+      formatter.${system} = pkgs.nixfmt;
 
       apps.${system}.disko = {
         type = "app";
         program = "${disko.packages.${system}.disko}/bin/disko";
+        meta.description = "Declaratively partition and format disks with Disko";
       };
 
       devShells.${system}.default = pkgs.mkShellNoCC {
@@ -81,7 +82,7 @@
           deadnix
           git
           nh
-          nixfmt-rfc-style
+          nixfmt
           openssl
           shellcheck
           sops
