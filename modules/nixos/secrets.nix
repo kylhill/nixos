@@ -5,6 +5,7 @@
 }:
 let
   cfg = config.tacomafia.secrets;
+  inventory = import ../../lib/inventory.nix;
 in
 {
   options.tacomafia.secrets = {
@@ -49,7 +50,8 @@ in
         };
       };
 
-      users.users.kyleh.hashedPasswordFile = config.sops.secrets."user/password-hash".path;
+      users.users.${inventory.user.name}.hashedPasswordFile =
+        config.sops.secrets."user/password-hash".path;
     })
   ];
 }

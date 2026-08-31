@@ -1,4 +1,4 @@
-{ ... }:
+{ inventory, ... }:
 {
   imports = [
     ./bash.nix
@@ -10,8 +10,8 @@
   ];
 
   home = {
-    username = "kyleh";
-    homeDirectory = "/home/kyleh";
+    username = inventory.user.name;
+    homeDirectory = inventory.user.homeDirectory;
     stateVersion = "26.05";
   };
 

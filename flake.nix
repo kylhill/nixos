@@ -68,7 +68,7 @@
       };
 
       checks.${system}.pang14 = self.nixosConfigurations.pang14.config.system.build.toplevel;
-      formatter.${system} = pkgs.nixfmt;
+      formatter.${system} = pkgs.nixfmt-tree;
 
       apps.${system}.disko = {
         type = "app";

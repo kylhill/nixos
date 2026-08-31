@@ -1,4 +1,8 @@
-{ pkgs, ... }:
+{
+  inventory,
+  pkgs,
+  ...
+}:
 {
   programs.git = {
     enable = true;
@@ -26,9 +30,9 @@
       rerere.enabled = true;
       safe.bareRepository = "explicit";
       user = {
-        email = "kylhill@gmail.com";
-        name = "Kyle Hill";
-        signingkey = "E644A61F810BDC4D1294867A2E37EF3EA077FAD8";
+        email = inventory.user.email;
+        name = inventory.user.fullName;
+        signingkey = inventory.user.gitSigningKey;
       };
       credential = {
         "https://github.com".helper = [

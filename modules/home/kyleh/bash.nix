@@ -9,14 +9,6 @@
       ".dircolors".source = inputs.dircolors-solarized + "/dircolors.256dark";
       ".oh-my-bash".source = inputs.oh-my-bash;
       ".hushlogin".text = "";
-      ".local/bin/do-updates.sh" = {
-        source = ./files/do-updates.sh;
-        executable = true;
-      };
-      ".local/bin/fix-x.sh" = {
-        source = ./files/fix-x.sh;
-        executable = true;
-      };
     };
 
     sessionPath = [ "$HOME/.local/bin" ];
@@ -28,11 +20,14 @@
     packages = with pkgs; [
       ansible
       ansible-lint
+      codex
       fd
       fzf
       gcc
       gh
+      github-copilot-cli
       gnupg
+      jq
       lazygit
       less
       ripgrep

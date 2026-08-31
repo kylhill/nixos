@@ -3,6 +3,9 @@
   pkgs,
   ...
 }:
+let
+  inventory = import ../../lib/inventory.nix;
+in
 {
   imports = [
     ./disko.nix
@@ -25,10 +28,9 @@
       enable = true;
       configurationLimit = 10;
     };
-    # Ubuntu's GRUB on the WD disk is the primary multi-boot menu. Keep the
-    # existing NixOS firmware entry, but do not let later rebuilds reorder UEFI
-    # boot entries.
-    efi.canTouchEfiVariables = false;
+    efi = {
+      canTouchEfiVariables = false;
+    };
   };
 
   tacomafia.secrets = {
@@ -44,12 +46,12 @@
     useGlobalPkgs = true;
     useUserPackages = true;
     backupFileExtension = "hm-backup";
-    extraSpecialArgs = { inherit inputs; };
-    users.kyleh = import ../../modules/home/kyleh;
+    extraSpecialArgs = { inherit inputs inventory; };
+    users.${inventory.user.name} = import ../../modules/home/kyleh;
   };
 
-  users.users.kyleh = {
+  users.users.${inventory.user.name} = {
     createHome = true;
-    home = "/home/kyleh";
+    home = inventory.user.homeDirectory;
   };
 }

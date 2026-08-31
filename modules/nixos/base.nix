@@ -65,16 +65,18 @@ in
   };
 
   environment.systemPackages = with pkgs; [
-    btop
     curl
     git
     htop
+    iotop
+    lsof
     ncdu
     nvme-cli
     powertop
-    smartmontools
+    rsync
     vim
     wireguard-tools
+    wget
   ];
 
   system.stateVersion = "26.05";

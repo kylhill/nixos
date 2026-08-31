@@ -57,7 +57,7 @@ in
       wg-home = {
         autostart = false;
         address = wg.gateway.pang14Addresses;
-        dns = [ inventory.network.dnsV4 ];
+        dns = [ wg.gateway.dns ];
         privateKeyFile = privateKeyFile;
         peers = [
           {
@@ -66,8 +66,8 @@ in
             endpoint = wg.gateway.endpoint;
             persistentKeepalive = 25;
             allowedIPs = [
-              inventory.network.lanV4
-              inventory.network.ula
+              "0.0.0.0/0"
+              "::/0"
             ];
           }
         ];
@@ -76,7 +76,7 @@ in
       wg-oci = {
         autostart = false;
         address = wg.oci.pang14Addresses;
-        dns = [ inventory.network.dnsV4 ];
+        dns = [ wg.oci.dns ];
         privateKeyFile = privateKeyFile;
         peers = [
           {
