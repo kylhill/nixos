@@ -11,7 +11,6 @@
         "nix-command"
         "flakes"
       ];
-      auto-optimise-store = true;
       warn-dirty = true;
     };
 
@@ -19,6 +18,11 @@
       automatic = true;
       dates = "weekly";
       options = "--delete-older-than 14d";
+    };
+
+    optimise = {
+      automatic = true;
+      dates = "weekly";
     };
   };
 

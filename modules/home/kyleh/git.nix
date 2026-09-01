@@ -31,7 +31,6 @@
       user = {
         email = inventory.user.email;
         name = inventory.user.fullName;
-        signingkey = inventory.user.gitSigningKey;
       };
     };
   };

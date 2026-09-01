@@ -229,8 +229,9 @@ Expected results:
 - `rpool` is healthy and all four datasets are mounted.
 - The 40 GB disk swap is active; no `/dev/zram*` device exists.
 - zswap reports enabled, `zstd`, `zsmalloc`, and `20`.
-- The desktop session type is `wayland` and no Xwayland process exists.
-- Firefox and VS Code launch natively.
+- The desktop session type is `wayland`. Xwayland may run when an application
+  needs the compatibility fallback.
+- Firefox and VS Code launch natively on Wayland.
 - Suspend-then-hibernate resumes with applications intact.
 - Windows and Ubuntu remain bootable from the firmware boot menu.
 

@@ -51,6 +51,7 @@
         inventory
         ;
     };
+    sharedModules = [ inputs.nix-index-database.homeModules.default ];
     users.${inventory.user.name} = import ../../modules/home/kyleh;
   };
 }

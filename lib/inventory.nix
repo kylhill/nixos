@@ -18,7 +18,6 @@ in
     email = "kylhill@gmail.com";
     inherit homeDirectory;
     sshDirectory = "${homeDirectory}/.ssh";
-    gitSigningKey = "E644A61F810BDC4D1294867A2E37EF3EA077FAD8";
     sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH3B/FlRNV435YERy7hUtp/RW6v2uX9KF0dm+y7WTuy9 Kyle's Key - 7/25/2020";
   };
 

@@ -1,4 +1,5 @@
 {
+  config,
   inputs,
   pkgs,
   ...
@@ -12,7 +13,7 @@
     sessionVariables = {
       MANPAGER = "nvim +Man! -";
       PAGER = "less";
-      SOPS_AGE_KEY_FILE = "$HOME/.config/sops/age/keys.txt";
+      SOPS_AGE_KEY_FILE = "${config.xdg.configHome}/sops/age/keys.txt";
     };
 
     packages = with pkgs; [
@@ -28,10 +29,17 @@
       settings = {
         approvals_reviewer = "auto_review";
         projects = {
-          "/home/kyleh/nixos".trust_level = "trusted";
-          "/home/kyleh/Projects/nixos".trust_level = "trusted";
+          "${config.home.homeDirectory}/nixos".trust_level = "trusted";
+          "${config.home.homeDirectory}/Projects/nixos".trust_level = "trusted";
         };
       };
+    };
+
+    command-not-found.enable = false;
+
+    direnv = {
+      enable = true;
+      nix-direnv.enable = true;
     };
 
     dircolors = {
@@ -48,6 +56,7 @@
     jq.enable = true;
     lazygit.enable = true;
     less.enable = true;
+    nix-index.enable = true;
     ripgrep.enable = true;
 
     starship = {
@@ -119,29 +128,6 @@
         fi
 
         complete -d cd
-
-        dbash() {
-          command -v docker >/dev/null 2>&1 || {
-            echo "docker not found" >&2
-            return 127
-          }
-          [[ -n "''${1:-}" ]] || {
-            echo "usage: dbash <container>" >&2
-            return 2
-          }
-          local shell
-          shell=$(docker exec "$1" sh -c 'command -v bash || command -v sh' 2>/dev/null) || {
-            echo "container not found or no shell" >&2
-            return 1
-          }
-          docker exec -it "$1" "$shell"
-        }
-        alias dsh=dbash
-
-        dtail() {
-          docker logs -tf --tail=150 "$@"
-        }
-
       '';
     };
 

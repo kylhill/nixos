@@ -11,6 +11,8 @@ _: {
     ];
 
     zfs = {
+      # This pool belongs exclusively to pang14. Permit recovery after an
+      # unclean shutdown or an installer import under a different host ID.
       forceImportRoot = true;
       forceImportAll = false;
     };

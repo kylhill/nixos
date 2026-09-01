@@ -20,6 +20,10 @@
     };
 
     nixos-hardware.url = "github:NixOS/nixos-hardware";
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nixvim = {
       url = "github:nix-community/nixvim/nixos-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -83,8 +87,9 @@
       checks.${system} = {
         ${hostName} = self.nixosConfigurations.${hostName}.config.system.build.toplevel;
 
-        formatting = pkgs.runCommand "nixfmt-check" { nativeBuildInputs = [ pkgs.nixfmt ]; } ''
-          find ${self} -name '*.nix' -exec nixfmt --check {} +
+        formatting = pkgs.runCommand "nixfmt-check" { nativeBuildInputs = [ pkgs.nixfmt-tree ]; } ''
+          cd ${self}
+          treefmt --ci
           touch $out
         '';
 
@@ -122,7 +127,7 @@
           deadnix
           git
           nh
-          nixfmt
+          nixfmt-tree
           openssl
           shellcheck
           sops

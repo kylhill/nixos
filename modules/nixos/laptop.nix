@@ -6,6 +6,12 @@ _: {
   };
 
   services = {
+    avahi = {
+      enable = true;
+      nssmdns4 = true;
+      openFirewall = true;
+    };
+
     fwupd.enable = true;
     printing.enable = true;
 

@@ -75,9 +75,4 @@ in
       };
     };
   };
-
-  services.ssh-agent = {
-    enable = true;
-    socket = "ssh-agent.socket";
-  };
 }
