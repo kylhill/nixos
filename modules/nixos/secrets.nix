@@ -1,12 +1,11 @@
 {
   config,
-  host,
-  inventory,
+  lib,
   ...
 }:
 let
-  wifiSecretName = host.network.wifi.tacomafiaLan.secretName;
-  sshDirectory = inventory.user.sshDirectory;
+  inherit (config.infrastructure) user;
+  wifiProfiles = config.infrastructure.host.network.wifi;
 in
 {
   sops = {
@@ -23,27 +22,32 @@ in
         mode = "0400";
         restartUnits = [ "nm-file-secret-agent.service" ];
       };
-      ${wifiSecretName} = {
+    }
+    // lib.mapAttrs' (
+      _: wifi:
+      lib.nameValuePair wifi.secretName {
         mode = "0400";
         restartUnits = [ "nm-file-secret-agent.service" ];
-      };
+      }
+    ) wifiProfiles
+    // {
       "ssh/private-key" = {
-        owner = inventory.user.name;
+        owner = user.name;
         group = "users";
         mode = "0600";
-        path = "${sshDirectory}/id_ed25519";
+        path = "${user.sshDirectory}/id_ed25519";
       };
       "ssh/public-key" = {
-        owner = inventory.user.name;
+        owner = user.name;
         group = "users";
         mode = "0644";
-        path = "${sshDirectory}/id_ed25519.pub";
+        path = "${user.sshDirectory}/id_ed25519.pub";
       };
     };
   };
 
   users = {
     mutableUsers = false;
-    users.${inventory.user.name}.hashedPasswordFile = config.sops.secrets."user/password-hash".path;
+    users.${user.name}.hashedPasswordFile = config.sops.secrets."user/password-hash".path;
   };
 }

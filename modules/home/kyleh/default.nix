@@ -1,17 +1,18 @@
-{ inventory, ... }:
+{ config, ... }:
 {
   imports = [
     ./bash.nix
     ./desktop.nix
     ./git.nix
+    ./infrastructure.nix
     ./neovim.nix
     ./ssh.nix
     ./tmux.nix
   ];
 
   home = {
-    username = inventory.user.name;
-    homeDirectory = inventory.user.homeDirectory;
+    username = config.infrastructure.user.name;
+    homeDirectory = config.infrastructure.user.homeDirectory;
     preferXdgDirectories = true;
   };
 

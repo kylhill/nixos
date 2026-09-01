@@ -18,9 +18,11 @@ run_stage() {
 run_stage "Evaluating all flake outputs without building them" \
     nix flake check --no-build
 
+system=$(nix eval --impure --raw --expr builtins.currentSystem)
+
 for check in formatting statix deadnix shellcheck; do
     run_stage "Running the $check check" \
-        nix build --no-link ".#checks.x86_64-linux.$check"
+        nix build --no-link ".#checks.${system}.$check"
 done
 
 printf '\nAll development checks passed. No system build or activation was run.\n'

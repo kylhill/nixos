@@ -1,7 +1,7 @@
-{ inventory, lib, ... }:
+{ config, lib, ... }:
 let
-  hosts = inventory.network.hosts;
-  identityFile = "${inventory.user.sshDirectory}/id_ed25519";
+  hosts = config.infrastructure.network.hosts;
+  identityFile = "${config.infrastructure.user.sshDirectory}/id_ed25519";
 in
 {
   systemd.user.tmpfiles.rules = [ "d %h/.cache/ssh 0700 - - -" ];
@@ -71,7 +71,7 @@ in
         IdentityFile = identityFile;
         ServerAliveCountMax = 3;
         ServerAliveInterval = 60;
-        User = inventory.user.name;
+        User = config.infrastructure.user.name;
       };
     };
   };

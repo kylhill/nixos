@@ -1,5 +1,6 @@
 {
-  host,
+  config,
+  lib,
   pkgs,
   ...
 }:
@@ -25,20 +26,25 @@
     };
   };
 
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.allowUnfreePredicate =
+    package:
+    builtins.elem (lib.getName package) [
+      "github-copilot-cli"
+      "vscode"
+    ];
 
-  time.timeZone = host.timeZone;
+  time.timeZone = config.infrastructure.host.timeZone;
 
-  environment.systemPackages = with pkgs; [
-    curl
-    git
-    htop
-    iotop
-    lsof
-    ncdu
-    nvme-cli
-    powertop
-    rsync
-    wget
+  environment.systemPackages = [
+    pkgs.curl
+    pkgs.git
+    pkgs.htop
+    pkgs.iotop
+    pkgs.lsof
+    pkgs.ncdu
+    pkgs.nvme-cli
+    pkgs.powertop
+    pkgs.rsync
+    pkgs.wget
   ];
 }

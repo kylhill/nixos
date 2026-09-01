@@ -1,10 +1,10 @@
 { pkgs, ... }:
 {
   home = {
-    packages = with pkgs; [
-      hunspell
-      hunspellDicts.en_US
-      libreoffice
+    packages = [
+      pkgs.hunspell
+      pkgs.hunspellDicts.en_US
+      pkgs.libreoffice
     ];
 
     sessionVariables = {

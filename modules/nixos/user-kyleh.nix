@@ -1,36 +1,35 @@
 {
-  dircolorsSolarized,
-  inventory,
-  nixpkgsSource,
+  config,
   ...
 }:
 {
+  home-manager.sharedModules = [
+    {
+      infrastructure = {
+        inherit (config.infrastructure) user network;
+      };
+    }
+  ];
+
   users = {
-    users.${inventory.user.name} = {
+    users.${config.infrastructure.user.name} = {
       isNormalUser = true;
-      uid = inventory.user.uid;
-      description = inventory.user.fullName;
+      inherit (config.infrastructure.user) uid;
+      description = config.infrastructure.user.fullName;
       extraGroups = [
         "dialout"
         "networkmanager"
         "video"
         "wheel"
       ];
-      openssh.authorizedKeys.keys = [ inventory.user.sshPublicKey ];
+      openssh.authorizedKeys.keys = [ config.infrastructure.user.sshPublicKey ];
     };
   };
 
   home-manager = {
     useGlobalPkgs = true;
     backupFileExtension = "hm-backup";
-    extraSpecialArgs = {
-      inherit
-        dircolorsSolarized
-        inventory
-        nixpkgsSource
-        ;
-    };
-    users.${inventory.user.name} = {
+    users.${config.infrastructure.user.name} = {
       imports = [ ../home/kyleh ];
       home.stateVersion = "26.05";
     };

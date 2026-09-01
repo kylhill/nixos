@@ -1,6 +1,5 @@
 {
   config,
-  dircolorsSolarized,
   pkgs,
   ...
 }:
@@ -16,11 +15,11 @@
       SOPS_AGE_KEY_FILE = "${config.xdg.configHome}/sops/age/keys.txt";
     };
 
-    packages = with pkgs; [
-      dnsutils
-      shellcheck
-      sops
-      unzip
+    packages = [
+      pkgs.dnsutils
+      pkgs.shellcheck
+      pkgs.sops
+      pkgs.unzip
     ];
   };
 
@@ -46,7 +45,9 @@
     dircolors = {
       enable = true;
       enableBashIntegration = true;
-      extraConfig = builtins.readFile (dircolorsSolarized + "/dircolors.256dark");
+      extraConfig = builtins.readFile (
+        config.infrastructure.sources.dircolorsSolarized + "/dircolors.256dark"
+      );
     };
 
     fd.enable = true;

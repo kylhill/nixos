@@ -1,5 +1,4 @@
 {
-  nixpkgsSource,
   pkgs,
   ...
 }:
@@ -10,7 +9,7 @@
     vimAlias = true;
     withRuby = false;
 
-    nixpkgs.source = nixpkgsSource;
+    nixpkgs.useGlobalPackages = true;
 
     globals = {
       loaded_node_provider = 0;
@@ -84,10 +83,10 @@
       };
     };
 
-    extraPackages = with pkgs; [
-      nixfmt
-      shellcheck
-      stylua
+    extraPackages = [
+      pkgs.nixfmt
+      pkgs.shellcheck
+      pkgs.stylua
     ];
 
   };

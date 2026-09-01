@@ -56,10 +56,14 @@
       );
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
       pkgsFor = system: import nixpkgs { inherit system; };
+      hardwareModules = {
+        system76 = nixos-hardware.nixosModules.system76;
+      };
     in
     {
       nixosModules = {
         base = ./modules/nixos/base.nix;
+        infrastructure = ./modules/nixos/infrastructure.nix;
         laptop = ./modules/nixos/laptop.nix;
         networkmanager-vpn = ./modules/nixos/networkmanager-vpn.nix;
         networkmanager-wifi = ./modules/nixos/networkmanager-wifi.nix;
@@ -73,27 +77,30 @@
       nixosConfigurations = nixpkgs.lib.mapAttrs (
         hostName: host:
         nixpkgs.lib.nixosSystem {
-          inherit (host) system;
-          specialArgs = {
-            inherit
-              host
-              hostName
-              inventory
-              ;
-            dircolorsSolarized = inputs.dircolors-solarized;
-            inherit (self) nixosModules;
-            nixpkgsSource = nixpkgs.outPath;
-            system76HardwareModule = nixos-hardware.nixosModules.system76;
-          };
           modules = [
             disko.nixosModules.disko
             home-manager.nixosModules.home-manager
             sops-nix.nixosModules.sops
+            self.nixosModules.infrastructure
+          ]
+          ++ map (name: hardwareModules.${name}) (host.hardwareModules or [ ])
+          ++ [
             (./hosts + "/${hostName}")
             {
+              infrastructure = {
+                inherit host;
+                inherit (inventory) user network;
+              };
+              networking.hostName = hostName;
+              nixpkgs.hostPlatform = host.system;
+              nix.registry.nixpkgs.flake = inputs.nixpkgs;
+              nix.nixPath = [ "nixpkgs=${inputs.nixpkgs.outPath}" ];
               home-manager.sharedModules = [
                 nixvim.homeModules.nixvim
                 inputs.nix-index-database.homeModules.default
+                {
+                  infrastructure.sources.dircolorsSolarized = inputs.dircolors-solarized;
+                }
               ];
             }
           ];
@@ -150,16 +157,16 @@
         in
         {
           default = pkgs.mkShellNoCC {
-            packages = with pkgs; [
-              age
-              deadnix
-              git
-              nh
-              nixfmt-tree
-              openssl
-              shellcheck
-              sops
-              statix
+            packages = [
+              pkgs.age
+              pkgs.deadnix
+              pkgs.git
+              pkgs.nh
+              pkgs.nixfmt-tree
+              pkgs.openssl
+              pkgs.shellcheck
+              pkgs.sops
+              pkgs.statix
             ];
           };
 

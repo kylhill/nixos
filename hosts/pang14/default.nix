@@ -1,30 +1,25 @@
 {
-  host,
-  hostName,
-  nixosModules,
+  config,
   pkgs,
-  system76HardwareModule,
   ...
 }:
 {
   imports = [
     ./disko.nix
     ./hardware.nix
-    system76HardwareModule
-    nixosModules.base
-    nixosModules.laptop
-    nixosModules.networkmanager-vpn
-    nixosModules.networkmanager-wifi
-    nixosModules.secrets
-    nixosModules.workstation-zfs
-    nixosModules.system76
-    nixosModules.user-kyleh
-    nixosModules.workstation
+    ../../modules/nixos/base.nix
+    ../../modules/nixos/laptop.nix
+    ../../modules/nixos/networkmanager-vpn.nix
+    ../../modules/nixos/networkmanager-wifi.nix
+    ../../modules/nixos/secrets.nix
+    ../../modules/nixos/workstation-zfs.nix
+    ../../modules/nixos/system76.nix
+    ../../modules/nixos/user-kyleh.nix
+    ../../modules/nixos/workstation.nix
   ];
 
   networking = {
-    inherit hostName;
-    inherit (host) hostId;
+    inherit (config.infrastructure.host) hostId;
   };
 
   boot.loader = {

@@ -37,9 +37,9 @@
       NIXOS_OZONE_WL = "1";
     };
 
-    systemPackages = with pkgs; [
-      gnome-tweaks
-      wireguard-tools
+    systemPackages = [
+      pkgs.gnome-tweaks
+      pkgs.wireguard-tools
     ];
   };
 }

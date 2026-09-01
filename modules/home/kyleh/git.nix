@@ -1,5 +1,5 @@
 {
-  inventory,
+  config,
   ...
 }:
 {
@@ -29,8 +29,8 @@
       rerere.enabled = true;
       safe.bareRepository = "explicit";
       user = {
-        email = inventory.user.email;
-        name = inventory.user.fullName;
+        email = config.infrastructure.user.email;
+        name = config.infrastructure.user.fullName;
       };
     };
   };

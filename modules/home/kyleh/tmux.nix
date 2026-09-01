@@ -8,11 +8,11 @@
     prefix = "C-a";
     terminal = "tmux-256color";
 
-    plugins = with pkgs.tmuxPlugins; [
-      sensible
-      vim-tmux-navigator
+    plugins = [
+      pkgs.tmuxPlugins.sensible
+      pkgs.tmuxPlugins.vim-tmux-navigator
       {
-        plugin = dracula;
+        plugin = pkgs.tmuxPlugins.dracula;
         extraConfig = ''
           set -g @dracula-plugins "cpu-usage ram-usage"
           set -g @dracula-cpu-usage-colors "light_purple dark_gray"

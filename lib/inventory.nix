@@ -5,6 +5,7 @@ in
 {
   hosts = {
     pang14 = {
+      hardwareModules = [ "system76" ];
       hostId = "ab5f3534";
       system = "x86_64-linux";
       timeZone = "America/Chicago";
