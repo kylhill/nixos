@@ -1,4 +1,6 @@
 {
+  host,
+  hostName,
   inputs,
   inventory,
   pkgs,
@@ -18,8 +20,8 @@
   ];
 
   networking = {
-    hostName = inventory.host.name;
-    hostId = inventory.host.id;
+    inherit hostName;
+    hostId = host.id;
   };
 
   boot.loader = {
@@ -40,7 +42,14 @@
     useGlobalPkgs = true;
     useUserPackages = true;
     backupFileExtension = "hm-backup";
-    extraSpecialArgs = { inherit inputs inventory; };
+    extraSpecialArgs = {
+      inherit
+        host
+        hostName
+        inputs
+        inventory
+        ;
+    };
     users.${inventory.user.name} = import ../../modules/home/kyleh;
   };
 }

@@ -3,11 +3,12 @@ let
   homeDirectory = "/home/${userName}";
 in
 {
-  host = {
-    name = "pang14";
-    id = "ab5f3534";
-    system = "x86_64-linux";
-    timeZone = "America/Chicago";
+  hosts = {
+    pang14 = {
+      id = "ab5f3534";
+      system = "x86_64-linux";
+      timeZone = "America/Chicago";
+    };
   };
 
   user = {

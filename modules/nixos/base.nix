@@ -1,4 +1,5 @@
 {
+  host,
   inventory,
   pkgs,
   ...
@@ -28,7 +29,7 @@
     nftables.enable = true;
   };
 
-  time.timeZone = inventory.host.timeZone;
+  time.timeZone = host.timeZone;
 
   users = {
     users.${inventory.user.name} = {

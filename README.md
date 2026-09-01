@@ -171,7 +171,7 @@ export NIX_CONFIG='experimental-features = nix-command flakes'
 3. Evaluate and build before touching storage:
 
    ```bash
-   nix flake check
+   nix flake check --no-build
    nix build .#nixosConfigurations.pang14.config.system.build.toplevel
    ```
 

@@ -44,14 +44,27 @@
     }:
     let
       inventory = import ./lib/inventory.nix;
-      inherit (inventory.host) system;
-      hostName = inventory.host.name;
+      hostName = "pang14";
+      host = inventory.hosts.${hostName};
+      inherit (host) system;
       pkgs = import nixpkgs { inherit system; };
     in
     {
+      nixosModules = {
+        base = ./modules/nixos/base.nix;
+        gnome = ./modules/nixos/desktop-gnome.nix;
+      };
+
       nixosConfigurations.${hostName} = nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit inputs inventory; };
+        specialArgs = {
+          inherit
+            host
+            hostName
+            inputs
+            inventory
+            ;
+        };
         modules = [
           disko.nixosModules.disko
           home-manager.nixosModules.home-manager

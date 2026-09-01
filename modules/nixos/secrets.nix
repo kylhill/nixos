@@ -14,14 +14,17 @@ in
 
     secrets = {
       "user/password-hash".neededForUsers = true;
-      "wireguard/private-key".mode = "0400";
-      "wireguard/preshared-key".mode = "0400";
+      "wireguard/private-key" = {
+        mode = "0400";
+        restartUnits = [ "nm-file-secret-agent.service" ];
+      };
+      "wireguard/preshared-key" = {
+        mode = "0400";
+        restartUnits = [ "nm-file-secret-agent.service" ];
+      };
       ${wifiSecretName} = {
         mode = "0400";
-        restartUnits = [
-          "prepare-networkmanager-wifi-environment.service"
-          "NetworkManager-ensure-profiles.service"
-        ];
+        restartUnits = [ "nm-file-secret-agent.service" ];
       };
       "ssh/private-key" = {
         owner = inventory.user.name;

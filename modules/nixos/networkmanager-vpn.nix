@@ -20,13 +20,13 @@ let
     };
 
     wireguard = {
-      private-key = "$WIREGUARD_PRIVATE_KEY";
+      private-key-flags = 1;
       peer-routes = true;
     };
 
     "wireguard-peer.${profile.publicKey}" = {
       inherit (profile) endpoint;
-      preshared-key = "$WIREGUARD_PRESHARED_KEY";
+      preshared-key-flags = 1;
       persistent-keepalive = 25;
       allowed-ips = "0.0.0.0/0;::/0;";
     };
@@ -44,25 +44,32 @@ let
   };
 in
 {
-  sops.templates."networkmanager-wireguard.env" = {
-    content = ''
-      WIREGUARD_PRIVATE_KEY=${config.sops.placeholder."wireguard/private-key"}
-      WIREGUARD_PRESHARED_KEY=${config.sops.placeholder."wireguard/preshared-key"}
-    '';
-    mode = "0400";
-    restartUnits = [ "NetworkManager-ensure-profiles.service" ];
-  };
-
   networking.networkmanager.ensureProfiles = {
-    environmentFiles = [ config.sops.templates."networkmanager-wireguard.env".path ];
     profiles = lib.listToAttrs (
       map (profile: lib.nameValuePair profile.connection.profileName (mkWireGuardProfile profile)) (
         builtins.attrValues wg
       )
     );
+
+    secrets.entries = lib.concatMap (profile: [
+      {
+        matchId = profile.connection.id;
+        matchType = "wireguard";
+        matchSetting = "wireguard";
+        key = "private-key";
+        file = config.sops.secrets."wireguard/private-key".path;
+      }
+      {
+        matchId = profile.connection.id;
+        matchType = "wireguard";
+        matchSetting = "wireguard-peer.${profile.publicKey}";
+        key = "preshared-key";
+        file = config.sops.secrets."wireguard/preshared-key".path;
+      }
+    ]) (builtins.attrValues wg);
   };
 
-  systemd.services.NetworkManager-ensure-profiles = {
+  systemd.services.nm-file-secret-agent = {
     after = [ "sops-install-secrets.service" ];
     requires = [ "sops-install-secrets.service" ];
   };
