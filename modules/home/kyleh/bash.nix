@@ -14,7 +14,7 @@
     sessionPath = [ "$HOME/.local/bin" ];
     sessionVariables = {
       PAGER = "less";
-      NH_FLAKE = "$HOME/nixos";
+      SOPS_AGE_KEY_FILE = "$HOME/.config/sops/age/keys.txt";
     };
 
     packages = with pkgs; [
