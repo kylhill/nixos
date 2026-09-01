@@ -28,7 +28,7 @@
     nftables.enable = true;
   };
 
-  time.timeZone = "America/Chicago";
+  time.timeZone = inventory.host.timeZone;
 
   users = {
     users.${inventory.user.name} = {

@@ -16,11 +16,8 @@
     };
 
     packages = with pkgs; [
-      ansible
-      ansible-lint
       shellcheck
       sops
-      universal-ctags
       unzip
     ];
   };

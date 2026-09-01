@@ -1,4 +1,8 @@
-{ lib, ... }:
+{ inventory, lib, ... }:
+let
+  hosts = inventory.network.hosts;
+  identityFile = "${inventory.user.sshDirectory}/id_ed25519";
+in
 {
   systemd.user.tmpfiles.rules = [ "d %h/.cache/ssh 0700 - - -" ];
 
@@ -6,14 +10,14 @@
     enable = true;
     enableDefaultConfig = false;
     settings = {
-      syntax.HostName = "syntax.tacomafia.net";
-      gateway.HostName = "gateway.l.tacomafia.net";
-      oci.HostName = "oci.vpn.tacomafia.net";
+      syntax.HostName = hosts.syntax.fqdn;
+      gateway.HostName = hosts.gateway.fqdn;
+      oci.HostName = hosts.oci.fqdn;
 
       "htpc htpc? kvm wap wap? sw-16".HostName = "%h.l.tacomafia.net";
 
       trusted = lib.hm.dag.entryBefore [ "root-hosts" ] {
-        header = "Host syntax syntax.tacomafia.net syntax.l.tacomafia.net gateway gateway.tacomafia.net gateway.*.tacomafia.net oci oci.tacomafia.net oci.vpn.tacomafia.net 192.168.1.30 192.168.?.1 192.168.6.6";
+        header = "Host syntax ${hosts.syntax.fqdn} syntax.l.tacomafia.net gateway gateway.tacomafia.net ${hosts.gateway.fqdn} gateway.*.tacomafia.net oci oci.tacomafia.net ${hosts.oci.fqdn} 192.168.1.30 192.168.?.1 192.168.6.6";
         AddKeysToAgent = "yes";
         ForwardAgent = true;
         KbdInteractiveAuthentication = false;
@@ -42,17 +46,17 @@
       };
 
       "github.com" = {
-        IdentityFile = "~/.ssh/id_ed25519";
+        IdentityFile = identityFile;
         IdentitiesOnly = true;
         User = "git";
       };
 
-      "git.tacomafia.net" = {
-        IdentityFile = "~/.ssh/id_ed25519";
+      ${hosts.git.fqdn} = {
+        IdentityFile = identityFile;
         IdentitiesOnly = true;
         KbdInteractiveAuthentication = false;
         PasswordAuthentication = false;
-        Port = 2222;
+        Port = hosts.git.port;
         StrictHostKeyChecking = "accept-new";
         User = "git";
       };
@@ -64,10 +68,10 @@
         ControlPersist = "10m";
         ForwardAgent = false;
         HashKnownHosts = true;
-        IdentityFile = "~/.ssh/id_ed25519";
+        IdentityFile = identityFile;
         ServerAliveCountMax = 3;
         ServerAliveInterval = 60;
-        User = "kyleh";
+        User = inventory.user.name;
       };
     };
   };

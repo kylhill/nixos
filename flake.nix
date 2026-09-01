@@ -44,11 +44,12 @@
     }:
     let
       inventory = import ./lib/inventory.nix;
-      system = "x86_64-linux";
+      inherit (inventory.host) system;
+      hostName = inventory.host.name;
       pkgs = import nixpkgs { inherit system; };
     in
     {
-      nixosConfigurations.pang14 = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.${hostName} = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit inputs inventory; };
         modules = [
@@ -64,7 +65,7 @@
       };
 
       checks.${system} = {
-        pang14 = self.nixosConfigurations.pang14.config.system.build.toplevel;
+        ${hostName} = self.nixosConfigurations.${hostName}.config.system.build.toplevel;
 
         formatting = pkgs.runCommand "nixfmt-check" { nativeBuildInputs = [ pkgs.nixfmt ]; } ''
           find ${self} -name '*.nix' -exec nixfmt --check {} +

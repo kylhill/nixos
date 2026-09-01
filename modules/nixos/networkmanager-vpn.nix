@@ -10,46 +10,38 @@ let
   ipv4Address = addresses: lib.findFirst (address: !(lib.hasInfix ":" address)) null addresses;
   ipv6Address = addresses: lib.findFirst (address: lib.hasInfix ":" address) null addresses;
 
-  mkWireGuardProfile =
-    {
-      interfaceName,
-      name,
-      uuid,
-      profile,
-    }:
-    {
-      connection = {
-        id = name;
-        inherit uuid;
-        type = "wireguard";
-        interface-name = interfaceName;
-        autoconnect = false;
-        permissions = "";
-      };
-
-      wireguard = {
-        private-key = "$WIREGUARD_PRIVATE_KEY";
-        peer-routes = true;
-      };
-
-      "wireguard-peer.${profile.publicKey}" = {
-        inherit (profile) endpoint;
-        preshared-key = "$WIREGUARD_PRESHARED_KEY";
-        persistent-keepalive = 25;
-        allowed-ips = "0.0.0.0/0;::/0;";
-      };
-
-      ipv4 = {
-        method = "manual";
-        address1 = ipv4Address profile.pang14Addresses;
-        dns = "${profile.dns};";
-      };
-
-      ipv6 = {
-        method = "manual";
-        address1 = ipv6Address profile.pang14Addresses;
-      };
+  mkWireGuardProfile = profile: {
+    connection = {
+      inherit (profile.connection) id uuid;
+      type = "wireguard";
+      interface-name = profile.connection.interfaceName;
+      autoconnect = false;
+      permissions = "";
     };
+
+    wireguard = {
+      private-key = "$WIREGUARD_PRIVATE_KEY";
+      peer-routes = true;
+    };
+
+    "wireguard-peer.${profile.publicKey}" = {
+      inherit (profile) endpoint;
+      preshared-key = "$WIREGUARD_PRESHARED_KEY";
+      persistent-keepalive = 25;
+      allowed-ips = "0.0.0.0/0;::/0;";
+    };
+
+    ipv4 = {
+      method = "manual";
+      address1 = ipv4Address profile.addresses;
+      dns = "${profile.dns};";
+    };
+
+    ipv6 = {
+      method = "manual";
+      address1 = ipv6Address profile.addresses;
+    };
+  };
 in
 {
   sops.templates."networkmanager-wireguard.env" = {
@@ -63,20 +55,11 @@ in
 
   networking.networkmanager.ensureProfiles = {
     environmentFiles = [ config.sops.templates."networkmanager-wireguard.env".path ];
-    profiles = {
-      wg-home = mkWireGuardProfile {
-        interfaceName = "wg-home";
-        name = "Home VPN";
-        uuid = "40896239-b793-49b6-9f20-ee12ca3f374b";
-        profile = wg.gateway;
-      };
-      wg-oci = mkWireGuardProfile {
-        interfaceName = "wg-oci";
-        name = "OCI VPN";
-        uuid = "289ad1ab-7ac6-4a68-aff5-8d07a007d7c1";
-        profile = wg.oci;
-      };
-    };
+    profiles = lib.listToAttrs (
+      map (profile: lib.nameValuePair profile.connection.profileName (mkWireGuardProfile profile)) (
+        builtins.attrValues wg
+      )
+    );
   };
 
   systemd.services.NetworkManager-ensure-profiles = {

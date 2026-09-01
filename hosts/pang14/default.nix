@@ -18,8 +18,8 @@
   ];
 
   networking = {
-    hostName = "pang14";
-    hostId = "ab5f3534";
+    hostName = inventory.host.name;
+    hostId = inventory.host.id;
   };
 
   boot.loader = {

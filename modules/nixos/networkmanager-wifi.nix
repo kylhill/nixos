@@ -13,7 +13,7 @@ let
     name = "prepare-networkmanager-wifi-environment";
     runtimeInputs = [ pkgs.coreutils ];
     text = ''
-      password=$(< ${lib.escapeShellArg config.sops.secrets."wifi/tacomafia-lan-password".path})
+      password=$(< ${lib.escapeShellArg config.sops.secrets.${wifi.secretName}.path})
       temporary=$(mktemp /run/networkmanager-profile-secrets/wifi.env.XXXXXX)
       trap 'rm -f "$temporary"' EXIT
 
@@ -29,10 +29,9 @@ in
 {
   networking.networkmanager.ensureProfiles = {
     environmentFiles = [ environmentFile ];
-    profiles.tacomafia_LAN = {
+    profiles.${wifi.connection.profileName} = {
       connection = {
-        id = wifi.ssid;
-        inherit (wifi) uuid;
+        inherit (wifi.connection) id uuid;
         type = "wifi";
         autoconnect = true;
         permissions = "";

@@ -10,8 +10,6 @@
     vimAlias = true;
     withRuby = false;
 
-    # Nixvim intentionally follows the repository's main nixpkgs input. Make
-    # that choice explicit so Nixvim does not warn that its default changed.
     nixpkgs.source = inputs.nixpkgs.outPath;
 
     globals = {

@@ -3,6 +3,10 @@
   inventory,
   ...
 }:
+let
+  wifiSecretName = inventory.network.wifi.tacomafiaLan.secretName;
+  sshDirectory = inventory.user.sshDirectory;
+in
 {
   sops = {
     defaultSopsFormat = "yaml";
@@ -12,7 +16,7 @@
       "user/password-hash".neededForUsers = true;
       "wireguard/private-key".mode = "0400";
       "wireguard/preshared-key".mode = "0400";
-      "wifi/tacomafia-lan-password" = {
+      ${wifiSecretName} = {
         mode = "0400";
         restartUnits = [
           "prepare-networkmanager-wifi-environment.service"
@@ -23,13 +27,13 @@
         owner = inventory.user.name;
         group = "users";
         mode = "0600";
-        path = "/home/${inventory.user.name}/.ssh/id_ed25519";
+        path = "${sshDirectory}/id_ed25519";
       };
       "ssh/public-key" = {
         owner = inventory.user.name;
         group = "users";
         mode = "0644";
-        path = "/home/${inventory.user.name}/.ssh/id_ed25519.pub";
+        path = "${sshDirectory}/id_ed25519.pub";
       };
     };
   };
