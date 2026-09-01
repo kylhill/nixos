@@ -29,13 +29,16 @@ identity for `pang14`. Private identities never belong in Git or the Nix store.
    sops secrets/pang14.yaml
    ```
 
-   Enter the password hash, WireGuard keys, and shared SSH key pair using this
-   structure. Generate the password hash with `openssl passwd -6`. Never paste
-   private values into chat or an unencrypted file.
+   Enter the password hash, Wi-Fi password, WireGuard keys, and shared SSH key
+   pair using this structure. Generate the password hash with
+   `openssl passwd -6`. Never paste private values into chat or an unencrypted
+   file.
 
    ```yaml
    user:
      password-hash: "$6$..."
+   wifi:
+     tacomafia-lan-password: "..."
    wireguard:
      private-key: "..."
      preshared-key: "..."

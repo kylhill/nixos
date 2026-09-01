@@ -10,6 +10,11 @@
   };
 
   network = {
+    wifi.tacomafiaLan = {
+      ssid = "tacomafia_LAN";
+      uuid = "a9830c88-7236-4ee1-8ffa-2302b6f604af";
+    };
+
     wireguard = {
       gateway = {
         endpoint = "wg.tacomafia.net:53410";

@@ -14,6 +14,7 @@ in
     ../../modules/nixos/desktop-gnome.nix
     ../../modules/nixos/laptop.nix
     ../../modules/nixos/networkmanager-vpn.nix
+    ../../modules/nixos/networkmanager-wifi.nix
     ../../modules/nixos/secrets.nix
     ../../modules/nixos/storage-zfs.nix
   ];

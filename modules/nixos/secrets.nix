@@ -20,7 +20,8 @@ in
     {
       warnings = lib.optional (!cfg.enable) ''
         pang14 secrets are not provisioned. The login password remains mutable and
-        WireGuard profiles are disabled. Follow secrets/README.md before installation.
+        Wi-Fi and WireGuard profiles are disabled. Follow secrets/README.md before
+        installation.
       '';
     }
 
@@ -45,6 +46,9 @@ in
             mode = "0400";
           };
           "wireguard/preshared-key" = {
+            mode = "0400";
+          };
+          "wifi/tacomafia-lan-password" = {
             mode = "0400";
           };
           "ssh/private-key" = {

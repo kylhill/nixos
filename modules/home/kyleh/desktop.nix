@@ -49,6 +49,7 @@
     "org/gnome/desktop/interface" = {
       clock-format = "12h";
       color-scheme = "prefer-dark";
+      monospace-font-name = "CaskaydiaCove Nerd Font Mono 11";
       show-battery-percentage = true;
     };
 
@@ -61,7 +62,11 @@
 
     "org/gnome/desktop/screensaver".lock-delay = 0;
     "org/gnome/desktop/sound".event-sounds = false;
-    "org/gnome/desktop/wm/keybindings".show-desktop = [ "<Super>d" ];
+    "org/gnome/desktop/wm/keybindings" = {
+      minimize = [ ];
+      show-desktop = [ "<Super>d" ];
+    };
+    "org/gnome/desktop/wm/preferences".button-layout = "appmenu:minimize,close";
     "org/gnome/nautilus/preferences".default-folder-viewer = "list-view";
 
     "org/gnome/settings-daemon/plugins/media-keys" = {
