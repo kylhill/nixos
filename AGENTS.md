@@ -9,11 +9,22 @@ keep repository-wide rules here.
 - This repository is the declarative source of truth for the `pang14` NixOS
   host. Prefer changing this repository over making imperative changes to the
   live system.
+- Treat `pang14` as the first host in a future heterogeneous fleet. Preserve
+  enough framework structure to support additional laptops and desktops, NAS
+  and homelab servers, VPSes, and gateway routers without copying whole host
+  configurations or forcing unrelated host classes through laptop-specific
+  assumptions.
 - `flake.nix` composes NixOS, Home Manager, Disko, sops-nix, nixos-hardware,
   and Nixvim. The primary output is `nixosConfigurations.pang14`.
 - Keep host composition and hardware-specific settings in `hosts/pang14/`.
   Put reusable system configuration in `modules/nixos/`, user configuration in
   `modules/home/kyleh/`, and non-secret shared data in `lib/inventory.nix`.
+- Prefer small reusable capability or role modules that hosts compose
+  explicitly. Keep host identity and per-host values in inventory or the host
+  subtree, and keep role-specific policy out of a universal base module. Add a
+  shared abstraction when it has a credible use across multiple hosts or host
+  classes; do not remove an existing useful abstraction merely because only
+  `pang14` consumes it today.
 - Home Manager is integrated into the NixOS configuration. Do not introduce a
   separate Home Manager activation workflow.
 

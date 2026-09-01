@@ -1,8 +1,17 @@
 # NixOS infrastructure
 
 Flake-based NixOS and Home Manager configuration, beginning with the System76
-Pangolin 14 (`pang14`) and structured for later migration of the OCI VPS,
-gateway, NAS/application server, and other hosts from `~/infra`.
+Pangolin 14 (`pang14`) and intended to grow into a heterogeneous fleet of
+laptops and desktops, NAS and homelab servers, VPSes, and gateway routers.
+Reusable capability and role modules should make that expansion possible
+without copying complete host configurations, while host composition and
+hardware-specific policy remain explicit under `hosts/`.
+
+The existing OCI VPS, gateway, NAS/application server, and other hosts in
+`~/infra` can be migrated incrementally. Framework abstractions are retained
+when they represent credible reuse across future hosts or host classes; the
+repository does not require every abstraction to have a second consumer before
+those migrations begin.
 
 The flake exposes `nixosConfigurations.pang14`. Home Manager is integrated into
 that system configuration, so system and user changes activate together.
