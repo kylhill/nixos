@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")"
-exec nix flake update
+repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+export NIX_CONFIG="${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flakes'
+
+cd "$repo_dir"
+nix flake update
+nix flake check
+
+echo
+git --no-pager diff --stat -- flake.lock
+echo
+echo "Inputs updated and validated. Review with: git diff -- flake.lock"
+echo "Then test with: ./apply.sh test"

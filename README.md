@@ -25,24 +25,32 @@ Nixvim.
 Test a generation without making it the boot default:
 
 ```bash
-nh os test .#pang14
+./apply.sh test
 ```
 
 Build, activate, and make it the boot default:
 
 ```bash
-nh os switch .#pang14
+./apply.sh
 ```
+
+`apply.sh` first runs `nix flake check`, then invokes `nixos-rebuild` for the
+integrated NixOS and Home Manager configuration. It accepts `build`, `boot`,
+`switch`, or `test`, defaulting to `switch`, and does not depend on `nh`.
 
 Update pinned inputs explicitly, inspect the lock-file diff, then test and
 switch:
 
 ```bash
-nix flake update
+./update.sh
 git diff -- flake.lock
-nh os test .#pang14
-nh os switch .#pang14
+./apply.sh test
+./apply.sh
 ```
+
+`update.sh` updates `flake.lock` and runs `nix flake check`, but deliberately
+does not activate the result. Commit the reviewed lock file together with any
+related configuration changes.
 
 Activate the on-demand WireGuard profiles after secrets are provisioned:
 
@@ -84,6 +92,13 @@ partition is the hibernation resume device.
 These steps intentionally separate verification, destructive formatting, and
 installation. Run them from a NixOS 26.05 installer booted in UEFI mode.
 
+The live installer may not enable flakes globally. Set this once in its shell;
+commands run through `sudo` below pass it explicitly where needed:
+
+```bash
+export NIX_CONFIG='experimental-features = nix-command flakes'
+```
+
 1. Complete [the secrets bootstrap](secrets/README.md), commit the encrypted
    files, and back up the private age identities and recovered WireGuard keys.
 
@@ -106,7 +121,8 @@ installation. Run them from a NixOS 26.05 installer booted in UEFI mode.
 4. Destroy, format, and mount only the declared Kingston target:
 
    ```bash
-   sudo nix run .#disko -- --mode destroy,format,mount ./hosts/pang14/disko.nix
+   sudo env NIX_CONFIG="$NIX_CONFIG" nix run .#disko -- \
+     --mode destroy,format,mount ./hosts/pang14/disko.nix
    ```
 
 5. Provision and verify the host age identity in the mounted `rpool/var`.
@@ -130,15 +146,10 @@ installation. Run them from a NixOS 26.05 installer booted in UEFI mode.
 7. Install and reboot:
 
    ```bash
-   sudo nixos-install --flake .#pang14 --no-root-passwd
+   sudo env NIX_CONFIG="$NIX_CONFIG" \
+     nixos-install --flake .#pang14 --no-root-passwd
    sudo reboot
    ```
-
-If secrets were deliberately omitted, set the `kyleh` password before reboot:
-
-```bash
-sudo nixos-enter --root /mnt -c 'passwd kyleh'
-```
 
 ## Post-install verification
 

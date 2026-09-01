@@ -15,9 +15,9 @@ identity for `pang14`. Private identities never belong in Git or the Nix store.
    ```bash
    install -d -m 0700 ~/.config/sops/age
    age-keygen -o ~/.config/sops/age/keys.txt
-   age-keygen -o /secure/location/pang14.age
+   age-keygen -o /secure/location/pang14-host.txt
    age-keygen -y ~/.config/sops/age/keys.txt
-   age-keygen -y /secure/location/pang14.age
+   age-keygen -y /secure/location/pang14-host.txt
    ```
 
 3. Copy `.sops.yaml.example` to `.sops.yaml`, replace both public recipients,
