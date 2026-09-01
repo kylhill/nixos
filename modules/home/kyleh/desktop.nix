@@ -1,6 +1,20 @@
-_: {
-  home.sessionVariables = {
-    ELECTRON_OZONE_PLATFORM_HINT = "auto";
+{ pkgs, ... }:
+{
+  home = {
+    packages = with pkgs; [
+      hunspell
+      hunspellDicts.en_US
+      libreoffice
+    ];
+
+    sessionVariables = {
+      ELECTRON_OZONE_PLATFORM_HINT = "auto";
+    };
+  };
+
+  services.nextcloud-client = {
+    enable = true;
+    startInBackground = true;
   };
 
   programs = {

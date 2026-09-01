@@ -29,7 +29,10 @@ _: {
     };
   };
 
-  powerManagement.powertop.enable = true;
+  # system76-power already manages the laptop's power policy. Keep Powertop's
+  # blanket auto-tuning disabled unless later testing shows a clear benefit
+  # without introducing device or suspend regressions.
+  powerManagement.powertop.enable = false;
 
   systemd.sleep.settings.Sleep = {
     AllowHibernation = "yes";

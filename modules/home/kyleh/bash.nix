@@ -8,6 +8,7 @@
   home = {
     file = {
       ".hushlogin".text = "";
+      "infra/.envrc".text = "use flake ~/nixos#infra";
     };
 
     sessionVariables = {
@@ -17,6 +18,7 @@
     };
 
     packages = with pkgs; [
+      dnsutils
       shellcheck
       sops
       unzip

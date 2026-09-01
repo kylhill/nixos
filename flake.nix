@@ -134,5 +134,12 @@
           statix
         ];
       };
+
+      devShells.${system}.infra = pkgs.mkShellNoCC {
+        packages = with pkgs; [
+          ansible
+          ansible-lint
+        ];
+      };
     };
 }
