@@ -62,7 +62,7 @@ _: {
           mountpoint = "/";
           options = {
             mountpoint = "legacy";
-            "com.sun:auto-snapshot" = "true";
+            "com.sun:auto-snapshot" = "false";
           };
         };
 
@@ -89,7 +89,7 @@ _: {
           mountpoint = "/var";
           options = {
             mountpoint = "legacy";
-            "com.sun:auto-snapshot" = "true";
+            "com.sun:auto-snapshot" = "false";
           };
         };
       };

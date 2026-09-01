@@ -131,8 +131,9 @@ must not be modified.
 
 Disko creates a 2 GB EFI system partition, 40 GB resume swap, and a ZFS `rpool`
 using the remaining space. Persistent datasets back `/`, `/nix`, `/home`, and
-`/var`. Root, home, and var retain 24 hourly, 7 daily, 4 weekly, and 3 monthly
-snapshots; `/nix` is excluded. ZFS trim runs weekly and scrub runs monthly.
+`/var`. Home retains 24 hourly, 7 daily, 4 weekly, and 3 monthly snapshots;
+root, `/nix`, and `/var` are excluded. ZFS trim runs weekly and scrub runs
+monthly.
 
 ZRAM is disabled. Kernel zswap uses zstd and zsmalloc as a compressed cache in
 front of the persistent swap partition, capped at 20% of RAM. The same 40 GB
@@ -231,7 +232,20 @@ Expected results:
 ZFS snapshots are rollback aids, not backups. Off-host laptop backup is deferred
 to a later reusable backup module.
 
-## Deferred hardening
+## Outstanding storage work
+
+- Update the existing pool to match the home-only snapshot policy after
+  activating this configuration:
+
+  ```bash
+  sudo zfs set com.sun:auto-snapshot=false rpool/root
+  sudo zfs set com.sun:auto-snapshot=false rpool/var
+  sudo zfs set com.sun:auto-snapshot=true rpool/home
+  ```
+
+  These commands change snapshot eligibility but do not delete existing root
+  or var snapshots. Inventory and prune those separately before considering
+  the migration complete.
 
 - Add LUKS encryption for both the ZFS system pool and the persistent
   hibernation swap during a planned destructive storage migration.
