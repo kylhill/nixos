@@ -1,4 +1,17 @@
-# Keep repository work sandboxed while allowing explicit project rules to
-# authorize the narrow checks that need the system Nix daemon.
+# Keep repository work sandboxed while allowing access to the system Nix
+# daemon used by this repository's evaluation and lint checks.
 approval_policy = "on-request"
-sandbox_mode = "workspace-write"
+default_permissions = "nixos"
+
+[features]
+network_proxy = true
+
+[permissions.nixos]
+description = "Workspace access plus the shared Nix daemon socket."
+extends = ":workspace"
+
+[permissions.nixos.network]
+enabled = true
+
+[permissions.nixos.network.unix_sockets]
+"/nix/var/nix/daemon-socket/socket" = "allow"

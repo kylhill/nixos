@@ -29,6 +29,7 @@
 
     # The System76 power daemon is enabled by the generic hardware module.
     power-profiles-daemon.enable = lib.mkForce false;
+    system76-scheduler.enable = true;
   };
 
   powerManagement = {

@@ -42,6 +42,7 @@ in
         wifi = {
           mode = "infrastructure";
           inherit (wifi) ssid;
+          powersave = 3;
         };
 
         wifi-security = {

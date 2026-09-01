@@ -11,7 +11,7 @@
         id = 0;
         isDefault = true;
         settings = {
-          "browser.tabs.warnOnClose" = true;
+          "browser.backspace_action" = 0;
           "media.ffmpeg.vaapi.enabled" = true;
           "widget.use-xdg-desktop-portal.file-picker" = 1;
         };
