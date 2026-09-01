@@ -134,15 +134,16 @@ Only this device is a valid destructive target:
 The WD Blue SN580 with serial `24144M801597` contains Windows and Ubuntu and
 must not be modified.
 
-Disko creates a 2 GB EFI system partition, 40 GB resume swap, and a ZFS `rpool`
+Disko creates a 2 GB EFI system partition, 40 GB swap partition, and a ZFS `rpool`
 using the remaining space. Persistent datasets back `/`, `/nix`, `/home`, and
 `/var`. Home retains 24 hourly, 7 daily, 4 weekly, and 3 monthly snapshots;
 root, `/nix`, and `/var` are excluded. ZFS trim runs weekly and scrub runs
 monthly.
 
 ZRAM is disabled. Kernel zswap uses zstd and zsmalloc as a compressed cache in
-front of the persistent swap partition, capped at 20% of RAM. The same 40 GB
-partition is the hibernation resume device.
+front of the persistent 40 GB swap partition, capped at 20% of RAM. The laptop
+uses ordinary suspend; hibernation remains disabled because it is unsafe with
+the ZFS system pool.
 
 ## Fresh installation
 
@@ -232,7 +233,7 @@ Expected results:
 - The desktop session type is `wayland`. Xwayland may run when an application
   needs the compatibility fallback.
 - Firefox and VS Code launch natively on Wayland.
-- Suspend-then-hibernate resumes with applications intact.
+- Suspend and resume preserve the desktop session.
 - Windows and Ubuntu remain bootable from the firmware boot menu.
 
 ZFS snapshots are rollback aids, not backups. Off-host laptop backup is deferred
@@ -253,7 +254,7 @@ to a later reusable backup module.
   or var snapshots. Inventory and prune those separately before considering
   the migration complete.
 
-- Add LUKS encryption for both the ZFS system pool and the persistent
-  hibernation swap during a planned destructive storage migration.
+- Add LUKS encryption for both the ZFS system pool and the persistent swap
+  partition during a planned destructive storage migration.
 - Add encrypted, automated off-host backups with monitoring and periodic
   restore tests.

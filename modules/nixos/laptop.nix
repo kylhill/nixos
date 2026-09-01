@@ -6,25 +6,11 @@ _: {
   };
 
   services = {
-    avahi = {
-      enable = true;
-      nssmdns4 = true;
-      openFirewall = true;
-    };
-
     fwupd.enable = true;
-    printing.enable = true;
-
-    pipewire = {
-      enable = true;
-      alsa.enable = true;
-      alsa.support32Bit = true;
-      pulse.enable = true;
-    };
 
     logind.settings.Login = {
-      HandleLidSwitch = "suspend-then-hibernate";
-      HandleLidSwitchExternalPower = "suspend-then-hibernate";
+      HandleLidSwitch = "suspend";
+      HandleLidSwitchExternalPower = "suspend";
       HandleLidSwitchDocked = "ignore";
     };
   };
@@ -33,10 +19,4 @@ _: {
   # blanket auto-tuning disabled unless later testing shows a clear benefit
   # without introducing device or suspend regressions.
   powerManagement.powertop.enable = false;
-
-  systemd.sleep.settings.Sleep = {
-    AllowHibernation = "yes";
-    AllowSuspendThenHibernate = "yes";
-    HibernateDelaySec = "2h";
-  };
 }

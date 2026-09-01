@@ -22,7 +22,6 @@ _: {
             size = "40G";
             content = {
               type = "swap";
-              resumeDevice = true;
               discardPolicy = "both";
             };
           };

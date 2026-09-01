@@ -1,5 +1,5 @@
 {
-  inputs,
+  nixpkgsSource,
   pkgs,
   ...
 }:
@@ -10,7 +10,7 @@
     vimAlias = true;
     withRuby = false;
 
-    nixpkgs.source = inputs.nixpkgs.outPath;
+    nixpkgs.source = nixpkgsSource;
 
     globals = {
       loaded_node_provider = 0;

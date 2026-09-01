@@ -1,28 +1,30 @@
 {
   host,
   hostName,
-  inputs,
-  inventory,
+  nixosModules,
   pkgs,
+  system76HardwareModule,
   ...
 }:
 {
   imports = [
     ./disko.nix
     ./hardware.nix
-    ../../modules/nixos/base.nix
-    ../../modules/nixos/desktop-gnome.nix
-    ../../modules/nixos/laptop.nix
-    ../../modules/nixos/networkmanager-vpn.nix
-    ../../modules/nixos/networkmanager-wifi.nix
-    ../../modules/nixos/secrets.nix
-    ../../modules/nixos/storage-zfs.nix
-    ../../modules/nixos/system76.nix
+    system76HardwareModule
+    nixosModules.base
+    nixosModules.laptop
+    nixosModules.networkmanager-vpn
+    nixosModules.networkmanager-wifi
+    nixosModules.secrets
+    nixosModules.workstation-zfs
+    nixosModules.system76
+    nixosModules.user-kyleh
+    nixosModules.workstation
   ];
 
   networking = {
     inherit hostName;
-    hostId = host.id;
+    inherit (host) hostId;
   };
 
   boot.loader = {
@@ -37,21 +39,7 @@
 
   sops.defaultSopsFile = ../../secrets/pang14.yaml;
 
-  fonts.packages = [ pkgs.nerd-fonts.caskaydia-cove ];
+  system.stateVersion = "26.05";
 
-  home-manager = {
-    useGlobalPkgs = true;
-    useUserPackages = true;
-    backupFileExtension = "hm-backup";
-    extraSpecialArgs = {
-      inherit
-        host
-        hostName
-        inputs
-        inventory
-        ;
-    };
-    sharedModules = [ inputs.nix-index-database.homeModules.default ];
-    users.${inventory.user.name} = import ../../modules/home/kyleh;
-  };
+  fonts.packages = [ pkgs.nerd-fonts.caskaydia-cove ];
 }

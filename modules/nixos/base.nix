@@ -1,6 +1,5 @@
 {
   host,
-  inventory,
   pkgs,
   ...
 }:
@@ -28,29 +27,7 @@
 
   nixpkgs.config.allowUnfree = true;
 
-  networking = {
-    networkmanager.enable = true;
-    nftables.enable = true;
-  };
-
   time.timeZone = host.timeZone;
-
-  users = {
-    users.${inventory.user.name} = {
-      isNormalUser = true;
-      uid = inventory.user.uid;
-      description = inventory.user.fullName;
-      extraGroups = [
-        "dialout"
-        "networkmanager"
-        "video"
-        "wheel"
-      ];
-      openssh.authorizedKeys.keys = [ inventory.user.sshPublicKey ];
-    };
-  };
-
-  security.rtkit.enable = true;
 
   environment.systemPackages = with pkgs; [
     curl
@@ -62,9 +39,6 @@
     nvme-cli
     powertop
     rsync
-    wireguard-tools
     wget
   ];
-
-  system.stateVersion = "26.05";
 }

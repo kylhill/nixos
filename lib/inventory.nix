@@ -5,7 +5,7 @@ in
 {
   hosts = {
     pang14 = {
-      id = "ab5f3534";
+      hostId = "ab5f3534";
       system = "x86_64-linux";
       timeZone = "America/Chicago";
     };

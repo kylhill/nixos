@@ -1,6 +1,6 @@
 {
   config,
-  inputs,
+  dircolorsSolarized,
   pkgs,
   ...
 }:
@@ -47,7 +47,7 @@
     dircolors = {
       enable = true;
       enableBashIntegration = true;
-      extraConfig = builtins.readFile (inputs.dircolors-solarized + "/dircolors.256dark");
+      extraConfig = builtins.readFile (dircolorsSolarized + "/dircolors.256dark");
     };
 
     fd.enable = true;

@@ -13,7 +13,6 @@
     username = inventory.user.name;
     homeDirectory = inventory.user.homeDirectory;
     preferXdgDirectories = true;
-    stateVersion = "26.05";
   };
 
   programs.home-manager.enable = true;
