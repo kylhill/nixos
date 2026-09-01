@@ -32,6 +32,7 @@
       less
       ripgrep
       shellcheck
+      sops
       universal-ctags
       unzip
     ];
