@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-{
+_: {
   home.sessionVariables = {
     ELECTRON_OZONE_PLATFORM_HINT = "auto";
   };
@@ -18,11 +17,7 @@
       };
     };
 
-    vscode = {
-      enable = true;
-      package = pkgs.vscode;
-      mutableExtensionsDir = true;
-    };
+    vscode.enable = true;
   };
 
   xdg = {

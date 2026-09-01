@@ -43,16 +43,14 @@
       ...
     }:
     let
+      inventory = import ./lib/inventory.nix;
       system = "x86_64-linux";
-      pkgs = import nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
-      };
+      pkgs = import nixpkgs { inherit system; };
     in
     {
       nixosConfigurations.pang14 = nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit inputs; };
+        specialArgs = { inherit inputs inventory; };
         modules = [
           disko.nixosModules.disko
           home-manager.nixosModules.home-manager
@@ -86,6 +84,7 @@
         shellcheck = pkgs.runCommand "shellcheck" { nativeBuildInputs = [ pkgs.shellcheck ]; } ''
           shellcheck \
             ${self}/apply.sh \
+            ${self}/test.sh \
             ${self}/update.sh \
             ${self}/scripts/install-host-key \
             ${self}/scripts/install-preflight

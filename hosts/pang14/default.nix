@@ -1,11 +1,9 @@
 {
   inputs,
+  inventory,
   pkgs,
   ...
 }:
-let
-  inventory = import ../../lib/inventory.nix;
-in
 {
   imports = [
     ./disko.nix
@@ -34,12 +32,7 @@ in
     };
   };
 
-  tacomafia.secrets = {
-    enable = true;
-    # Keep this as a Nix path, rather than converting the repository root to a
-    # string, so the encrypted file is an explicit flake/store dependency.
-    file = ../../secrets/pang14.yaml;
-  };
+  sops.defaultSopsFile = ../../secrets/pang14.yaml;
 
   fonts.packages = [ pkgs.nerd-fonts.caskaydia-cove ];
 
@@ -49,10 +42,5 @@ in
     backupFileExtension = "hm-backup";
     extraSpecialArgs = { inherit inputs inventory; };
     users.${inventory.user.name} = import ../../modules/home/kyleh;
-  };
-
-  users.users.${inventory.user.name} = {
-    createHome = true;
-    home = inventory.user.homeDirectory;
   };
 }

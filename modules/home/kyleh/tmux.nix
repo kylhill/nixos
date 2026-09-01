@@ -3,13 +3,9 @@
   programs.tmux = {
     enable = true;
     baseIndex = 1;
-    clock24 = false;
     escapeTime = 0;
     focusEvents = true;
-    keyMode = "emacs";
-    mouse = false;
     prefix = "C-a";
-    sensibleOnTop = false;
     terminal = "tmux-256color";
 
     plugins = with pkgs.tmuxPlugins; [

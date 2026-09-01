@@ -87,13 +87,9 @@
     };
 
     extraPackages = with pkgs; [
-      bash-language-server
-      lua-language-server
-      nixd
       nixfmt
       shellcheck
       stylua
-      yaml-language-server
     ];
 
   };

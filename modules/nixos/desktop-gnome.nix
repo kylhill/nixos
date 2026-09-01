@@ -4,7 +4,6 @@
     displayManager.gdm.enable = true;
     desktopManager.gnome.enable = true;
     xserver.enable = false;
-    gnome.gnome-keyring.enable = true;
   };
 
   programs.xwayland.enable = false;

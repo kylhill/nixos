@@ -20,8 +20,6 @@ _: {
     };
   };
 
-  zramSwap.enable = false;
-
   services.zfs = {
     autoSnapshot = {
       enable = true;

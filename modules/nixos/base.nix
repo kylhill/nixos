@@ -1,10 +1,8 @@
 {
+  inventory,
   pkgs,
   ...
 }:
-let
-  inventory = import ../../lib/inventory.nix;
-in
 {
   nix = {
     settings = {
@@ -28,12 +26,9 @@ in
   networking = {
     networkmanager.enable = true;
     nftables.enable = true;
-    firewall.enable = true;
   };
 
   time.timeZone = "America/Chicago";
-  i18n.defaultLocale = "en_US.UTF-8";
-  console.keyMap = "us";
 
   users = {
     users.${inventory.user.name} = {
@@ -47,19 +42,10 @@ in
         "wheel"
       ];
       openssh.authorizedKeys.keys = [ inventory.user.sshPublicKey ];
-      shell = pkgs.bashInteractive;
     };
   };
 
-  security = {
-    rtkit.enable = true;
-    sudo.wheelNeedsPassword = true;
-  };
-
-  programs = {
-    bash.completion.enable = true;
-    dconf.enable = true;
-  };
+  security.rtkit.enable = true;
 
   environment.systemPackages = with pkgs; [
     curl

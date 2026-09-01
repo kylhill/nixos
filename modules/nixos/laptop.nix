@@ -1,10 +1,7 @@
 { lib, ... }:
 {
   hardware = {
-    bluetooth = {
-      enable = true;
-      powerOnBoot = true;
-    };
+    bluetooth.enable = true;
     enableRedistributableFirmware = true;
     graphics.enable = true;
   };
@@ -12,7 +9,6 @@
   services = {
     fwupd.enable = true;
     printing.enable = true;
-    upower.enable = true;
 
     pipewire = {
       enable = true;
@@ -32,17 +28,11 @@
     system76-scheduler.enable = true;
   };
 
-  powerManagement = {
-    enable = true;
-    powertop.enable = true;
-  };
+  powerManagement.powertop.enable = true;
 
   systemd.sleep.settings.Sleep = {
     AllowHibernation = "yes";
     AllowSuspendThenHibernate = "yes";
     HibernateDelaySec = "2h";
   };
-
-  # The pang14 FocalTech 2808:9348 reader has no upstream libfprint driver.
-  services.fprintd.enable = false;
 }

@@ -1,11 +1,11 @@
 {
   config,
+  inventory,
   lib,
   pkgs,
   ...
 }:
 let
-  inventory = import ../../lib/inventory.nix;
   wifi = inventory.network.wifi.tacomafiaLan;
   environmentFile = "/run/networkmanager-profile-secrets/wifi.env";
 
@@ -27,54 +27,52 @@ let
   };
 in
 {
-  config = lib.mkIf config.tacomafia.secrets.enable {
-    networking.networkmanager.ensureProfiles = {
-      environmentFiles = [ environmentFile ];
-      profiles.tacomafia_LAN = {
-        connection = {
-          id = wifi.ssid;
-          inherit (wifi) uuid;
-          type = "wifi";
-          autoconnect = true;
-          permissions = "";
-        };
+  networking.networkmanager.ensureProfiles = {
+    environmentFiles = [ environmentFile ];
+    profiles.tacomafia_LAN = {
+      connection = {
+        id = wifi.ssid;
+        inherit (wifi) uuid;
+        type = "wifi";
+        autoconnect = true;
+        permissions = "";
+      };
 
-        wifi = {
-          mode = "infrastructure";
-          inherit (wifi) ssid;
-          powersave = 3;
-        };
+      wifi = {
+        mode = "infrastructure";
+        inherit (wifi) ssid;
+        powersave = 3;
+      };
 
-        wifi-security = {
-          key-mgmt = "sae";
-          psk = "$TACOMAFIA_LAN_PASSWORD";
-        };
+      wifi-security = {
+        key-mgmt = "sae";
+        psk = "$TACOMAFIA_LAN_PASSWORD";
+      };
 
-        ipv4.method = "auto";
-        ipv6.method = "auto";
+      ipv4.method = "auto";
+      ipv6.method = "auto";
+    };
+  };
+
+  systemd.services = {
+    prepare-networkmanager-wifi-environment = {
+      description = "Safely encode the Wi-Fi secret for NetworkManager profile generation";
+      after = [ "sops-install-secrets.service" ];
+      requires = [ "sops-install-secrets.service" ];
+      before = [ "NetworkManager-ensure-profiles.service" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        RuntimeDirectory = "networkmanager-profile-secrets";
+        RuntimeDirectoryMode = "0700";
+        UMask = "0077";
+        ExecStart = lib.getExe prepareEnvironment;
       };
     };
 
-    systemd.services = {
-      prepare-networkmanager-wifi-environment = {
-        description = "Safely encode the Wi-Fi secret for NetworkManager profile generation";
-        after = [ "sops-install-secrets.service" ];
-        requires = [ "sops-install-secrets.service" ];
-        before = [ "NetworkManager-ensure-profiles.service" ];
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-          RuntimeDirectory = "networkmanager-profile-secrets";
-          RuntimeDirectoryMode = "0700";
-          UMask = "0077";
-          ExecStart = lib.getExe prepareEnvironment;
-        };
-      };
-
-      NetworkManager-ensure-profiles = {
-        after = [ "prepare-networkmanager-wifi-environment.service" ];
-        requires = [ "prepare-networkmanager-wifi-environment.service" ];
-      };
+    NetworkManager-ensure-profiles = {
+      after = [ "prepare-networkmanager-wifi-environment.service" ];
+      requires = [ "prepare-networkmanager-wifi-environment.service" ];
     };
   };
 }
