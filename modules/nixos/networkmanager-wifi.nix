@@ -1,10 +1,10 @@
 {
   config,
-  inventory,
+  host,
   ...
 }:
 let
-  wifi = inventory.network.wifi.tacomafiaLan;
+  wifi = host.network.wifi.tacomafiaLan;
 in
 {
   networking.networkmanager.ensureProfiles = {

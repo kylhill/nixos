@@ -1,10 +1,11 @@
 {
   config,
+  host,
   inventory,
   ...
 }:
 let
-  wifiSecretName = inventory.network.wifi.tacomafiaLan.secretName;
+  wifiSecretName = host.network.wifi.tacomafiaLan.secretName;
   sshDirectory = inventory.user.sshDirectory;
 in
 {

@@ -1,11 +1,11 @@
 {
   config,
-  inventory,
+  host,
   lib,
   ...
 }:
 let
-  wg = inventory.network.wireguard;
+  wg = host.network.wireguard;
 
   ipv4Address = addresses: lib.findFirst (address: !(lib.hasInfix ":" address)) null addresses;
   ipv6Address = addresses: lib.findFirst (address: lib.hasInfix ":" address) null addresses;

@@ -147,6 +147,10 @@ keep repository-wide rules here.
 - Treat Disko and ZFS changes as high risk. Read `README.md`,
   `hosts/pang14/disko.nix`, and `scripts/install-preflight` before modifying
   storage.
+- `pang14` intentionally enables `boot.zfs.forceImportRoot` so its exclusively
+  owned root pool can recover automatically after an unclean shutdown. Preserve
+  this policy and do not recommend disabling it unless the user asks to revisit
+  the tradeoff.
 - The only approved destructive installation target is:
 
   ```text

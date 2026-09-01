@@ -163,12 +163,6 @@
             ];
           };
 
-          infra = pkgs.mkShellNoCC {
-            packages = with pkgs; [
-              ansible
-              ansible-lint
-            ];
-          };
         }
       );
     };

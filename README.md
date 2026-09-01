@@ -138,7 +138,9 @@ Disko creates a 2 GB EFI system partition, 40 GB swap partition, and a ZFS `rpoo
 using the remaining space. Persistent datasets back `/`, `/nix`, `/home`, and
 `/var`. Home retains 24 hourly, 7 daily, 4 weekly, and 3 monthly snapshots;
 root, `/nix`, and `/var` are excluded. ZFS trim runs weekly and scrub runs
-monthly.
+monthly. Forced import of the root pool is intentional because `pang14`
+exclusively owns that pool and should recover automatically after an unclean
+shutdown.
 
 ZRAM is disabled. Kernel zswap uses zstd and zsmalloc as a compressed cache in
 front of the persistent 40 GB swap partition, capped at 20% of RAM. The laptop

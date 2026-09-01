@@ -8,7 +8,6 @@
   home = {
     file = {
       ".hushlogin".text = "";
-      "infra/.envrc".text = "use flake ~/nixos#infra";
     };
 
     sessionVariables = {

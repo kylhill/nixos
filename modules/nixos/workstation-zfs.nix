@@ -11,7 +11,8 @@ _: {
     ];
 
     zfs = {
-      # This pool belongs exclusively to pang14. Permit recovery after an
+      # This pool belongs exclusively to pang14. Forced import is an explicit
+      # policy choice so the workstation recovers automatically after an
       # unclean shutdown or an installer import under a different host ID.
       forceImportRoot = true;
       forceImportAll = false;
