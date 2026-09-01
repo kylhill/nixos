@@ -27,16 +27,12 @@ and may download small formatter or linter dependencies, but they do not build
 the `pang14` system closure:
 
 ```bash
-git status --short
-git diff --check
-nix flake check --no-build
-
-nix build --no-link \
-  .#checks.x86_64-linux.formatting \
-  .#checks.x86_64-linux.statix \
-  .#checks.x86_64-linux.deadnix \
-  .#checks.x86_64-linux.shellcheck
+./test.sh
 ```
+
+The script stops at the first failure. It evaluates every flake output
+without building it, and then runs the four lightweight lint derivations
+individually. It never builds or activates the `pang14` system closure.
 
 Review the complete diff after automated checks pass:
 

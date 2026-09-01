@@ -7,7 +7,7 @@ export NIX_CONFIG="${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flake
 
 cd "$repo_dir"
 nix flake update
-nix flake check
+nix flake check --no-build
 
 echo
 git --no-pager diff --stat -- flake.lock
