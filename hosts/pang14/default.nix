@@ -17,6 +17,7 @@
     ../../modules/nixos/networkmanager-wifi.nix
     ../../modules/nixos/secrets.nix
     ../../modules/nixos/storage-zfs.nix
+    ../../modules/nixos/system76.nix
   ];
 
   networking = {

@@ -1,5 +1,4 @@
-{ lib, ... }:
-{
+_: {
   hardware = {
     bluetooth.enable = true;
     enableRedistributableFirmware = true;
@@ -22,10 +21,6 @@
       HandleLidSwitchExternalPower = "suspend-then-hibernate";
       HandleLidSwitchDocked = "ignore";
     };
-
-    # The System76 power daemon is enabled by the generic hardware module.
-    power-profiles-daemon.enable = lib.mkForce false;
-    system76-scheduler.enable = true;
   };
 
   powerManagement.powertop.enable = true;

@@ -53,6 +53,9 @@
       nixosModules = {
         base = ./modules/nixos/base.nix;
         gnome = ./modules/nixos/desktop-gnome.nix;
+        laptop = ./modules/nixos/laptop.nix;
+        system76 = ./modules/nixos/system76.nix;
+        zfs = ./modules/nixos/storage-zfs.nix;
       };
 
       nixosConfigurations.${hostName} = nixpkgs.lib.nixosSystem {
