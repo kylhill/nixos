@@ -1,6 +1,5 @@
 {
   inventory,
-  pkgs,
   ...
 }:
 {
@@ -33,16 +32,6 @@
         email = inventory.user.email;
         name = inventory.user.fullName;
         signingkey = inventory.user.gitSigningKey;
-      };
-      credential = {
-        "https://github.com".helper = [
-          ""
-          "!${pkgs.gh}/bin/gh auth git-credential"
-        ];
-        "https://gist.github.com".helper = [
-          ""
-          "!${pkgs.gh}/bin/gh auth git-credential"
-        ];
       };
     };
   };

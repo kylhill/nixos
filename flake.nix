@@ -22,11 +22,6 @@
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nixvim.url = "github:nix-community/nixvim/nixos-26.05";
 
-    oh-my-bash = {
-      url = "github:ohmybash/oh-my-bash";
-      flake = false;
-    };
-
     dircolors-solarized = {
       url = "github:seebi/dircolors-solarized";
       flake = false;

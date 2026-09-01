@@ -162,22 +162,6 @@
         "type": "github"
       }
     },
-    "oh-my-bash": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1788122559,
-        "narHash": "sha256-hizWVjHhJSk4IH2rWG6C5CsLmgUR5cS3BylqQ0aih90=",
-        "owner": "ohmybash",
-        "repo": "oh-my-bash",
-        "rev": "0bd2d2c79e2ffb94dc25b4f039c0e7edbf1ae48e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "ohmybash",
-        "repo": "oh-my-bash",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
         "dircolors-solarized": "dircolors-solarized",
@@ -186,7 +170,6 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_2",
         "nixvim": "nixvim",
-        "oh-my-bash": "oh-my-bash",
         "sops-nix": "sops-nix"
       }
     },

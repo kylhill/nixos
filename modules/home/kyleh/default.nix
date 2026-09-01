@@ -12,6 +12,7 @@
   home = {
     username = inventory.user.name;
     homeDirectory = inventory.user.homeDirectory;
+    preferXdgDirectories = true;
     stateVersion = "26.05";
   };
 

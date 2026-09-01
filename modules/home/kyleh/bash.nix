@@ -6,13 +6,11 @@
 {
   home = {
     file = {
-      ".dircolors".source = inputs.dircolors-solarized + "/dircolors.256dark";
-      ".oh-my-bash".source = inputs.oh-my-bash;
       ".hushlogin".text = "";
     };
 
-    sessionPath = [ "$HOME/.local/bin" ];
     sessionVariables = {
+      MANPAGER = "nvim +Man! -";
       PAGER = "less";
       SOPS_AGE_KEY_FILE = "$HOME/.config/sops/age/keys.txt";
     };
@@ -20,17 +18,6 @@
     packages = with pkgs; [
       ansible
       ansible-lint
-      codex
-      fd
-      fzf
-      gcc
-      gh
-      github-copilot-cli
-      gnupg
-      jq
-      lazygit
-      less
-      ripgrep
       shellcheck
       sops
       universal-ctags
@@ -39,6 +26,70 @@
   };
 
   programs = {
+    codex = {
+      enable = true;
+      settings = {
+        approvals_reviewer = "auto_review";
+        projects = {
+          "/home/kyleh/nixos".trust_level = "trusted";
+          "/home/kyleh/Projects/nixos".trust_level = "trusted";
+        };
+      };
+    };
+
+    dircolors = {
+      enable = true;
+      enableBashIntegration = true;
+      extraConfig = builtins.readFile (inputs.dircolors-solarized + "/dircolors.256dark");
+    };
+
+    fd.enable = true;
+    fzf.enable = true;
+    gcc.enable = true;
+    gh.enable = true;
+    github-copilot-cli.enable = true;
+    jq.enable = true;
+    lazygit.enable = true;
+    less.enable = true;
+    ripgrep.enable = true;
+
+    starship = {
+      enable = true;
+      enableBashIntegration = true;
+      presets = [ "nerd-font-symbols" ];
+      settings = {
+        add_newline = false;
+        format = "$username$hostname$directory$git_branch$git_status$character";
+        username = {
+          format = "[$user]($style)";
+          show_always = true;
+          style_user = "blue bold";
+        };
+        hostname = {
+          format = "[@$hostname]($style) ";
+          ssh_only = false;
+          style = "blue bold";
+        };
+        directory = {
+          format = "[$path]($style) ";
+          style = "cyan bold";
+          truncation_length = 3;
+        };
+        git_branch = {
+          format = "[$symbol$branch]($style) ";
+          style = "green bold";
+        };
+        git_status = {
+          format = "[$all_status$ahead_behind]($style) ";
+          style = "yellow bold";
+        };
+        character = {
+          error_symbol = "[❯](red bold) ";
+          success_symbol = "[❯](green bold) ";
+        };
+      };
+    };
+
     bash = {
       enable = true;
       enableCompletion = true;
@@ -66,42 +117,6 @@
       };
 
       initExtra = ''
-        export OSH="$HOME/.oh-my-bash"
-        term_colors=0
-        if command -v tput >/dev/null 2>&1; then
-          term_colors=$(tput colors 2>/dev/null || printf 0)
-        fi
-        if [[ "''${TERM:-}" != linux && "$term_colors" =~ ^[0-9]+$ && "$term_colors" -ge 256 ]]; then
-          OSH_THEME="agnoster"
-        else
-          OSH_THEME="font"
-        fi
-        unset term_colors
-        DISABLE_AUTO_UPDATE="true"
-        DISABLE_AUTO_TITLE="true"
-        DISABLE_UNTRACKED_FILES_DIRTY="true"
-        OMB_TERM_USE_TPUT=no
-        completions=(docker ssh)
-        aliases=()
-        plugins=(git sudo)
-
-        if [[ -r "$OSH/oh-my-bash.sh" ]]; then
-          source "$OSH/oh-my-bash.sh"
-        fi
-
-        alias ls='ls --color=auto -h'
-        alias grep='grep --color=auto'
-        alias fgrep='grep -F --color=auto'
-        alias egrep='grep -E --color=auto'
-        alias ll='ls -alFh --color=auto'
-        alias la='ls -Ah --color=auto'
-        alias l='ls -CFh --color=auto'
-
-        export HISTTIMEFORMAT="%F %T "
-        export EDITOR="nvim"
-        export VISUAL="nvim"
-        export MANPAGER="nvim +Man! -"
-
         if [[ -t 1 ]]; then
           stty -ixon 2>/dev/null || true
         fi
@@ -130,14 +145,6 @@
           docker logs -tf --tail=150 "$@"
         }
 
-        if [[ -n "''${XDG_RUNTIME_DIR:-}" && -S "$XDG_RUNTIME_DIR/ssh-agent.socket" ]]; then
-          export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
-        fi
-
-        if [[ -t 0 ]]; then
-          GPG_TTY=$(tty)
-          export GPG_TTY
-        fi
       '';
     };
 

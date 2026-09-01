@@ -56,7 +56,7 @@ in
 
   security = {
     rtkit.enable = true;
-    sudo.wheelNeedsPassword = true;
+    sudo.wheelNeedsPassword = false;
   };
 
   programs = {
@@ -74,7 +74,6 @@ in
     nvme-cli
     powertop
     rsync
-    vim
     wireguard-tools
     wget
   ];

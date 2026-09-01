@@ -3,8 +3,15 @@
   programs.nixvim = {
     enable = true;
     defaultEditor = true;
+    vimAlias = true;
+    withRuby = false;
 
-    globals.mapleader = " ";
+    globals = {
+      loaded_node_provider = 0;
+      loaded_perl_provider = 0;
+      loaded_ruby_provider = 0;
+      mapleader = " ";
+    };
 
     opts = {
       autoindent = true;
@@ -47,6 +54,7 @@
       lualine.enable = true;
       noice.enable = true;
       telescope.enable = true;
+      tmux-navigator.enable = true;
       todo-comments.enable = true;
       treesitter.enable = true;
       trouble.enable = true;
@@ -70,8 +78,6 @@
       };
     };
 
-    extraPlugins = [ pkgs.vimPlugins.vim-tmux-navigator ];
-
     extraPackages = with pkgs; [
       bash-language-server
       lua-language-server
@@ -82,21 +88,5 @@
       yaml-language-server
     ];
 
-    extraConfigLua = ''
-      vim.g.loaded_node_provider = 0
-      vim.g.loaded_perl_provider = 0
-      vim.g.loaded_ruby_provider = 0
-
-      vim.keymap.set("n", "<C-h>", "<cmd>TmuxNavigateLeft<cr>", { desc = "Go to left window/pane" })
-      vim.keymap.set("n", "<C-j>", "<cmd>TmuxNavigateDown<cr>", { desc = "Go to lower window/pane" })
-      vim.keymap.set("n", "<C-k>", "<cmd>TmuxNavigateUp<cr>", { desc = "Go to upper window/pane" })
-      vim.keymap.set("n", "<C-l>", "<cmd>TmuxNavigateRight<cr>", { desc = "Go to right window/pane" })
-      vim.keymap.set("n", "<C-\\>", "<cmd>TmuxNavigatePrevious<cr>", { desc = "Go to previous window/pane" })
-    '';
-  };
-
-  programs.vim = {
-    enable = true;
-    extraConfig = builtins.readFile ./files/vimrc;
   };
 }
