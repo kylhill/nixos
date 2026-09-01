@@ -4,21 +4,16 @@ Flake-based NixOS and Home Manager configuration, beginning with the System76
 Pangolin 14 (`pang14`) and structured for later migration of the OCI VPS,
 gateway, NAS/application server, and other hosts from `~/infra`.
 
-## Repository model
-
-- `hosts/pang14/` contains only hardware, storage, and host composition.
-- `modules/nixos/` contains reusable system profiles.
-- `modules/home/kyleh/` contains the declarative user environment.
-- `lib/inventory.nix` contains stable, non-secret identity and network data.
-- `secrets/` documents encrypted host-secret provisioning.
-
 The flake exposes `nixosConfigurations.pang14`. Home Manager is integrated into
-that system configuration, so there is no separate user activation step.
+that system configuration, so system and user changes activate together.
 
 The existing Ansible and dotfiles repositories remain authoritative for
 non-Nix hosts during migration. On `pang14`, this repository replaces Dotbot,
 TPM, lazy.nvim, and Mason with Home Manager, Nix-managed tmux plugins, and
 Nixvim.
+
+Repository structure, coding conventions, validation requirements, and agent
+guidance live in [AGENTS.md](AGENTS.md).
 
 ## Normal operation
 
@@ -34,10 +29,6 @@ Build, activate, and make it the boot default:
 ./apply.sh
 ```
 
-`apply.sh` first runs `nix flake check`, then invokes `nixos-rebuild` for the
-integrated NixOS and Home Manager configuration. It accepts `build`, `boot`,
-`switch`, or `test`, defaulting to `switch`, and does not depend on `nh`.
-
 Update pinned inputs explicitly, inspect the lock-file diff, then test and
 switch:
 
@@ -47,25 +38,6 @@ git diff -- flake.lock
 ./apply.sh test
 ./apply.sh
 ```
-
-`update.sh` updates `flake.lock` and runs `nix flake check`, but deliberately
-does not activate the result. Commit the reviewed lock file together with any
-related configuration changes.
-
-Activate the on-demand WireGuard profiles after secrets are provisioned:
-
-```bash
-vpn home up
-vpn home status
-vpn home down
-
-vpn oci up
-vpn oci status
-vpn oci down
-```
-
-Starting either profile stops the other. `home` is a split tunnel for the home
-IPv4 and ULA networks. `oci` is a full IPv4/IPv6 tunnel.
 
 ## Storage design
 
@@ -174,8 +146,6 @@ Expected results:
 - zswap reports enabled, `zstd`, `zsmalloc`, and `20`.
 - The desktop session type is `wayland` and no Xwayland process exists.
 - Firefox and VS Code launch natively.
-- `vpn home up` reaches LAN/internal DNS.
-- `vpn oci up` changes both public IPv4 and IPv6 egress to OCI.
 - Suspend-then-hibernate resumes with applications intact.
 - Windows and Ubuntu remain bootable from the firmware boot menu.
 

@@ -13,9 +13,9 @@ in
     ../../modules/nixos/base.nix
     ../../modules/nixos/desktop-gnome.nix
     ../../modules/nixos/laptop.nix
+    ../../modules/nixos/networkmanager-vpn.nix
     ../../modules/nixos/secrets.nix
     ../../modules/nixos/storage-zfs.nix
-    ../../modules/nixos/wireguard.nix
   ];
 
   networking = {
