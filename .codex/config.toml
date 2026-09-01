@@ -1,0 +1,4 @@
+# Keep repository work sandboxed while allowing explicit project rules to
+# authorize the narrow checks that need the system Nix daemon.
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"

@@ -29,7 +29,7 @@ let
       };
 
       "wireguard-peer.${profile.publicKey}" = {
-        endpoint = profile.endpoint;
+        inherit (profile) endpoint;
         preshared-key = "$WIREGUARD_PRESHARED_KEY";
         persistent-keepalive = 25;
         allowed-ips = "0.0.0.0/0;::/0;";

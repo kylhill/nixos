@@ -17,27 +17,106 @@ guidance live in [AGENTS.md](AGENTS.md).
 
 ## Normal operation
 
-Test a generation without making it the boot default:
+Promote a change progressively. Stop at the first failure instead of combining
+linting, building, activation, and switching into one unobserved step.
+
+### 1. Inspect and run lightweight checks
+
+These checks are appropriate on any development host. They evaluate the flake
+and may download small formatter or linter dependencies, but they do not build
+the `pang14` system closure:
+
+```bash
+git status --short
+git diff --check
+nix flake check --no-build
+
+nix build --no-link \
+  .#checks.x86_64-linux.formatting \
+  .#checks.x86_64-linux.statix \
+  .#checks.x86_64-linux.deadnix \
+  .#checks.x86_64-linux.shellcheck
+```
+
+Review the complete diff after automated checks pass:
+
+```bash
+git diff --stat
+git diff
+```
+
+### 2. Build on `pang14` without activating
+
+Run the remaining stages on `pang14`, where the system closure is expected to
+be cached. A build catches package, module, and activation-script failures but
+does not change the running or boot-default configuration:
+
+```bash
+./apply.sh build
+```
+
+### 3. Temporarily activate and verify
+
+`test` activates the candidate for the running system without making it the
+boot default:
 
 ```bash
 ./apply.sh test
 ```
 
-Build, activate, and make it the boot default:
+Exercise the behavior affected by the change, then check the general system
+health before promoting it:
 
 ```bash
-./apply.sh
+systemctl --failed
+systemctl status home-manager-kyleh.service --no-pager
+systemctl status sops-install-secrets.service --no-pager
+systemctl status NetworkManager-ensure-profiles.service --no-pager
+systemctl list-timers 'zfs-*'
+nmcli connection show
 ```
 
-Update pinned inputs explicitly, inspect the lock-file diff, then test and
-switch:
+Also verify relevant interactive behavior such as login, sudo, networking,
+audio, suspend, and the changed Home Manager applications. A reboot returns to
+the previous boot-default generation; the systemd-boot menu provides older
+generations if a normal boot ever fails.
+
+### 4. Promote to the boot default
+
+Only after the temporary activation and runtime checks pass, review and commit
+the candidate so the boot-default generation corresponds to a durable source
+revision. Then activate that revision and make it the default for the next
+boot:
+
+```bash
+git status --short
+git diff
+# Stage only the reviewed files and commit them.
+git commit
+./apply.sh switch
+```
+
+Confirm that there are no failed units and that the worktree still represents
+the revision that produced the running generation:
+
+```bash
+systemctl --failed
+git status --short
+```
+
+### Updating pinned inputs
+
+Treat an input update like any other change: update without activation, review
+the lock-file diff, and then run the complete progression above:
 
 ```bash
 ./update.sh
 git diff -- flake.lock
-./apply.sh test
-./apply.sh
 ```
+
+Both NetworkManager WireGuard profiles are intentional full IPv4/IPv6 tunnels.
+They are available from GNOME's network settings as `Home VPN` and `OCI VPN`
+after secrets are provisioned.
 
 ## Storage design
 
@@ -151,3 +230,10 @@ Expected results:
 
 ZFS snapshots are rollback aids, not backups. Off-host laptop backup is deferred
 to a later reusable backup module.
+
+## Deferred hardening
+
+- Add LUKS encryption for both the ZFS system pool and the persistent
+  hibernation swap during a planned destructive storage migration.
+- Add encrypted, automated off-host backups with monitoring and periodic
+  restore tests.

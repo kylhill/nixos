@@ -1,20 +1,35 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   inventory = import ../../lib/inventory.nix;
   wifi = inventory.network.wifi.tacomafiaLan;
+  environmentFile = "/run/networkmanager-profile-secrets/wifi.env";
+
+  prepareEnvironment = pkgs.writeShellApplication {
+    name = "prepare-networkmanager-wifi-environment";
+    runtimeInputs = [ pkgs.coreutils ];
+    text = ''
+      password=$(< ${lib.escapeShellArg config.sops.secrets."wifi/tacomafia-lan-password".path})
+      temporary=$(mktemp /run/networkmanager-profile-secrets/wifi.env.XXXXXX)
+      trap 'rm -f "$temporary"' EXIT
+
+      # ensureProfiles sources its environment files as shell input. %q keeps
+      # every valid WPA passphrase character literal during that step.
+      printf 'TACOMAFIA_LAN_PASSWORD=%q\n' "$password" > "$temporary"
+      chmod 0600 "$temporary"
+      mv -f "$temporary" ${lib.escapeShellArg environmentFile}
+      trap - EXIT
+    '';
+  };
 in
 {
   config = lib.mkIf config.tacomafia.secrets.enable {
-    sops.templates."networkmanager-wifi.env" = {
-      content = ''
-        TACOMAFIA_LAN_PASSWORD=${config.sops.placeholder."wifi/tacomafia-lan-password"}
-      '';
-      mode = "0400";
-      restartUnits = [ "NetworkManager-ensure-profiles.service" ];
-    };
-
     networking.networkmanager.ensureProfiles = {
-      environmentFiles = [ config.sops.templates."networkmanager-wifi.env".path ];
+      environmentFiles = [ environmentFile ];
       profiles.tacomafia_LAN = {
         connection = {
           id = wifi.ssid;
@@ -26,7 +41,7 @@ in
 
         wifi = {
           mode = "infrastructure";
-          ssid = wifi.ssid;
+          inherit (wifi) ssid;
         };
 
         wifi-security = {
@@ -39,9 +54,26 @@ in
       };
     };
 
-    systemd.services.NetworkManager-ensure-profiles = {
-      after = [ "sops-install-secrets.service" ];
-      requires = [ "sops-install-secrets.service" ];
+    systemd.services = {
+      prepare-networkmanager-wifi-environment = {
+        description = "Safely encode the Wi-Fi secret for NetworkManager profile generation";
+        after = [ "sops-install-secrets.service" ];
+        requires = [ "sops-install-secrets.service" ];
+        before = [ "NetworkManager-ensure-profiles.service" ];
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          RuntimeDirectory = "networkmanager-profile-secrets";
+          RuntimeDirectoryMode = "0700";
+          UMask = "0077";
+          ExecStart = lib.getExe prepareEnvironment;
+        };
+      };
+
+      NetworkManager-ensure-profiles = {
+        after = [ "prepare-networkmanager-wifi-environment.service" ];
+        requires = [ "prepare-networkmanager-wifi-environment.service" ];
+      };
     };
   };
 }

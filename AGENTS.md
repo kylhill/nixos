@@ -57,37 +57,53 @@ keep repository-wide rules here.
 
 ## Validation workflow
 
-- Validate proportionally, starting with formatting and evaluation and adding a
-  closure build for changes that can affect activation. For quick evaluation,
-  run:
+- After every change, run all applicable lightweight checks and linters before
+  handing off. At minimum run `git diff --check`, the formatter in check mode,
+  Statix, Deadnix, ShellCheck for changed shell scripts, and flake evaluation:
 
   ```bash
   nix flake check --no-build
   ```
 
+- Prefer tools already available on `PATH`, but downloading a reasonable number
+  of formatter, linter, or lightweight evaluation dependencies is allowed. A
+  targeted `nix develop`, `nix shell`, or individual lint-check derivation is
+  acceptable when needed to run the required checks. Do not run a broad
+  `nix flake check` without `--no-build`, because the flake also exposes the
+  full `pang14` system closure as a check. If a required tool or the Nix daemon
+  is unavailable, run every remaining check and report exactly what could not
+  be run.
+- Never automatically perform a full system or closure build. In particular,
+  do not run `nix build` on `nixosConfigurations`, the `pang14` check, a VM, or
+  another target that could download or build the system package closure. This
+  repository is often edited from hosts that do not have the NixOS closure
+  cached. Small, explicitly targeted formatter and linter derivations are not
+  considered full builds and are allowed.
+- Use narrow evaluation where possible: evaluate changed options, inspect
+  generated configuration or units, parse changed files, and run targeted
+  linters without realizing the system closure.
+- Ignore Nix's expected dirty-worktree warning while validating uncommitted
+  changes. Keep `nix.settings.warn-dirty = true`; do not suppress the warning in
+  configuration or treat it as a validation failure. Continue to inspect and
+  report the actual worktree state before handoff.
+
 - Git-backed flakes cannot see untracked files. While developing a new file,
-  either use `nix flake check "path:$PWD" --no-build` or stage only that file
+  either use `nix flake check path:. --no-build` or stage only that file
   before testing. Before handoff, ensure the normal Git-backed command works if
   the new file is imported by the flake. Do not broadly stage unrelated user
   changes.
-- For changes affecting services, boot, storage, networking, secrets, or Home
-  Manager activation, also build the system closure without activating it:
-
-  ```bash
-  nix build .#checks.x86_64-linux.pang14 --no-link
-  ```
-
-- Use `./apply.sh test` for an explicitly requested live test generation and
-  `./apply.sh` for switch activation. A test activation changes the live system
-  but not the boot default; a switch activation changes both. `./apply.sh build`
-  only builds. Do not activate, reboot, or change the boot default unless the
-  user asks.
-- For risky service changes, inspect what activation would change when
-  practical and give the user a rollback path. Use a VM test for behavior that
-  can be exercised without depending on this laptop's real hardware.
-- When a command needs the Nix daemon or network and fails because of the
-  sandbox, request the required permission rather than changing the design to
-  bypass validation.
+- Never run `apply.sh`, `nixos-rebuild`, Home Manager activation, or otherwise
+  apply this configuration to a system. Do not use `apply.sh build` or
+  `apply.sh test` as validation shortcuts. The user owns all building,
+  activation, switching, and rebooting.
+- For risky service changes, inspect the evaluated configuration as narrowly as
+  practical and give the user commands and a rollback path for any live testing
+  they choose to perform themselves.
+- On `syntax`, the Codex sandbox cannot access the shared Nix daemon socket.
+  Run the lightweight Nix commands allowlisted in `.codex/rules/nix.rules`
+  outside the sandbox from the outset; do not first retry them inside the
+  sandbox. Request permission for any other command that needs the Nix daemon
+  or network rather than changing the design to bypass validation.
 
 ## Secrets and networking
 
@@ -100,8 +116,8 @@ keep repository-wide rules here.
 - NetworkManager owns desktop networking. Define GNOME-visible VPN profiles
   with `networking.networkmanager.ensureProfiles`; do not add parallel
   `wg-quick` management for the same connection.
-- Avoid disrupting the active network connection during validation. Build and
-  evaluate profiles first; activate only with explicit user approval.
+- Avoid disrupting the active network connection during validation. Evaluate
+  profiles only; never activate them.
 
 ## Desktop configuration
 
@@ -134,8 +150,8 @@ keep repository-wide rules here.
 ## Handoff
 
 - Summarize changed files and user-visible behavior.
-- Report the exact validation performed and distinguish evaluation, build, test
-  activation, and switch activation.
+- Report the exact lightweight checks and linters performed, plus anything that
+  could not run. State explicitly that no full build or activation was run.
 - Mention any root-only or live-system state that could not be inspected. Do
   not claim a configuration was activated when it was only evaluated or built.
 

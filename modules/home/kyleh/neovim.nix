@@ -1,10 +1,18 @@
-{ pkgs, ... }:
+{
+  inputs,
+  pkgs,
+  ...
+}:
 {
   programs.nixvim = {
     enable = true;
     defaultEditor = true;
     vimAlias = true;
     withRuby = false;
+
+    # Nixvim intentionally follows the repository's main nixpkgs input. Make
+    # that choice explicit so Nixvim does not warn that its default changed.
+    nixpkgs.source = inputs.nixpkgs.outPath;
 
     globals = {
       loaded_node_provider = 0;

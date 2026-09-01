@@ -1,0 +1,43 @@
+prefix_rule(
+    pattern = ["nix", "flake", "check", "--no-build"],
+    decision = "allow",
+    justification = "Allow lightweight evaluation of this repository's flake.",
+    match = [
+        "nix flake check --no-build",
+    ],
+)
+
+prefix_rule(
+    pattern = ["nix", "flake", "check", "path:.", "--no-build"],
+    decision = "allow",
+    justification = "Allow lightweight path-flake evaluation when untracked files must be visible.",
+    match = [
+        "nix flake check path:. --no-build",
+    ],
+)
+
+prefix_rule(
+    pattern = [
+        "nix",
+        "build",
+        "--no-link",
+        [
+            ".#checks.x86_64-linux.formatting",
+            ".#checks.x86_64-linux.statix",
+            ".#checks.x86_64-linux.deadnix",
+            ".#checks.x86_64-linux.shellcheck",
+        ],
+    ],
+    decision = "allow",
+    justification = "Allow only this repository's lightweight lint derivations.",
+    match = [
+        "nix build --no-link .#checks.x86_64-linux.formatting",
+        "nix build --no-link .#checks.x86_64-linux.statix",
+        "nix build --no-link .#checks.x86_64-linux.deadnix",
+        "nix build --no-link .#checks.x86_64-linux.shellcheck",
+    ],
+    not_match = [
+        "nix build .#nixosConfigurations.pang14.config.system.build.toplevel",
+        "nix build --no-link .#checks.x86_64-linux.pang14",
+    ],
+)

@@ -1,5 +1,4 @@
-{ ... }:
-{
+_: {
   disko.devices = {
     disk.pang14 = {
       type = "disk";
@@ -44,7 +43,8 @@
       options = {
         ashift = "12";
         cachefile = "none";
-        autotrim = "on";
+        # Prefer the rate-independent weekly trim timer configured by NixOS.
+        autotrim = "off";
       };
       rootFsOptions = {
         acltype = "posixacl";

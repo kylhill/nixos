@@ -50,6 +50,10 @@ in
           };
           "wifi/tacomafia-lan-password" = {
             mode = "0400";
+            restartUnits = [
+              "prepare-networkmanager-wifi-environment.service"
+              "NetworkManager-ensure-profiles.service"
+            ];
           };
           "ssh/private-key" = {
             owner = inventory.user.name;
@@ -66,8 +70,11 @@ in
         };
       };
 
-      users.users.${inventory.user.name}.hashedPasswordFile =
-        config.sops.secrets."user/password-hash".path;
+      users = {
+        mutableUsers = false;
+        users.${inventory.user.name}.hashedPasswordFile =
+          config.sops.secrets."user/password-hash".path;
+      };
     })
   ];
 }

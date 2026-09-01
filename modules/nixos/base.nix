@@ -1,6 +1,4 @@
 {
-  config,
-  lib,
   pkgs,
   ...
 }:
@@ -15,7 +13,7 @@ in
         "flakes"
       ];
       auto-optimise-store = true;
-      warn-dirty = false;
+      warn-dirty = true;
     };
 
     gc = {
@@ -38,7 +36,6 @@ in
   console.keyMap = "us";
 
   users = {
-    mutableUsers = true;
     users.${inventory.user.name} = {
       isNormalUser = true;
       uid = inventory.user.uid;
@@ -56,7 +53,7 @@ in
 
   security = {
     rtkit.enable = true;
-    sudo.wheelNeedsPassword = false;
+    sudo.wheelNeedsPassword = true;
   };
 
   programs = {

@@ -20,7 +20,10 @@
     };
 
     nixos-hardware.url = "github:NixOS/nixos-hardware";
-    nixvim.url = "github:nix-community/nixvim/nixos-26.05";
+    nixvim = {
+      url = "github:nix-community/nixvim/nixos-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     dircolors-solarized = {
       url = "github:seebi/dircolors-solarized";
@@ -62,7 +65,33 @@
         ];
       };
 
-      checks.${system}.pang14 = self.nixosConfigurations.pang14.config.system.build.toplevel;
+      checks.${system} = {
+        pang14 = self.nixosConfigurations.pang14.config.system.build.toplevel;
+
+        formatting = pkgs.runCommand "nixfmt-check" { nativeBuildInputs = [ pkgs.nixfmt ]; } ''
+          find ${self} -name '*.nix' -exec nixfmt --check {} +
+          touch $out
+        '';
+
+        statix = pkgs.runCommand "statix-check" { nativeBuildInputs = [ pkgs.statix ]; } ''
+          statix check ${self}
+          touch $out
+        '';
+
+        deadnix = pkgs.runCommand "deadnix-check" { nativeBuildInputs = [ pkgs.deadnix ]; } ''
+          deadnix --fail ${self}
+          touch $out
+        '';
+
+        shellcheck = pkgs.runCommand "shellcheck" { nativeBuildInputs = [ pkgs.shellcheck ]; } ''
+          shellcheck \
+            ${self}/apply.sh \
+            ${self}/update.sh \
+            ${self}/scripts/install-host-key \
+            ${self}/scripts/install-preflight
+          touch $out
+        '';
+      };
       formatter.${system} = pkgs.nixfmt-tree;
 
       apps.${system}.disko = {
