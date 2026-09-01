@@ -47,6 +47,18 @@ in
           "wireguard/preshared-key" = {
             mode = "0400";
           };
+          "ssh/private-key" = {
+            owner = inventory.user.name;
+            group = "users";
+            mode = "0600";
+            path = "/home/${inventory.user.name}/.ssh/id_ed25519";
+          };
+          "ssh/public-key" = {
+            owner = inventory.user.name;
+            group = "users";
+            mode = "0644";
+            path = "/home/${inventory.user.name}/.ssh/id_ed25519.pub";
+          };
         };
       };
 

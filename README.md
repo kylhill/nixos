@@ -109,10 +109,13 @@ installation. Run them from a NixOS 26.05 installer booted in UEFI mode.
    sudo nix run .#disko -- --mode destroy,format,mount ./hosts/pang14/disko.nix
    ```
 
-5. Provision the host age identity into the mounted target:
+5. Provision and verify the host age identity in the mounted `rpool/var`.
+   This is mandatory: without it, sops-nix cannot decrypt the login password
+   hash and the new account will be locked:
 
    ```bash
-   sudo install -D -m 0600 /secure/location/pang14.age /mnt/var/lib/sops-nix/key.txt
+   sudo ./scripts/install-host-key /secure/location/pang14-host.txt
+   sudo stat /mnt/var/lib/sops-nix/key.txt
    ```
 
 6. Compare the detected hardware configuration with `hosts/pang14/hardware.nix`:
@@ -148,6 +151,7 @@ cat /sys/module/zswap/parameters/enabled
 cat /sys/module/zswap/parameters/compressor
 cat /sys/module/zswap/parameters/zpool
 cat /sys/module/zswap/parameters/max_pool_percent
+systemctl status sops-install-secrets --no-pager
 loginctl show-session "$XDG_SESSION_ID" -p Type
 pgrep -a Xwayland || true
 ```
