@@ -5,6 +5,7 @@
       pkgs.hunspell
       pkgs.hunspellDicts.en_US
       pkgs.libreoffice
+      pkgs.python3
     ];
 
     sessionVariables = {
