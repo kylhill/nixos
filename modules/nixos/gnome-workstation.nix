@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   ...
@@ -15,6 +16,13 @@ let
   gstreamerPluginPath = lib.makeSearchPathOutput "lib" "lib/gstreamer-1.0" gstreamerPackages;
 in
 {
+  home-manager.users.${config.infrastructure.user.name}.imports = [ ../home/kyleh/workstation.nix ];
+
+  users.users.${config.infrastructure.user.name}.extraGroups = [
+    "networkmanager"
+    "video"
+  ];
+
   networking = {
     networkmanager.enable = true;
     nftables.enable = true;

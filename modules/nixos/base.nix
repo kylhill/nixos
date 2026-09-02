@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 {
@@ -34,12 +33,4 @@
     ];
 
   time.timeZone = config.infrastructure.host.timeZone;
-
-  environment.systemPackages = [
-    pkgs.curl
-    pkgs.git
-    pkgs.lsof
-    pkgs.rsync
-    pkgs.wget
-  ];
 }

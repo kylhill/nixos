@@ -42,66 +42,24 @@
     inputs@{
       self,
       nixpkgs,
-      home-manager,
       disko,
-      sops-nix,
-      nixos-hardware,
-      nixvim,
-      stylix,
-      tinted-schemes,
       ...
     }:
     let
       inventory = import ./lib/inventory.nix;
-      devSystems = [
-        "x86_64-linux"
-      ];
+      devSystems = nixpkgs.lib.unique (map (host: host.system) (builtins.attrValues inventory.hosts));
       forAllSystems = nixpkgs.lib.genAttrs devSystems;
       pkgsFor = system: nixpkgs.legacyPackages.${system};
-    in
-    {
-      nixosModules = {
-        default = {
-          imports = [
-            self.nixosModules.infrastructure
-            self.nixosModules.base
-          ];
-        };
-        base = ./modules/nixos/base.nix;
-        desktop-theme = ./modules/nixos/desktop-theme.nix;
-        infrastructure = ./modules/nixos/infrastructure.nix;
-        laptop = ./modules/nixos/laptop.nix;
-        networkmanager-vpn = ./modules/nixos/networkmanager-vpn.nix;
-        networkmanager-wifi = ./modules/nixos/networkmanager-wifi.nix;
-        secrets = ./modules/nixos/secrets.nix;
-        shared-ssh-identity = ./modules/nixos/shared-ssh-identity.nix;
-        workstation-zfs = ./modules/nixos/workstation-zfs.nix;
-        system76-desktop-policy = ./modules/nixos/system76-desktop-policy.nix;
-        user-kyleh = ./modules/nixos/user-kyleh.nix;
-        workstation = ./modules/nixos/workstation.nix;
-      };
-
-      nixosConfigurations = nixpkgs.lib.mapAttrs (
+      mkHost =
         hostName: host:
         nixpkgs.lib.nixosSystem {
-          specialArgs = {
-            inherit
-              disko
-              home-manager
-              nixos-hardware
-              nixvim
-              sops-nix
-              stylix
-              tinted-schemes
-              ;
-            inherit (inputs) nix-index-database;
-          };
+          specialArgs = { inherit inputs; };
           modules = [
-            self.nixosModules.infrastructure
+            ./modules/nixos/infrastructure.nix
             (./hosts + "/${hostName}")
             {
               infrastructure = {
-                inherit host;
+                host = builtins.removeAttrs host [ "system" ];
                 inherit (inventory) user network;
               };
               networking.hostName = hostName;
@@ -110,8 +68,10 @@
               nix.nixPath = [ "nixpkgs=${inputs.nixpkgs.outPath}" ];
             }
           ];
-        }
-      ) inventory.hosts;
+        };
+    in
+    {
+      nixosConfigurations = nixpkgs.lib.mapAttrs mkHost inventory.hosts;
 
       checks = forAllSystems (
         system:

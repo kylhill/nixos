@@ -1,17 +1,15 @@
-{ config, ... }:
+{ osConfig, ... }:
 {
   imports = [
     ./bash.nix
-    ./desktop.nix
     ./git.nix
-    ./infrastructure.nix
     ./neovim.nix
     ./ssh.nix
   ];
 
   home = {
-    username = config.infrastructure.user.name;
-    homeDirectory = config.infrastructure.user.homeDirectory;
+    username = osConfig.infrastructure.user.name;
+    homeDirectory = osConfig.infrastructure.user.homeDirectory;
     preferXdgDirectories = true;
     stateVersion = "26.05";
   };

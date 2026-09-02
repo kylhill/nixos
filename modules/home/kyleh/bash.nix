@@ -18,10 +18,7 @@
     packages = [
       pkgs.dnsutils
       pkgs.htop
-      pkgs.iotop
       pkgs.ncdu
-      pkgs.nvme-cli
-      pkgs.powertop
       pkgs.shellcheck
       pkgs.sops
     ];

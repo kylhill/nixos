@@ -1,5 +1,5 @@
 {
-  config,
+  osConfig,
   ...
 }:
 {
@@ -30,8 +30,8 @@
       rerere.enabled = true;
       safe.bareRepository = "explicit";
       user = {
-        email = config.infrastructure.user.email;
-        name = config.infrastructure.user.fullName;
+        email = osConfig.infrastructure.user.email;
+        name = osConfig.infrastructure.user.fullName;
       };
     };
   };

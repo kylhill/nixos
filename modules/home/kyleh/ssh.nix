@@ -1,7 +1,7 @@
-{ config, lib, ... }:
+{ lib, osConfig, ... }:
 let
-  hosts = config.infrastructure.network.hosts;
-  identityFile = "${config.infrastructure.user.sshDirectory}/id_ed25519";
+  hosts = osConfig.infrastructure.network.hosts;
+  identityFile = "${osConfig.infrastructure.user.sshDirectory}/id_ed25519";
 in
 {
   systemd.user.tmpfiles.rules = [ "d %h/.cache/ssh 0700 - - -" ];
@@ -71,7 +71,7 @@ in
         IdentityFile = identityFile;
         ServerAliveCountMax = 3;
         ServerAliveInterval = 60;
-        User = config.infrastructure.user.name;
+        User = osConfig.infrastructure.user.name;
       };
     };
   };

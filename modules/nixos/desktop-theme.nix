@@ -1,12 +1,12 @@
 {
   pkgs,
-  tinted-schemes,
+  inputs,
   ...
 }:
 {
   stylix = {
     enable = true;
-    base16Scheme = "${tinted-schemes}/base16/solarized-dark.yaml";
+    base16Scheme = "${inputs.tinted-schemes}/base16/solarized-dark.yaml";
     image = "${pkgs.gnome-backgrounds}/share/backgrounds/gnome/pixel-pusher-d.jxl";
     polarity = "dark";
     opacity.terminal = 0.95;

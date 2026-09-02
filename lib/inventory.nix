@@ -1,6 +1,5 @@
 let
   userName = "kyleh";
-  homeDirectory = "/home/${userName}";
 in
 {
   hosts = {
@@ -9,10 +8,9 @@ in
       system = "x86_64-linux";
       timeZone = "America/Chicago";
       network = {
-        wifi.tacomafiaLan = {
+        wifi.tacomafia_LAN = {
           connection = {
             id = "tacomafia_LAN";
-            profileName = "tacomafia_LAN";
             uuid = "a9830c88-7236-4ee1-8ffa-2302b6f604af";
           };
           ssid = "tacomafia_LAN";
@@ -21,11 +19,10 @@ in
         };
 
         wireguard = {
-          gateway = {
+          wg-home = {
             connection = {
               id = "Home VPN";
               interfaceName = "wg-home";
-              profileName = "wg-home";
               uuid = "40896239-b793-49b6-9f20-ee12ca3f374b";
             };
             endpoint = "wg.tacomafia.net:53410";
@@ -39,11 +36,10 @@ in
             ];
           };
 
-          oci = {
+          wg-oci = {
             connection = {
               id = "OCI VPN";
               interfaceName = "wg-oci";
-              profileName = "wg-oci";
               uuid = "289ad1ab-7ac6-4a68-aff5-8d07a007d7c1";
             };
             endpoint = "wg-oci.tacomafia.net:53411";
@@ -66,8 +62,6 @@ in
     uid = 1000;
     fullName = "Kyle Hill";
     email = "kylhill@gmail.com";
-    inherit homeDirectory;
-    sshDirectory = "${homeDirectory}/.ssh";
     sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH3B/FlRNV435YERy7hUtp/RW6v2uX9KF0dm+y7WTuy9 Kyle's Key - 7/25/2020";
   };
 
