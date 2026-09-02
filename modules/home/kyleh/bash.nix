@@ -19,7 +19,6 @@
       pkgs.dnsutils
       pkgs.shellcheck
       pkgs.sops
-      pkgs.unzip
     ];
   };
 
