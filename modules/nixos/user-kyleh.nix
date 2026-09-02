@@ -1,9 +1,13 @@
 {
   config,
+  nix-index-database,
+  nixvim,
   ...
 }:
 {
   home-manager.sharedModules = [
+    nixvim.homeModules.nixvim
+    nix-index-database.homeModules.default
     {
       infrastructure = {
         inherit (config.infrastructure) user network;
@@ -32,7 +36,6 @@
 
   home-manager = {
     useGlobalPkgs = true;
-    backupFileExtension = "hm-backup";
     users.${config.infrastructure.user.name} = {
       imports = [ ../home/kyleh ];
     };

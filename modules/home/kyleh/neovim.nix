@@ -123,22 +123,20 @@ in
       treesitter = {
         enable = true;
         highlight.enable = true;
-        grammarPackages =
-          with config.programs.nixvim.plugins.treesitter.package.builtGrammars;
-          [
-            bash
-            diff
-            json
-            lua
-            markdown
-            markdown_inline
-            nix
-            query
-            regex
-            vim
-            vimdoc
-            yaml
-          ];
+        grammarPackages = with config.programs.nixvim.plugins.treesitter.package.builtGrammars; [
+          bash
+          diff
+          json
+          lua
+          markdown
+          markdown_inline
+          nix
+          query
+          regex
+          vim
+          vimdoc
+          yaml
+        ];
       };
       trouble.enable = true;
       ts-comments.enable = true;

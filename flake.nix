@@ -85,16 +85,19 @@
         hostName: host:
         nixpkgs.lib.nixosSystem {
           specialArgs = {
-            inherit nixos-hardware tinted-schemes;
+            inherit
+              disko
+              home-manager
+              nixos-hardware
+              nixvim
+              sops-nix
+              stylix
+              tinted-schemes
+              ;
+            inherit (inputs) nix-index-database;
           };
           modules = [
-            disko.nixosModules.disko
-            home-manager.nixosModules.home-manager
-            sops-nix.nixosModules.sops
-            stylix.nixosModules.stylix
             self.nixosModules.infrastructure
-          ]
-          ++ [
             (./hosts + "/${hostName}")
             {
               infrastructure = {
@@ -105,10 +108,6 @@
               nixpkgs.hostPlatform = host.system;
               nix.registry.nixpkgs.flake = inputs.nixpkgs;
               nix.nixPath = [ "nixpkgs=${inputs.nixpkgs.outPath}" ];
-              home-manager.sharedModules = [
-                nixvim.homeModules.nixvim
-                inputs.nix-index-database.homeModules.default
-              ];
             }
           ];
         }

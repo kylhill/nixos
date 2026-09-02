@@ -1,9 +1,17 @@
 {
+  disko,
+  home-manager,
   nixos-hardware,
+  sops-nix,
+  stylix,
   ...
 }:
 {
   imports = [
+    disko.nixosModules.disko
+    home-manager.nixosModules.home-manager
+    sops-nix.nixosModules.sops
+    stylix.nixosModules.stylix
     ./disko.nix
     ./hardware.nix
     nixos-hardware.nixosModules.system76

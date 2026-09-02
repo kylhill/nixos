@@ -17,6 +17,11 @@
 
     packages = [
       pkgs.dnsutils
+      pkgs.htop
+      pkgs.iotop
+      pkgs.ncdu
+      pkgs.nvme-cli
+      pkgs.powertop
       pkgs.shellcheck
       pkgs.sops
     ];
@@ -104,8 +109,6 @@
         ll = "ls -alFh --color=auto";
         ls = "ls --color=auto -h";
         grep = "grep --color=auto";
-        fgrep = "grep -F --color=auto";
-        egrep = "grep -E --color=auto";
         vim = "nvim";
         vimdiff = "nvim -d";
       };
