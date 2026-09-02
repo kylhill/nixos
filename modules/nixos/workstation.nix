@@ -29,7 +29,14 @@
     xserver.enable = false;
   };
 
-  programs.xwayland.enable = true;
+  programs = {
+    nautilus-open-any-terminal = {
+      enable = true;
+      terminal = "kgx";
+    };
+
+    xwayland.enable = true;
+  };
 
   environment = {
     sessionVariables = {
@@ -38,7 +45,9 @@
     };
 
     systemPackages = [
+      pkgs.file-roller
       pkgs.gnome-tweaks
+      pkgs.unzip
       pkgs.wireguard-tools
     ];
   };
