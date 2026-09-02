@@ -21,7 +21,7 @@ let
     };
 
     wifi-security = {
-      key-mgmt = "sae";
+      key-mgmt = wifi.security;
       psk-flags = 1;
     };
 
@@ -30,6 +30,14 @@ let
   };
 in
 {
+  sops.secrets = lib.mapAttrs' (
+    _: wifi:
+    lib.nameValuePair wifi.secretName {
+      mode = "0400";
+      restartUnits = [ "nm-file-secret-agent.service" ];
+    }
+  ) wifiProfiles;
+
   networking.networkmanager.ensureProfiles = {
     profiles = lib.mapAttrs' (
       _: wifi: lib.nameValuePair wifi.connection.profileName (mkWifiProfile wifi)

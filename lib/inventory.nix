@@ -5,7 +5,6 @@ in
 {
   hosts = {
     pang14 = {
-      hardwareModules = [ "system76" ];
       hostId = "ab5f3534";
       system = "x86_64-linux";
       timeZone = "America/Chicago";
@@ -18,6 +17,7 @@ in
           };
           ssid = "tacomafia_LAN";
           secretName = "wifi/tacomafia-lan-password";
+          security = "sae";
         };
 
         wireguard = {
@@ -30,6 +30,8 @@ in
             };
             endpoint = "wg.tacomafia.net:53410";
             publicKey = "gmRcLomamblci8EdapO7mOQH+TvxnUshcTBrEKPztX0=";
+            privateKeySecretName = "wireguard/private-key";
+            presharedKeySecretName = "wireguard/preshared-key";
             dns = "192.168.6.1";
             addresses = [
               "192.168.6.8/24"
@@ -46,6 +48,8 @@ in
             };
             endpoint = "wg-oci.tacomafia.net:53411";
             publicKey = "JA16G3T33+e/2MlJfDkKp2AcDLEY+CCrR8mVrxrvdW4=";
+            privateKeySecretName = "wireguard/private-key";
+            presharedKeySecretName = "wireguard/preshared-key";
             dns = "10.60.60.1";
             addresses = [
               "10.60.60.5/24"

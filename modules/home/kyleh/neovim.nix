@@ -59,7 +59,6 @@
       lualine.enable = true;
       noice.enable = true;
       telescope.enable = true;
-      tmux-navigator.enable = true;
       todo-comments.enable = true;
       treesitter.enable = true;
       trouble.enable = true;

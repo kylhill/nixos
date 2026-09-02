@@ -18,8 +18,7 @@ that system configuration, so system and user changes activate together.
 
 The existing Ansible and dotfiles repositories remain authoritative for
 non-Nix hosts during migration. On `pang14`, this repository replaces Dotbot,
-TPM, lazy.nvim, and Mason with Home Manager, Nix-managed tmux plugins, and
-Nixvim.
+lazy.nvim, and Mason with Home Manager and Nixvim.
 
 Repository structure, coding conventions, validation requirements, and agent
 guidance live in [AGENTS.md](AGENTS.md).

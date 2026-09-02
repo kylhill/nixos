@@ -11,7 +11,10 @@
     }
   ];
 
+  sops.secrets."user/password-hash".neededForUsers = true;
+
   users = {
+    mutableUsers = false;
     users.${config.infrastructure.user.name} = {
       isNormalUser = true;
       inherit (config.infrastructure.user) uid;
@@ -23,6 +26,7 @@
         "wheel"
       ];
       openssh.authorizedKeys.keys = [ config.infrastructure.user.sshPublicKey ];
+      hashedPasswordFile = config.sops.secrets."user/password-hash".path;
     };
   };
 
@@ -31,7 +35,6 @@
     backupFileExtension = "hm-backup";
     users.${config.infrastructure.user.name} = {
       imports = [ ../home/kyleh ];
-      home.stateVersion = "26.05";
     };
   };
 }

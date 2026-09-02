@@ -2,17 +2,26 @@
 let
   inherit (lib) mkOption types;
   cfg = config.infrastructure;
+  sharedTypes = import ../../lib/infrastructure-types.nix { inherit lib; };
 
   connectionType = types.submodule {
     options = {
-      id = mkOption { type = types.str; };
-      profileName = mkOption { type = types.str; };
+      id = mkOption {
+        type = types.str;
+        description = "NetworkManager connection ID used when matching profile secrets.";
+      };
+      profileName = mkOption {
+        type = types.str;
+        description = "Attribute name used for the declaratively managed NetworkManager profile.";
+      };
       uuid = mkOption {
         type = types.strMatching "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
+        description = "Stable NetworkManager connection UUID.";
       };
       interfaceName = mkOption {
         type = types.nullOr types.str;
         default = null;
+        description = "Stable interface name, when the connection type requires one.";
       };
     };
   };
@@ -25,40 +34,82 @@ in
 {
   options.infrastructure = {
     host = {
-      hardwareModules = mkOption {
-        type = types.listOf types.str;
-        default = [ ];
-      };
       hostId = mkOption {
-        type = types.strMatching "[0-9a-fA-F]{8}";
-        description = "Stable ZFS host identifier.";
+        type = types.nullOr (types.strMatching "[0-9a-fA-F]{8}");
+        default = null;
+        description = "Stable ZFS host identifier, required only by hosts composing a ZFS capability.";
       };
-      system = mkOption { type = types.str; };
-      timeZone = mkOption { type = types.str; };
+      system = mkOption {
+        type = types.str;
+        description = "Nix system identifier used to evaluate this host.";
+      };
+      timeZone = mkOption {
+        type = types.str;
+        description = "IANA time zone used by this host.";
+      };
       network = {
         wifi = mkOption {
           default = { };
+          description = "Wi-Fi profiles managed declaratively by NetworkManager.";
           type = types.attrsOf (
             types.submodule {
               options = {
-                connection = mkOption { type = connectionType; };
-                ssid = mkOption { type = types.str; };
-                secretName = mkOption { type = types.str; };
+                connection = mkOption {
+                  type = connectionType;
+                  description = "NetworkManager identity for this Wi-Fi profile.";
+                };
+                ssid = mkOption {
+                  type = types.str;
+                  description = "Wi-Fi network SSID.";
+                };
+                secretName = mkOption {
+                  type = types.str;
+                  description = "sops-nix secret containing the Wi-Fi passphrase.";
+                };
+                security = mkOption {
+                  type = types.enum [
+                    "sae"
+                    "wpa-psk"
+                  ];
+                  description = "NetworkManager key management mode for this Wi-Fi network.";
+                };
               };
             }
           );
         };
         wireguard = mkOption {
           default = { };
+          description = "WireGuard profiles managed declaratively by NetworkManager.";
           type = types.attrsOf (
             types.submodule {
               options = {
-                connection = mkOption { type = connectionType; };
-                endpoint = mkOption { type = types.str; };
-                publicKey = mkOption { type = types.str; };
-                dns = mkOption { type = types.str; };
+                connection = mkOption {
+                  type = connectionType;
+                  description = "NetworkManager identity for this WireGuard profile.";
+                };
+                endpoint = mkOption {
+                  type = types.str;
+                  description = "WireGuard peer endpoint in host:port form.";
+                };
+                publicKey = mkOption {
+                  type = types.str;
+                  description = "Public key of the WireGuard peer.";
+                };
+                privateKeySecretName = mkOption {
+                  type = types.str;
+                  description = "sops-nix secret containing the local WireGuard private key.";
+                };
+                presharedKeySecretName = mkOption {
+                  type = types.str;
+                  description = "sops-nix secret containing the WireGuard preshared key.";
+                };
+                dns = mkOption {
+                  type = types.str;
+                  description = "DNS server used while this profile is active.";
+                };
                 addresses = mkOption {
                   type = types.listOf types.str;
+                  description = "Local IPv4 and optional IPv6 interface addresses in CIDR notation.";
                 };
               };
             }
@@ -67,29 +118,9 @@ in
       };
     };
 
-    user = {
-      name = mkOption { type = types.str; };
-      uid = mkOption { type = types.ints.positive; };
-      fullName = mkOption { type = types.str; };
-      email = mkOption { type = types.str; };
-      homeDirectory = mkOption { type = types.str; };
-      sshDirectory = mkOption { type = types.str; };
-      sshPublicKey = mkOption { type = types.str; };
-    };
+    user = sharedTypes.userOptions;
 
-    network.hosts = mkOption {
-      type = types.attrsOf (
-        types.submodule {
-          options = {
-            fqdn = mkOption { type = types.str; };
-            port = mkOption {
-              type = types.nullOr types.port;
-              default = null;
-            };
-          };
-        }
-      );
-    };
+    network.hosts = sharedTypes.networkHostsOption;
   };
 
   config.assertions = [

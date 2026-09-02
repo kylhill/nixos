@@ -51,25 +51,29 @@
     }:
     let
       inventory = import ./lib/inventory.nix;
-      supportedSystems = nixpkgs.lib.unique (
-        map (host: host.system) (builtins.attrValues inventory.hosts)
-      );
-      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
-      pkgsFor = system: import nixpkgs { inherit system; };
-      hardwareModules = {
-        system76 = nixos-hardware.nixosModules.system76;
-      };
+      devSystems = [
+        "x86_64-linux"
+      ];
+      forAllSystems = nixpkgs.lib.genAttrs devSystems;
+      pkgsFor = system: nixpkgs.legacyPackages.${system};
     in
     {
       nixosModules = {
+        default = {
+          imports = [
+            self.nixosModules.infrastructure
+            self.nixosModules.base
+          ];
+        };
         base = ./modules/nixos/base.nix;
         infrastructure = ./modules/nixos/infrastructure.nix;
         laptop = ./modules/nixos/laptop.nix;
         networkmanager-vpn = ./modules/nixos/networkmanager-vpn.nix;
         networkmanager-wifi = ./modules/nixos/networkmanager-wifi.nix;
         secrets = ./modules/nixos/secrets.nix;
+        shared-ssh-identity = ./modules/nixos/shared-ssh-identity.nix;
         workstation-zfs = ./modules/nixos/workstation-zfs.nix;
-        system76 = ./modules/nixos/system76.nix;
+        system76-desktop-policy = ./modules/nixos/system76-desktop-policy.nix;
         user-kyleh = ./modules/nixos/user-kyleh.nix;
         workstation = ./modules/nixos/workstation.nix;
       };
@@ -77,13 +81,13 @@
       nixosConfigurations = nixpkgs.lib.mapAttrs (
         hostName: host:
         nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit nixos-hardware; };
           modules = [
             disko.nixosModules.disko
             home-manager.nixosModules.home-manager
             sops-nix.nixosModules.sops
             self.nixosModules.infrastructure
           ]
-          ++ map (name: hardwareModules.${name}) (host.hardwareModules or [ ])
           ++ [
             (./hosts + "/${hostName}")
             {
