@@ -15,7 +15,6 @@ esac
 export NIX_CONFIG="${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flakes'
 
 cd "$repo_dir"
-nix flake check --no-build
 
 # Passing NIX_CONFIG explicitly makes the script work during bootstrap as well
 # as after this configuration has enabled flakes globally.
