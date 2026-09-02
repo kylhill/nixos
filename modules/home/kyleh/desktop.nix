@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 {
   home = {
     packages = [
@@ -48,6 +48,13 @@
   };
 
   dconf.settings = {
+    "org/gnome/desktop/background" = {
+      picture-uri = "file:///run/current-system/sw/share/backgrounds/gnome/pixel-pusher-l.jxl";
+      picture-uri-dark = "file:///run/current-system/sw/share/backgrounds/gnome/pixel-pusher-d.jxl";
+      primary-color = "#967864";
+      secondary-color = "#000000";
+    };
+
     "org/gnome/Console" = {
       custom-font = "CaskaydiaCove Nerd Font 10";
       ignore-scrollback-limit = true;
@@ -55,6 +62,13 @@
     };
 
     "org/gnome/desktop/datetime".automatic-timezone = true;
+
+    "org/gnome/desktop/input-sources".sources = [
+      (lib.hm.gvariant.mkTuple [
+        "xkb"
+        "us"
+      ])
+    ];
 
     "org/gnome/desktop/interface" = {
       clock-format = "12h";
@@ -70,7 +84,15 @@
       remove-old-trash-files = true;
     };
 
-    "org/gnome/desktop/screensaver".lock-delay = 0;
+    "org/gnome/desktop/peripherals/keyboard".numlock-state = true;
+
+    "org/gnome/desktop/screensaver" = {
+      lock-delay = 0;
+      picture-uri = "file:///run/current-system/sw/share/backgrounds/gnome/pixel-pusher-l.jxl";
+      primary-color = "#967864";
+      secondary-color = "#000000";
+    };
+
     "org/gnome/desktop/sound".event-sounds = false;
     "org/gnome/desktop/wm/keybindings" = {
       minimize = [ ];

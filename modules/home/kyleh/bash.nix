@@ -26,13 +26,6 @@
   programs = {
     codex = {
       enable = true;
-      settings = {
-        approvals_reviewer = "auto_review";
-        projects = {
-          "${config.home.homeDirectory}/nixos".trust_level = "trusted";
-          "${config.home.homeDirectory}/Projects/nixos".trust_level = "trusted";
-        };
-      };
     };
 
     command-not-found.enable = false;
