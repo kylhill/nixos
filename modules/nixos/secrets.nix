@@ -16,11 +16,11 @@ in
       "user/password-hash".neededForUsers = true;
       "wireguard/private-key" = {
         mode = "0400";
-        restartUnits = [ "nm-file-secret-agent.service" ];
+        restartUnits = [ "NetworkManager-ensure-profiles.service" ];
       };
       "wireguard/preshared-key" = {
         mode = "0400";
-        restartUnits = [ "nm-file-secret-agent.service" ];
+        restartUnits = [ "NetworkManager-ensure-profiles.service" ];
       };
     }
     // lib.mapAttrs' (
@@ -44,7 +44,19 @@ in
         path = "${user.sshDirectory}/id_ed25519.pub";
       };
     };
+
+    templates."networkmanager-wireguard.env" = {
+      content = ''
+        WIREGUARD_PRIVATE_KEY=${config.sops.placeholder."wireguard/private-key"}
+        WIREGUARD_PRESHARED_KEY=${config.sops.placeholder."wireguard/preshared-key"}
+      '';
+      mode = "0400";
+    };
   };
+
+  networking.networkmanager.ensureProfiles.environmentFiles = [
+    config.sops.templates."networkmanager-wireguard.env".path
+  ];
 
   users = {
     mutableUsers = false;

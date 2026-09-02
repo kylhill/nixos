@@ -19,13 +19,15 @@ let
     };
 
     wireguard = {
-      private-key-flags = 1;
+      private-key = "$WIREGUARD_PRIVATE_KEY";
+      private-key-flags = 0;
       peer-routes = true;
     };
 
     "wireguard-peer.${profile.publicKey}" = {
       inherit (profile) endpoint;
-      preshared-key-flags = 1;
+      preshared-key = "$WIREGUARD_PRESHARED_KEY";
+      preshared-key-flags = 0;
       persistent-keepalive = 25;
       allowed-ips = "0.0.0.0/0;::/0;";
     };
@@ -50,26 +52,6 @@ in
       )
     );
 
-    secrets.entries = lib.concatMap (profile: [
-      {
-        matchId = profile.connection.id;
-        matchType = "wireguard";
-        matchSetting = "wireguard";
-        key = "private-key";
-        file = config.sops.secrets."wireguard/private-key".path;
-      }
-      {
-        matchId = profile.connection.id;
-        matchType = "wireguard";
-        matchSetting = "wireguard-peer.${profile.publicKey}";
-        key = "preshared-key";
-        file = config.sops.secrets."wireguard/preshared-key".path;
-      }
-    ]) (builtins.attrValues wg);
   };
 
-  systemd.services.nm-file-secret-agent = {
-    after = [ "sops-install-secrets.service" ];
-    requires = [ "sops-install-secrets.service" ];
-  };
 }
