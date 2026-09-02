@@ -36,7 +36,6 @@
 
     fd.enable = true;
     fzf.enable = true;
-    gcc.enable = true;
     gh.enable = true;
     github-copilot-cli.enable = true;
     jq.enable = true;

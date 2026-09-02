@@ -128,13 +128,6 @@ in
   };
 
   dconf.settings = {
-    "org/gnome/desktop/background" = {
-      picture-uri = "file:///run/current-system/sw/share/backgrounds/gnome/pixel-pusher-l.jxl";
-      picture-uri-dark = "file:///run/current-system/sw/share/backgrounds/gnome/pixel-pusher-d.jxl";
-      primary-color = "#967864";
-      secondary-color = "#000000";
-    };
-
     "org/gnome/Console" = {
       custom-font = "${config.stylix.fonts.monospace.name} ${toString config.stylix.fonts.sizes.terminal}";
       custom-liveries = dictionary [
@@ -174,7 +167,6 @@ in
 
     "org/gnome/desktop/interface" = {
       clock-format = "12h";
-      color-scheme = "prefer-dark";
       show-battery-percentage = true;
     };
 

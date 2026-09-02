@@ -79,7 +79,6 @@
 
     extraPackages = [
       pkgs.nixfmt
-      pkgs.shellcheck
       pkgs.stylua
     ];
 

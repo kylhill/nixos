@@ -5,6 +5,7 @@
 {
   programs.git = {
     enable = true;
+    package = null;
     settings = {
       alias.vlog = "log --show-signature";
       core = {

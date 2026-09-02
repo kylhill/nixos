@@ -1,4 +1,20 @@
-{ pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  gstreamerPackages = with pkgs.gst_all_1; [
+    gstreamer
+    gst-plugins-base
+    gst-plugins-good
+    gst-plugins-bad
+    gst-plugins-ugly
+    gst-libav
+  ];
+  gstreamerPluginPath = lib.makeSearchPathOutput "lib" "lib/gstreamer-1.0" gstreamerPackages;
+in
 {
   networking = {
     networkmanager.enable = true;
@@ -16,7 +32,13 @@
 
     displayManager.gdm.enable = true;
     desktopManager.gnome.enable = true;
-    gnome.gcr-ssh-agent.enable = true;
+    dleyna.enable = false;
+    gnome = {
+      gcr-ssh-agent.enable = true;
+      gnome-remote-desktop.enable = false;
+      gnome-user-share.enable = false;
+      rygel.enable = false;
+    };
     printing.enable = true;
 
     pipewire = {
@@ -39,16 +61,29 @@
   };
 
   environment = {
+    gnome.excludePackages = with pkgs; [
+      epiphany
+      gnome-connections
+      gnome-maps
+      gnome-tour
+      simple-scan
+    ];
+
     sessionVariables = {
+      GST_PLUGIN_SYSTEM_PATH_1_0 = gstreamerPluginPath;
       MOZ_ENABLE_WAYLAND = "1";
       NIXOS_OZONE_WL = "1";
     };
 
-    systemPackages = [
+    systemPackages = gstreamerPackages ++ [
       pkgs.file-roller
-      pkgs.gnome-tweaks
       pkgs.unzip
-      pkgs.wireguard-tools
     ];
   };
+
+  fonts.packages = [
+    pkgs.caladea
+    pkgs.carlito
+    pkgs.liberation_ttf
+  ];
 }

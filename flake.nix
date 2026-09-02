@@ -120,13 +120,18 @@
           pkgs = pkgsFor system;
         in
         {
-          formatting = pkgs.runCommand "nixfmt-check" { nativeBuildInputs = [ pkgs.nixfmt-tree ]; } ''
-            cp -r ${self} source
-            chmod -R u+w source
-            cd source
-            treefmt --ci
-            touch $out
-          '';
+          formatting =
+            pkgs.runCommand "nixfmt-check"
+              {
+                nativeBuildInputs = [
+                  pkgs.findutils
+                  pkgs.nixfmt
+                ];
+              }
+              ''
+                find ${self} -type f -name '*.nix' -exec nixfmt --check {} +
+                touch $out
+              '';
 
           statix = pkgs.runCommand "statix-check" { nativeBuildInputs = [ pkgs.statix ]; } ''
             statix check ${self}
