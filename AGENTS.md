@@ -1,30 +1,29 @@
 # Agent instructions
 
-These instructions apply to the entire repository. Add a nested `AGENTS.md`
-only when a subtree needs genuinely different commands or safety constraints;
-keep repository-wide rules here.
+These instructions apply to the entire repository. They supplement the operator
+workflows in `README.md` and the credential procedures in `secrets/README.md`;
+do not duplicate those documents here. Add a nested `AGENTS.md` only when a
+subtree needs genuinely different commands or safety constraints.
 
 ## Scope and architecture
 
 - This repository is the declarative source of truth for the `pang14` NixOS
   host. Prefer changing this repository over making imperative changes to the
   live system.
-- Treat `pang14` as the first host in a future heterogeneous fleet. Preserve
-  enough framework structure to support additional laptops and desktops, NAS
-  and homelab servers, VPSes, and gateway routers without copying whole host
-  configurations or forcing unrelated host classes through laptop-specific
-  assumptions.
+- Treat `pang14` as the first host in a future heterogeneous fleet. Do not copy
+  whole host configurations or force unrelated host classes through
+  laptop-specific assumptions.
 - `flake.nix` composes NixOS, Home Manager, Disko, sops-nix, nixos-hardware,
-  and Nixvim. The primary output is `nixosConfigurations.pang14`.
+  Nixvim, Stylix, and nix-index-database. The primary output is
+  `nixosConfigurations.pang14`.
 - Keep host composition and hardware-specific settings in `hosts/pang14/`.
   Put reusable system configuration in `modules/nixos/`, user configuration in
   `modules/home/kyleh/`, and non-secret shared data in `lib/inventory.nix`.
-- Prefer small reusable capability or role modules that hosts compose
-  explicitly. Keep host identity and per-host values in inventory or the host
-  subtree, and keep role-specific policy out of a universal base module. Add a
-  shared abstraction when it has a credible use across multiple hosts or host
-  classes; do not remove an existing useful abstraction merely because only
-  `pang14` consumes it today.
+- Prefer small capability or role modules that hosts compose explicitly. Keep
+  identity and per-host values in inventory or the host subtree, and keep
+  role-specific policy out of the universal base. Introduce an abstraction only
+  for credible reuse, but do not remove a useful existing abstraction solely
+  because it currently has one consumer.
 - Home Manager is integrated into the NixOS configuration. Do not introduce a
   separate Home Manager activation workflow.
 
@@ -44,8 +43,10 @@ keep repository-wide rules here.
   explicitly requests and understands a state-version migration.
 - Do not update `flake.lock` as a side effect of unrelated work. Use
   `./update.sh` only when input updates are requested.
-- Format Nix changes with the flake formatter (`nix fmt`) or the pinned
-  `nixfmt` executable. Run `git diff --check` before handing off.
+- Keep documentation operational: commands must match repository scripts and
+  facts must be traceable to evaluated configuration. Put operator workflows in
+  `README.md`, secrets lifecycle material in `secrets/README.md`, and agent-only
+  constraints here.
 
 ## Documentation and option discovery
 
@@ -68,41 +69,52 @@ keep repository-wide rules here.
 
 ## Validation workflow
 
-- After every change, run all applicable lightweight checks and linters before
-  handing off. At minimum run `git diff --check`, the formatter in check mode,
-  Statix, Deadnix, ShellCheck for changed shell scripts, and flake evaluation:
+- Codex sessions on `syntax` cannot access the system Nix daemon Unix socket,
+  including after entering `nix develop` or requesting command escalation. Do
+  not run ordinary store-backed commands such as `nix develop`, `nix build`,
+  `nix eval`, `nix shell`, or `./test.sh` in the sandbox. Repeated socket retries
+  and approval requests do not add useful validation.
+- Use the repository's daemonless evaluation script instead. It gives Nix a
+  persistent user-owned local store and fetcher cache under `/tmp`, evaluates
+  every flake output with `--no-build`, and never contacts the system daemon:
 
   ```bash
-  nix flake check --no-build
+  git diff --check
+  ./sandbox-test.sh
+  bash -n path/to/changed-script
+  shellcheck path/to/changed-script
   ```
 
-- Prefer tools already available on `PATH`, but downloading a reasonable number
-  of formatter, linter, or lightweight evaluation dependencies is allowed. A
-  targeted `nix develop`, `nix shell`, or individual lint-check derivation is
-  acceptable when needed to run the required checks. Do not run a broad
-  `nix flake check` without `--no-build`, because the flake also exposes the
-  full `pang14` system closure as a check. If a required tool or the Nix daemon
-  is unavailable, run every remaining check and report exactly what could not
-  be run.
+- The first daemonless evaluation may need approval to fetch locked inputs from
+  GitHub and `cache.nixos.org`; request network permission for the script when
+  the sandbox blocks those domains. Reuse its `/tmp` store rather than creating
+  a fresh store per command. Use `./sandbox-test.sh --path` when an imported
+  untracked file must be visible to the flake.
+- The daemonless script validates the module graph, option types, assertions,
+  package references, and flake outputs. It cannot build the formatting,
+  Statix, Deadnix, or ShellCheck derivations: local chroot-store builders cannot
+  write their logical `/nix/store` outputs through this sandbox. Run `bash -n`
+  and ShellCheck directly for each changed shell script. If `nixfmt`, Statix,
+  or Deadnix already exists on `PATH`, run it directly; do not use Nix to obtain
+  a missing tool. Otherwise, ask the user to run `./test.sh` outside Codex and
+  report those derivation builds as required user-side validation.
 - Never automatically perform a full system or closure build. In particular,
   do not run `nix build` on `nixosConfigurations`, the `pang14` check, a VM, or
   another target that could download or build the system package closure. This
   repository is often edited from hosts that do not have the NixOS closure
-  cached. Small, explicitly targeted formatter and linter derivations are not
-  considered full builds and are allowed.
-- Use narrow evaluation where possible: evaluate changed options, inspect
-  generated configuration or units, parse changed files, and run targeted
-  linters without realizing the system closure.
+  cached. The user-side `./test.sh` command builds only explicitly targeted
+  formatter and linter derivations, which are not considered full builds.
+- When suggesting additional user-side validation, prefer narrow evaluation of
+  changed options or generated units over realizing the system closure.
 - Ignore Nix's expected dirty-worktree warning while validating uncommitted
   changes. Keep `nix.settings.warn-dirty = true`; do not suppress the warning in
   configuration or treat it as a validation failure. Continue to inspect and
   report the actual worktree state before handoff.
 
-- Git-backed flakes cannot see untracked files. While developing a new file,
-  either use `nix flake check path:. --no-build` or stage only that file
-  before testing. Before handoff, ensure the normal Git-backed command works if
-  the new file is imported by the flake. Do not broadly stage unrelated user
-  changes.
+- Git-backed flakes omit untracked files. Use `./sandbox-test.sh --path` while
+  developing a new imported file; do not stage files merely to validate them
+  and never broadly stage unrelated changes. Before handoff, remind the user to
+  stage the new file before running the normal Git-backed `./test.sh`.
 - Never run `apply.sh`, `nixos-rebuild`, Home Manager activation, or otherwise
   apply this configuration to a system. Do not use `apply.sh build` or
   `apply.sh test` as validation shortcuts. The user owns all building,
@@ -110,16 +122,13 @@ keep repository-wide rules here.
 - For risky service changes, inspect the evaluated configuration as narrowly as
   practical and give the user commands and a rollback path for any live testing
   they choose to perform themselves.
-- On `syntax`, the Codex sandbox cannot access the shared Nix daemon socket.
-  Run the lightweight Nix commands allowlisted in `.codex/rules/nix.rules`
-  outside the sandbox from the outset; do not first retry them inside the
-  sandbox. Request permission for any other command that needs the Nix daemon
-  or network rather than changing the design to bypass validation.
 
 ## Secrets and networking
 
 - Never print, decrypt, commit, or place secret values in the Nix store.
   Secrets belong in `secrets/pang14.yaml` and are consumed through sops-nix.
+- Reading encrypted files or recipient metadata is safe; commands that decrypt,
+  edit, rekey, or display secret values require an explicit user request.
 - Use `sops.placeholder` plus a root-only `sops.templates` file when a service
   requires a generated environment or configuration file containing secrets.
 - Keep private age identities outside the repository. Follow
@@ -170,9 +179,13 @@ keep repository-wide rules here.
 - Mention any root-only or live-system state that could not be inspected. Do
   not claim a configuration was activated when it was only evaluated or built.
 
-## Primary references
+## Reference hierarchy
 
-- [OpenAI: custom instructions with AGENTS.md](https://developers.openai.com/codex/guides/agents-md)
-- [NixOS 26.05 manual](https://nixos.org/manual/nixos/stable/)
-- [Nixpkgs contribution and formatting guidance](https://github.com/NixOS/nixpkgs/blob/master/CONTRIBUTING.md)
-- [Nix reference manual: flakes](https://nix.dev/manual/nix/latest/command-ref/new-cli/nix3-flake)
+- For repository behavior, prefer evaluated pinned options and sources over web
+  examples. Primary external references are the [NixOS 26.05
+  manual](https://nixos.org/manual/nixos/stable/), [Nix
+  manual](https://nix.dev/manual/nix/latest/), and upstream documentation for
+  the relevant pinned input.
+- For instruction discovery and scope, follow [OpenAI's AGENTS.md
+  guidance](https://developers.openai.com/codex/guides/agents-md). Keep this
+  root file concise; use nested instructions only for genuinely local rules.

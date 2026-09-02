@@ -1,7 +1,44 @@
-# Secrets bootstrap
+# Secrets lifecycle
 
 The repository uses an operator age identity for editing and a separate host
-identity for `pang14`. Private identities never belong in Git or the Nix store.
+identity for `pang14` activation. `.sops.yaml` commits their public recipients;
+`secrets/pang14.yaml` commits encrypted values. Private identities never belong
+in Git, the Nix store, shell history, logs, or chat.
+
+## Routine editing
+
+Use the existing, securely backed-up operator identity. Do not generate a new
+identity merely to edit this repository.
+
+```bash
+nix develop
+sops secrets/pang14.yaml
+sops filestatus secrets/pang14.yaml
+```
+
+Keep the document schema unchanged unless the consuming Nix modules change.
+The current keys are:
+
+```text
+user/password-hash
+wifi/tacomafia-lan-password
+wireguard/private-key
+wireguard/preshared-key
+ssh/private-key
+ssh/public-key
+```
+
+Before committing, inspect the encrypted diff and confirm that `sops
+filestatus` reports the file as encrypted. Never use `sops -d` in routine
+validation or paste decrypted values into a command line.
+
+## Initial bootstrap or intentional key rotation
+
+The following procedure is only for creating this setup from scratch or an
+explicit recipient rotation. For rotation, preserve at least one working
+recipient until the re-encrypted file has been verified and all affected hosts
+have their new identity; changing `.sops.yaml` alone does not re-encrypt an
+existing file.
 
 1. Enter the repository development shell:
 
@@ -9,8 +46,8 @@ identity for `pang14`. Private identities never belong in Git or the Nix store.
    nix develop
    ```
 
-2. Generate or select a securely backed-up operator identity and generate the
-   host identity in a secure temporary location:
+2. Generate identities only when suitable backed-up identities do not already
+   exist. Choose secure paths and restrictive permissions:
 
    ```bash
    install -d -m 0700 ~/.config/sops/age
@@ -20,10 +57,12 @@ identity for `pang14`. Private identities never belong in Git or the Nix store.
    age-keygen -y /secure/location/pang14-host.txt
    ```
 
-3. Copy `.sops.yaml.example` to `.sops.yaml`, replace both public recipients,
-   and commit `.sops.yaml`. Back up both private identities before continuing.
+3. Put only the two public recipients in `.sops.yaml`. Back up both private
+   identities before creating or rekeying the encrypted file. When rotating an
+   existing file, run `sops updatekeys secrets/pang14.yaml` while an old
+   recipient is still available, then verify access with the new operator key.
 
-4. Open the new encrypted file:
+4. Create or edit the encrypted file:
 
    ```bash
    sops secrets/pang14.yaml
@@ -65,9 +104,11 @@ identity for `pang14`. Private identities never belong in Git or the Nix store.
    aSwGLb+DVJhHVJVyCdvFE4R6vuLvpVxPZqaOFszoljg=
    ```
 
-6. Add only `.sops.yaml` and the encrypted `secrets/pang14.yaml` to Git. A
-   successful `sops filestatus secrets/pang14.yaml` must report that it is
-   encrypted.
+6. Add only `.sops.yaml` and the encrypted `secrets/pang14.yaml` to Git. Verify
+   recipient changes by reopening the file with the intended operator key and
+   by checking `sops filestatus`; never commit private identities.
+
+## Host installation and recovery
 
 During installation, provision the backed-up host identity only after Disko
 has mounted `rpool/var`. The guarded installer verifies both the dataset and
@@ -79,6 +120,13 @@ sudo ./scripts/install-host-key /secure/location/pang14-host.txt
 
 Do not reboot until `/mnt/var/lib/sops-nix/key.txt` exists and the script has
 reported the expected pang14 recipient.
+
+After activation, sops-nix reads that persistent identity and writes runtime
+secrets with the ownership and modes declared in `modules/nixos/`. A missing or
+wrong host identity prevents secret provisioning and may leave the user account
+locked because its password hash cannot be installed.
+
+## Post-activation verification
 
 The shared SSH key is decrypted during activation to
 `/home/kyleh/.ssh/id_ed25519`, owned by `kyleh` with mode `0600`. The public

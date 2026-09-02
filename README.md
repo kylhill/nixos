@@ -1,27 +1,31 @@
 # NixOS infrastructure
 
-Flake-based NixOS and Home Manager configuration, beginning with the System76
-Pangolin 14 (`pang14`) and intended to grow into a heterogeneous fleet of
-laptops and desktops, NAS and homelab servers, VPSes, and gateway routers.
-Reusable capability and role modules should make that expansion possible
-without copying complete host configurations, while host composition and
-hardware-specific policy remain explicit under `hosts/`.
-
-The existing OCI VPS, gateway, NAS/application server, and other hosts in
-`~/infra` can be migrated incrementally. Framework abstractions are retained
-when they represent credible reuse across future hosts or host classes; the
-repository does not require every abstraction to have a second consumer before
-those migrations begin.
+Flake-based NixOS and Home Manager configuration for the System76 Pangolin 14
+(`pang14`). The module and inventory layout is designed to accommodate future
+desktop, server, VPS, NAS, and router hosts without copying whole host
+configurations or imposing laptop policy on every machine.
 
 The flake exposes `nixosConfigurations.pang14`. Home Manager is integrated into
 that system configuration, so system and user changes activate together.
 
-The existing Ansible and dotfiles repositories remain authoritative for
-non-Nix hosts during migration. On `pang14`, this repository replaces Dotbot,
-lazy.nvim, and Mason with Home Manager and Nixvim.
+For hosts not yet represented here, the existing Ansible and dotfiles
+repositories remain authoritative. On `pang14`, this repository replaces
+Dotbot, lazy.nvim, and Mason with Home Manager and Nixvim.
 
-Repository structure, coding conventions, validation requirements, and agent
-guidance live in [AGENTS.md](AGENTS.md).
+## Repository map
+
+- `flake.nix` pins dependencies and constructs every host in
+  `lib/inventory.nix`.
+- `hosts/pang14/` selects capabilities and owns hardware, boot, storage, and
+  host-specific policy.
+- `modules/nixos/` contains reusable system capabilities and roles.
+- `modules/home/kyleh/` contains the integrated Home Manager configuration.
+- `lib/inventory.nix` contains stable, non-secret host, user, and network data.
+- `secrets/pang14.yaml` contains only sops-encrypted values; key provisioning
+  and editing procedures are in [secrets/README.md](secrets/README.md).
+
+Contributor and coding-agent constraints live in [AGENTS.md](AGENTS.md). That
+file intentionally does not duplicate the operator procedures below.
 
 ## Normal operation
 
@@ -30,17 +34,18 @@ linting, building, activation, and switching into one unobserved step.
 
 ### 1. Inspect and run lightweight checks
 
-These checks are appropriate on any development host. They evaluate the flake
-and may download small formatter or linter dependencies, but they do not build
-the `pang14` system closure:
+Enter the pinned development environment when the required tools are not
+already available, then run the repository checks:
 
 ```bash
+nix develop
 ./test.sh
 ```
 
-The script stops at the first failure. It evaluates every flake output
-without building it, and then runs the four lightweight lint derivations
-individually. It never builds or activates the `pang14` system closure.
+The script stops at the first failure. It evaluates every flake output with
+`nix flake check --no-build`, then builds only the formatting, Statix, Deadnix,
+and ShellCheck derivations. It never builds or activates the `pang14` system
+closure.
 
 Review the complete diff after automated checks pass:
 
@@ -118,38 +123,27 @@ the lock-file diff, and then run the complete progression above:
 git diff -- flake.lock
 ```
 
-Both NetworkManager WireGuard profiles are intentional full IPv4/IPv6 tunnels.
-They are available from GNOME's network settings as `Home VPN` and `OCI VPN`
-after secrets are provisioned.
+Commit the reviewed lock-file update separately from unrelated changes. Both
+NetworkManager WireGuard profiles are intentional full IPv4/IPv6 tunnels. They
+appear in GNOME as `Home VPN` and `OCI VPN` after secrets are provisioned.
 
-## Storage design
+## Fresh installation
 
-Only this device is a valid destructive target:
+These steps intentionally separate verification, destructive formatting, and
+installation for `pang14`. Read [hosts/pang14/disko.nix](hosts/pang14/disko.nix)
+and the [secrets bootstrap guide](secrets/README.md) in full first. Run the
+commands from a NixOS 26.05 installer booted in UEFI mode.
+
+The installation destroys only the Kingston KC3000 at:
 
 ```text
 /dev/disk/by-id/nvme-KINGSTON_SKC3000S1024G_50026B7686B97472
 ```
 
+It creates EFI and swap partitions plus the ZFS datasets declared in Disko.
 The WD Blue SN580 with serial `24144M801597` contains Windows and Ubuntu and
-must not be modified.
-
-Disko creates a 2 GB EFI system partition, 40 GB swap partition, and a ZFS `rpool`
-using the remaining space. Persistent datasets back `/`, `/nix`, `/home`, and
-`/var`. Home retains 24 hourly, 7 daily, 4 weekly, and 3 monthly snapshots;
-root, `/nix`, and `/var` are excluded. ZFS trim runs weekly and scrub runs
-monthly. Forced import of the root pool is intentional because `pang14`
-exclusively owns that pool and should recover automatically after an unclean
-shutdown.
-
-ZRAM is disabled. Kernel zswap uses zstd and zsmalloc as a compressed cache in
-front of the persistent 40 GB swap partition, capped at 20% of RAM. The laptop
-uses ordinary suspend; hibernation remains disabled because it is unsafe with
-the ZFS system pool.
-
-## Fresh installation
-
-These steps intentionally separate verification, destructive formatting, and
-installation. Run them from a NixOS 26.05 installer booted in UEFI mode.
+must not be modified. The preflight script verifies both disks before any
+destructive command is run.
 
 The live installer may not enable flakes globally. Set this once in its shell;
 commands run through `sudo` below pass it explicitly where needed:
@@ -158,10 +152,14 @@ commands run through `sudo` below pass it explicitly where needed:
 export NIX_CONFIG='experimental-features = nix-command flakes'
 ```
 
-1. Complete [the secrets bootstrap](secrets/README.md), commit the encrypted
-   files, and back up the private age identities and recovered WireGuard keys.
+1. Clone this repository and enter it. Confirm that `.sops.yaml` and the
+   encrypted `secrets/pang14.yaml` are present.
 
-2. Clone this repository, enter it, and run the read-only preflight:
+2. Make both private age identities available from secure backups as described
+   in [secrets/README.md](secrets/README.md). Do not continue if the host key or
+   required service credentials cannot be recovered.
+
+3. Run the read-only preflight:
 
    ```bash
    ./scripts/install-preflight
@@ -170,21 +168,21 @@ export NIX_CONFIG='experimental-features = nix-command flakes'
    Read both printed serials. Stop if the destructive target is not the Kingston
    KC3000.
 
-3. Evaluate and build before touching storage:
+4. Evaluate and build before touching storage:
 
    ```bash
    nix flake check --no-build
    nix build .#nixosConfigurations.pang14.config.system.build.toplevel
    ```
 
-4. Destroy, format, and mount only the declared Kingston target:
+5. Destroy, format, and mount only the declared Kingston target:
 
    ```bash
    sudo env NIX_CONFIG="$NIX_CONFIG" nix run .#disko -- \
      --mode destroy,format,mount ./hosts/pang14/disko.nix
    ```
 
-5. Provision and verify the host age identity in the mounted `rpool/var`.
+6. Provision and verify the host age identity in the mounted `rpool/var`.
    This is mandatory: without it, sops-nix cannot decrypt the login password
    hash and the new account will be locked:
 
@@ -193,7 +191,7 @@ export NIX_CONFIG='experimental-features = nix-command flakes'
    sudo stat /mnt/var/lib/sops-nix/key.txt
    ```
 
-6. Compare the detected hardware configuration with `hosts/pang14/hardware.nix`:
+7. Compare the detected hardware configuration with `hosts/pang14/hardware.nix`:
 
    ```bash
    sudo nixos-generate-config --root /mnt --show-hardware-config
@@ -202,7 +200,7 @@ export NIX_CONFIG='experimental-features = nix-command flakes'
    Do not replace the declarative Disko filesystem definitions with generated
    filesystem entries.
 
-7. Install and reboot:
+8. Install and reboot:
 
    ```bash
    sudo env NIX_CONFIG="$NIX_CONFIG" \
@@ -210,37 +208,7 @@ export NIX_CONFIG='experimental-features = nix-command flakes'
    sudo reboot
    ```
 
-## Post-install verification
-
-```bash
-zpool status rpool
-zfs list
-systemctl list-timers 'zfs-*'
-swapon --show
-cat /sys/module/zswap/parameters/enabled
-cat /sys/module/zswap/parameters/compressor
-cat /sys/module/zswap/parameters/zpool
-cat /sys/module/zswap/parameters/max_pool_percent
-systemctl status sops-install-secrets --no-pager
-loginctl show-session "$XDG_SESSION_ID" -p Type
-pgrep -a Xwayland || true
-```
-
-Expected results:
-
-- `rpool` is healthy and all four datasets are mounted.
-- The 40 GB disk swap is active; no `/dev/zram*` device exists.
-- zswap reports enabled, `zstd`, `zsmalloc`, and `20`.
-- The desktop session type is `wayland`. Xwayland may run when an application
-  needs the compatibility fallback.
-- Firefox and VS Code launch natively on Wayland.
-- Suspend and resume preserve the desktop session.
-- Windows and Ubuntu remain bootable from the firmware boot menu.
-
-ZFS snapshots are rollback aids, not backups. Off-host laptop backup is deferred
-to a later reusable backup module.
-
-## Outstanding storage work
+### Outstanding `pang14` storage work
 
 - Update the existing pool to match the home-only snapshot policy after
   activating this configuration:
