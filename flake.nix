@@ -31,11 +31,11 @@
       url = "github:nix-community/nixvim/nixos-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    dircolors-solarized = {
-      url = "github:seebi/dircolors-solarized";
-      flake = false;
+    stylix = {
+      url = "github:nix-community/stylix/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
+    tinted-schemes.follows = "stylix/tinted-schemes";
   };
 
   outputs =
@@ -47,6 +47,8 @@
       sops-nix,
       nixos-hardware,
       nixvim,
+      stylix,
+      tinted-schemes,
       ...
     }:
     let
@@ -66,6 +68,7 @@
           ];
         };
         base = ./modules/nixos/base.nix;
+        desktop-theme = ./modules/nixos/desktop-theme.nix;
         infrastructure = ./modules/nixos/infrastructure.nix;
         laptop = ./modules/nixos/laptop.nix;
         networkmanager-vpn = ./modules/nixos/networkmanager-vpn.nix;
@@ -81,11 +84,14 @@
       nixosConfigurations = nixpkgs.lib.mapAttrs (
         hostName: host:
         nixpkgs.lib.nixosSystem {
-          specialArgs = { inherit nixos-hardware; };
+          specialArgs = {
+            inherit nixos-hardware tinted-schemes;
+          };
           modules = [
             disko.nixosModules.disko
             home-manager.nixosModules.home-manager
             sops-nix.nixosModules.sops
+            stylix.nixosModules.stylix
             self.nixosModules.infrastructure
           ]
           ++ [
@@ -102,9 +108,6 @@
               home-manager.sharedModules = [
                 nixvim.homeModules.nixvim
                 inputs.nix-index-database.homeModules.default
-                {
-                  infrastructure.sources.dircolorsSolarized = inputs.dircolors-solarized;
-                }
               ];
             }
           ];
@@ -118,7 +121,9 @@
         in
         {
           formatting = pkgs.runCommand "nixfmt-check" { nativeBuildInputs = [ pkgs.nixfmt-tree ]; } ''
-            cd ${self}
+            cp -r ${self} source
+            chmod -R u+w source
+            cd source
             treefmt --ci
             touch $out
           '';

@@ -1,6 +1,5 @@
 {
   nixos-hardware,
-  pkgs,
   ...
 }:
 {
@@ -9,6 +8,7 @@
     ./hardware.nix
     nixos-hardware.nixosModules.system76
     ../../modules/nixos/base.nix
+    ../../modules/nixos/desktop-theme.nix
     ../../modules/nixos/laptop.nix
     ../../modules/nixos/networkmanager-vpn.nix
     ../../modules/nixos/networkmanager-wifi.nix
@@ -33,6 +33,4 @@
   sops.defaultSopsFile = ../../secrets/pang14.yaml;
 
   system.stateVersion = "26.05";
-
-  fonts.packages = [ pkgs.nerd-fonts.caskaydia-cove ];
 }

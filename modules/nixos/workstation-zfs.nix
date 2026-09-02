@@ -7,9 +7,9 @@
     }
   ];
 
-  networking.hostId = lib.mkIf (config.infrastructure.host.hostId != null) (
-    config.infrastructure.host.hostId
-  );
+  networking.hostId = lib.mkIf (
+    config.infrastructure.host.hostId != null
+  ) config.infrastructure.host.hostId;
 
   boot = {
     supportedFilesystems = [ "zfs" ];

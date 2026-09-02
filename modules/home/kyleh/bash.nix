@@ -34,21 +34,16 @@
       nix-direnv.enable = true;
     };
 
-    dircolors = {
-      enable = true;
-      enableBashIntegration = true;
-      extraConfig = builtins.readFile (
-        config.infrastructure.sources.dircolorsSolarized + "/dircolors.256dark"
-      );
-    };
-
     fd.enable = true;
     fzf.enable = true;
     gcc.enable = true;
     gh.enable = true;
     github-copilot-cli.enable = true;
     jq.enable = true;
-    lazygit.enable = true;
+    lazygit = {
+      enable = true;
+      settings.gui.nerdFontsVersion = "3";
+    };
     less.enable = true;
     nix-index.enable = true;
     ripgrep.enable = true;
@@ -117,6 +112,8 @@
       };
 
       initExtra = ''
+        eval "$(${pkgs.coreutils}/bin/dircolors --sh ${config.xdg.configHome}/dir_colors)"
+
         if [[ -t 1 ]]; then
           stty -ixon 2>/dev/null || true
         fi
@@ -153,4 +150,6 @@
     enableBashIntegration = true;
     pinentry.package = pkgs.pinentry-gnome3;
   };
+
+  xdg.configFile.dir_colors.source = "${pkgs.dircolors-solarized}/256dark";
 }
