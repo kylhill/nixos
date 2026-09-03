@@ -1,6 +1,12 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 {
   dconf.settings = {
+    "org/gnome/desktop/background" = {
+      picture-options = "zoom";
+      picture-uri = "file://${pkgs.gnome-backgrounds}/share/backgrounds/gnome/pixel-pusher-d.jxl";
+      picture-uri-dark = "file://${pkgs.gnome-backgrounds}/share/backgrounds/gnome/pixel-pusher-d.jxl";
+    };
+
     "org/gnome/desktop/datetime".automatic-timezone = true;
 
     "org/gnome/desktop/input-sources".sources = [
@@ -12,6 +18,8 @@
 
     "org/gnome/desktop/interface" = {
       clock-format = "12h";
+      color-scheme = "prefer-dark";
+      monospace-font-name = "CaskaydiaCove Nerd Font Mono 10";
       show-battery-percentage = true;
     };
 
@@ -34,7 +42,7 @@
     "org/gnome/nautilus/preferences".default-folder-viewer = "list-view";
 
     "org/gnome/settings-daemon/plugins/media-keys" = {
-      home = [ "<Super>h" ];
+      home = [ "<Super>e" ];
       www = [ "<Super>f" ];
     };
 

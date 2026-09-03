@@ -1,20 +1,8 @@
 {
   config,
-  lib,
   pkgs,
   ...
 }:
-let
-  gstreamerPackages = with pkgs.gst_all_1; [
-    gstreamer
-    gst-plugins-base
-    gst-plugins-good
-    gst-plugins-bad
-    gst-plugins-ugly
-    gst-libav
-  ];
-  gstreamerPluginPath = lib.makeSearchPathOutput "lib" "lib/gstreamer-1.0" gstreamerPackages;
-in
 {
   home-manager.users.${config.infrastructure.user.name}.imports = [ ../home/kyleh/workstation.nix ];
 
@@ -76,12 +64,11 @@ in
     ];
 
     sessionVariables = {
-      GST_PLUGIN_SYSTEM_PATH_1_0 = gstreamerPluginPath;
       MOZ_ENABLE_WAYLAND = "1";
       NIXOS_OZONE_WL = "1";
     };
 
-    systemPackages = gstreamerPackages ++ [
+    systemPackages = [
       pkgs.file-roller
       pkgs.unzip
     ];

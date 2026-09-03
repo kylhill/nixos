@@ -8,7 +8,6 @@
     inputs.disko.nixosModules.disko
     inputs.home-manager.nixosModules.home-manager
     inputs.sops-nix.nixosModules.sops
-    inputs.stylix.nixosModules.stylix
     ./disko.nix
     ./hardware.nix
     inputs.nixos-hardware.nixosModules.system76

@@ -14,4 +14,6 @@ _: {
       HandleLidSwitchDocked = "ignore";
     };
   };
+
+  powerManagement.powertop.enable = true;
 }

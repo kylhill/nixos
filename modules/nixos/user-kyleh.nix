@@ -21,6 +21,7 @@
   };
 
   home-manager = {
+    extraSpecialArgs = { inherit inputs; };
     useGlobalPkgs = true;
     users.${config.infrastructure.user.name} = {
       imports = [

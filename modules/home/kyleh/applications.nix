@@ -1,11 +1,5 @@
 { pkgs, ... }:
 {
-  stylix.targets = {
-    firefox.enable = false;
-    qt.enable = false;
-    vscode.enable = false;
-  };
-
   home = {
     packages = [
       pkgs.hunspell

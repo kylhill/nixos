@@ -14,7 +14,7 @@ subtree needs genuinely different commands or safety constraints.
   whole host configurations or force unrelated host classes through
   laptop-specific assumptions.
 - `flake.nix` composes NixOS, Home Manager, Disko, sops-nix, nixos-hardware,
-  Nixvim, Stylix, and nix-index-database. The primary output is
+  Nixvim, and nix-index-database. The primary output is
   `nixosConfigurations.pang14`.
 - Keep host composition and hardware-specific settings in `hosts/pang14/`.
   Put reusable system configuration in `modules/nixos/`, user configuration in

@@ -1,9 +1,15 @@
 {
   config,
+  inputs,
   pkgs,
   ...
 }:
 let
+  solarizedNvim = pkgs.vimUtils.buildVimPlugin {
+    pname = "solarized.nvim";
+    version = inputs.solarized-nvim.shortRev or "unstable";
+    src = inputs.solarized-nvim;
+  };
   mkSnacksMap = key: command: desc: {
     inherit key;
     action = "<cmd>lua ${command}<cr>";
@@ -18,6 +24,18 @@ in
     withRuby = false;
 
     nixpkgs.useGlobalPackages = true;
+
+    extraConfigLua = ''
+      require("solarized").setup({
+        palette = "solarized",
+        variant = "winter",
+        transparent = {
+          enabled = false,
+        },
+      })
+      vim.cmd.colorscheme("solarized")
+    '';
+    extraPlugins = [ solarizedNvim ];
 
     globals = {
       loaded_node_provider = 0;
@@ -35,6 +53,7 @@ in
       confirm = true;
       cursorline = true;
       expandtab = true;
+      guifont = "CaskaydiaCove Nerd Font Mono:h10";
       hidden = true;
       ignorecase = true;
       inccommand = "nosplit";
@@ -164,5 +183,6 @@ in
       pkgs.nixfmt
       pkgs.stylua
     ];
+
   };
 }
