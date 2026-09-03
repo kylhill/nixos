@@ -135,6 +135,7 @@ in
         settings = {
           explorer.enabled = true;
           picker.enabled = true;
+          scroll.enabled = true;
         };
       };
       todo-comments.enable = true;
