@@ -1,4 +1,14 @@
 prefix_rule(
+    pattern = ["./sandbox-test.sh"],
+    decision = "allow",
+    justification = "Allow this repository's daemonless flake evaluation.",
+    match = [
+        "./sandbox-test.sh",
+        "./sandbox-test.sh --path",
+    ],
+)
+
+prefix_rule(
     pattern = ["nix", "flake", "check", "--no-build"],
     decision = "allow",
     justification = "Allow lightweight evaluation of this repository's flake.",

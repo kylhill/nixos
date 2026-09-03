@@ -15,6 +15,7 @@
     ../../modules/nixos/admin-tools.nix
     ../../modules/nixos/base.nix
     ../../modules/nixos/desktop-theme.nix
+    ../../modules/nixos/graphical-boot.nix
     ../../modules/nixos/gnome-workstation.nix
     ../../modules/nixos/laptop.nix
     ../../modules/nixos/networkmanager-wireguard.nix

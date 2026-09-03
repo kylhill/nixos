@@ -1,5 +1,5 @@
-# Keep repository work sandboxed while allowing access to the system Nix
-# daemon used by this repository's evaluation and lint checks.
+# Keep repository work sandboxed while allowing the daemonless evaluation
+# script to write its local store under /tmp and fetch locked inputs.
 approval_policy = "on-request"
 default_permissions = "nixos"
 
@@ -7,11 +7,12 @@ default_permissions = "nixos"
 network_proxy = true
 
 [permissions.nixos]
-description = "Workspace access plus the shared Nix daemon socket."
+description = "Workspace access plus network access for daemonless Nix evaluation."
 extends = ":workspace"
 
 [permissions.nixos.network]
 enabled = true
 
-[permissions.nixos.network.unix_sockets]
-"/nix/var/nix/daemon-socket/socket" = "allow"
+[permissions.nixos.network.domains]
+"**.github.com" = "allow"
+"cache.nixos.org" = "allow"
