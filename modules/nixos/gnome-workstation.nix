@@ -60,7 +60,9 @@
       gnome-connections
       gnome-maps
       gnome-tour
+      gnome-user-docs
       simple-scan
+      yelp
     ];
 
     sessionVariables = {

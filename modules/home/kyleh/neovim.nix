@@ -114,7 +114,6 @@ in
         enable = true;
         settings.keymap.preset = "super-tab";
       };
-      bufferline.enable = true;
       conform-nvim.enable = true;
       gitsigns.enable = true;
       lualine = {
