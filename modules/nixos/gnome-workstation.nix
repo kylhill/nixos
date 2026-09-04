@@ -99,6 +99,8 @@
       pkgs.caladea
       pkgs.carlito
       pkgs.liberation_ttf
+      pkgs.corefonts
+      pkgs.vista-fonts
     ];
 
     fontconfig = {
@@ -112,29 +114,6 @@
         rgba = "rgb";
         lcdfilter = "default";
       };
-
-      localConf = ''
-        <alias>
-          <family>Arial</family>
-          <prefer><family>Liberation Sans</family></prefer>
-        </alias>
-        <alias>
-          <family>Calibri</family>
-          <prefer><family>Carlito</family></prefer>
-        </alias>
-        <alias>
-          <family>Cambria</family>
-          <prefer><family>Caladea</family></prefer>
-        </alias>
-        <alias>
-          <family>Times New Roman</family>
-          <prefer><family>Liberation Serif</family></prefer>
-        </alias>
-        <alias>
-          <family>Courier New</family>
-          <prefer><family>Liberation Mono</family></prefer>
-        </alias>
-      '';
     };
   };
 }
