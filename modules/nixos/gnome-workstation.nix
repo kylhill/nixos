@@ -4,6 +4,20 @@
   ...
 }:
 {
+  nixpkgs.overlays = [
+    (_final: prev: {
+      gnome-console = prev.gnome-console.overrideAttrs (oldAttrs: {
+        # Console 50 uses a tuple format while iterating its a{sv} custom
+        # livery dictionary, causing every custom palette to be rejected.
+        postPatch = (oldAttrs.postPatch or "") + ''
+          substituteInPlace src/kgx-livery-manager.c \
+            --replace-fail 'g_variant_iter_next (iter, "(&sv)"' \
+                           'g_variant_iter_next (iter, "{&sv}"'
+        '';
+      });
+    })
+  ];
+
   home-manager.users.${config.infrastructure.user.name}.imports = [ ../home/kyleh/workstation.nix ];
 
   users.users.${config.infrastructure.user.name}.extraGroups = [
