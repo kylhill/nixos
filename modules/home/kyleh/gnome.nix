@@ -1,6 +1,15 @@
 { lib, pkgs, ... }:
 {
   dconf.settings = {
+    "org/freedesktop/tracker/miner/files".index-recursive-directories = [
+      "$HOME"
+      "&DOCUMENTS"
+      "&DOWNLOAD"
+      "&MUSIC"
+      "&PICTURES"
+      "&VIDEOS"
+    ];
+
     "org/gnome/desktop/background" = {
       picture-options = "zoom";
       picture-uri = "file://${pkgs.gnome-backgrounds}/share/backgrounds/gnome/pixel-pusher-d.jxl";
@@ -44,6 +53,11 @@
     "org/gnome/settings-daemon/plugins/media-keys" = {
       home = [ "<Super>e" ];
       www = [ "<Super>f" ];
+    };
+
+    "org/gnome/settings-daemon/plugins/color" = {
+      night-light-enabled = false;
+      night-light-schedule-automatic = false;
     };
 
     "org/gnome/settings-daemon/plugins/power".sleep-inactive-ac-timeout = 3600;

@@ -17,7 +17,6 @@
 
     packages = [
       pkgs.dnsutils
-      pkgs.htop
       pkgs.ncdu
       pkgs.shellcheck
       pkgs.sops
