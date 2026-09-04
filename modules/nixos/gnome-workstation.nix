@@ -106,7 +106,7 @@
       hinting = {
         enable = true;
         autohint = false;
-        style = "medium";
+        style = "full";
       };
       subpixel = {
         rgba = "rgb";

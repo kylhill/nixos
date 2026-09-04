@@ -34,6 +34,7 @@
     package:
     builtins.elem (lib.getName package) [
       "github-copilot-cli"
+      "posy-cursors"
       "vscode"
     ];
 

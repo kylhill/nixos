@@ -1,5 +1,11 @@
 { lib, pkgs, ... }:
 {
+  home.pointerCursor = {
+    package = pkgs.posy-cursors;
+    name = "Posy_Cursor";
+    size = 32;
+  };
+
   dconf.settings = {
     "org/freedesktop/tracker/miner/files".index-recursive-directories = [
       "$HOME"
@@ -28,6 +34,8 @@
     "org/gnome/desktop/interface" = {
       clock-format = "12h";
       color-scheme = "prefer-dark";
+      cursor-size = 32;
+      cursor-theme = "Posy_Cursor";
       font-antialiasing = "rgba";
       font-hinting = "medium";
       font-rgba-order = "rgb";
@@ -58,8 +66,17 @@
     "org/gnome/nautilus/preferences".default-folder-viewer = "list-view";
 
     "org/gnome/settings-daemon/plugins/media-keys" = {
+      custom-keybindings = [
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/console/"
+      ];
       home = [ "<Super>e" ];
       www = [ "<Super>f" ];
+    };
+
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/console" = {
+      binding = "<Super>t";
+      command = "kgx";
+      name = "GNOME Console";
     };
 
     "org/gnome/settings-daemon/plugins/color" = {
