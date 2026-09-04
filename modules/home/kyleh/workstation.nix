@@ -3,6 +3,5 @@ _: {
     ./applications.nix
     ./gnome-console.nix
     ./gnome.nix
-    ./system-tools.nix
   ];
 }

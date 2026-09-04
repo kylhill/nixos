@@ -134,7 +134,6 @@
               pkgs.age
               pkgs.deadnix
               pkgs.git
-              pkgs.nh
               pkgs.nixfmt-tree
               pkgs.openssl
               pkgs.shellcheck

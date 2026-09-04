@@ -19,7 +19,6 @@
       pkgs.dnsutils
       pkgs.ncdu
       pkgs.shellcheck
-      pkgs.sops
     ];
   };
 
