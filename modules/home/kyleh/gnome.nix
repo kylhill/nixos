@@ -28,8 +28,11 @@
     "org/gnome/desktop/interface" = {
       clock-format = "12h";
       color-scheme = "prefer-dark";
+      font-antialiasing = "rgba";
+      font-hinting = "medium";
+      font-rgba-order = "rgb";
       monospace-font-name = "CaskaydiaCove Nerd Font Mono 10";
-      show-battery-percentage = true;
+      show-battery-percentage = false;
     };
 
     "org/gnome/desktop/privacy" = {
@@ -46,8 +49,12 @@
     "org/gnome/desktop/wm/keybindings" = {
       minimize = [ ];
       show-desktop = [ "<Super>d" ];
+      switch-applications = [ ];
+      switch-applications-backward = [ ];
+      switch-windows = [ "<Alt>Tab" ];
+      switch-windows-backward = [ "<Shift><Alt>Tab" ];
     };
-    "org/gnome/desktop/wm/preferences".button-layout = "appmenu:minimize,close";
+    "org/gnome/desktop/wm/preferences".button-layout = "appmenu:minimize,maximize,close";
     "org/gnome/nautilus/preferences".default-folder-viewer = "list-view";
 
     "org/gnome/settings-daemon/plugins/media-keys" = {

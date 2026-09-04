@@ -94,9 +94,47 @@
     ];
   };
 
-  fonts.packages = [
-    pkgs.caladea
-    pkgs.carlito
-    pkgs.liberation_ttf
-  ];
+  fonts = {
+    packages = [
+      pkgs.caladea
+      pkgs.carlito
+      pkgs.liberation_ttf
+    ];
+
+    fontconfig = {
+      antialias = true;
+      hinting = {
+        enable = true;
+        autohint = false;
+        style = "medium";
+      };
+      subpixel = {
+        rgba = "rgb";
+        lcdfilter = "default";
+      };
+
+      localConf = ''
+        <alias>
+          <family>Arial</family>
+          <prefer><family>Liberation Sans</family></prefer>
+        </alias>
+        <alias>
+          <family>Calibri</family>
+          <prefer><family>Carlito</family></prefer>
+        </alias>
+        <alias>
+          <family>Cambria</family>
+          <prefer><family>Caladea</family></prefer>
+        </alias>
+        <alias>
+          <family>Times New Roman</family>
+          <prefer><family>Liberation Serif</family></prefer>
+        </alias>
+        <alias>
+          <family>Courier New</family>
+          <prefer><family>Liberation Mono</family></prefer>
+        </alias>
+      '';
+    };
+  };
 }
