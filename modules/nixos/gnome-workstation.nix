@@ -26,6 +26,7 @@
   ];
 
   networking = {
+    modemmanager.enable = false;
     networkmanager.enable = true;
     nftables.enable = true;
   };
@@ -39,9 +40,11 @@
       openFirewall = true;
     };
 
+    colord.enable = false;
     displayManager.gdm.enable = true;
     desktopManager.gnome.enable = true;
     dleyna.enable = false;
+    geoclue2.enable = false;
     gnome = {
       gcr-ssh-agent.enable = true;
       gnome-remote-desktop.enable = false;
@@ -65,7 +68,7 @@
       terminal = "kgx";
     };
 
-    xwayland.enable = true;
+    xwayland.enable = false;
   };
 
   environment = {
@@ -75,6 +78,7 @@
       gnome-maps
       gnome-tour
       gnome-user-docs
+      orca
       simple-scan
       yelp
     ];

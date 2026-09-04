@@ -16,7 +16,7 @@
       picture-uri-dark = "file://${pkgs.gnome-backgrounds}/share/backgrounds/gnome/pixel-pusher-d.jxl";
     };
 
-    "org/gnome/desktop/datetime".automatic-timezone = true;
+    "org/gnome/desktop/datetime".automatic-timezone = false;
 
     "org/gnome/desktop/input-sources".sources = [
       (lib.hm.gvariant.mkTuple [
@@ -61,7 +61,7 @@
     };
 
     "org/gnome/settings-daemon/plugins/power".sleep-inactive-ac-timeout = 3600;
-    "org/gnome/system/location".enabled = true;
+    "org/gnome/system/location".enabled = false;
 
     "org/gnome/shell".favorite-apps = [
       "firefox.desktop"

@@ -15,5 +15,10 @@ _: {
     };
   };
 
+  networking.networkmanager.connectionConfig = {
+    "ethernet.wake-on-lan" = 0;
+    "wifi.wake-on-wlan" = 0;
+  };
+
   powerManagement.powertop.enable = true;
 }

@@ -11,11 +11,6 @@
     sessionVariables.ELECTRON_OZONE_PLATFORM_HINT = "auto";
   };
 
-  services.nextcloud-client = {
-    enable = true;
-    startInBackground = true;
-  };
-
   programs = {
     firefox = {
       enable = true;
