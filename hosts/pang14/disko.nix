@@ -42,7 +42,6 @@ _: {
       options = {
         ashift = "12";
         cachefile = "none";
-        # Prefer the rate-independent weekly trim timer configured by NixOS.
         autotrim = "off";
       };
       rootFsOptions = {
@@ -53,7 +52,6 @@ _: {
         mountpoint = "none";
         normalization = "formD";
         xattr = "sa";
-        "com.sun:auto-snapshot" = "false";
       };
       datasets = {
         root = {
@@ -61,7 +59,6 @@ _: {
           mountpoint = "/";
           options = {
             mountpoint = "legacy";
-            "com.sun:auto-snapshot" = "false";
           };
         };
 
@@ -70,7 +67,6 @@ _: {
           mountpoint = "/nix";
           options = {
             mountpoint = "legacy";
-            "com.sun:auto-snapshot" = "false";
           };
         };
 
@@ -79,7 +75,6 @@ _: {
           mountpoint = "/home";
           options = {
             mountpoint = "legacy";
-            "com.sun:auto-snapshot" = "true";
           };
         };
 
@@ -88,7 +83,6 @@ _: {
           mountpoint = "/var";
           options = {
             mountpoint = "legacy";
-            "com.sun:auto-snapshot" = "false";
           };
         };
       };

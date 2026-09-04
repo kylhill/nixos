@@ -73,22 +73,7 @@ boot default:
 ./apply.sh test
 ```
 
-Exercise the behavior affected by the change, then check the general system
-health before promoting it:
-
-```bash
-systemctl --failed
-systemctl status home-manager-kyleh.service --no-pager
-systemctl status sops-install-secrets.service --no-pager
-systemctl status NetworkManager-ensure-profiles.service --no-pager
-systemctl list-timers 'zfs-*'
-nmcli connection show
-```
-
-Also verify relevant interactive behavior such as login, sudo, networking,
-audio, suspend, and the changed Home Manager applications. A reboot returns to
-the previous boot-default generation; the systemd-boot menu provides older
-generations if a normal boot ever fails.
+Exercise the behavior affected by the change before promoting it.
 
 ### 4. Promote to the boot default
 
@@ -207,23 +192,3 @@ export NIX_CONFIG='experimental-features = nix-command flakes'
      nixos-install --flake .#pang14 --no-root-passwd
    sudo reboot
    ```
-
-### Outstanding `pang14` storage work
-
-- Update the existing pool to match the home-only snapshot policy after
-  activating this configuration:
-
-  ```bash
-  sudo zfs set com.sun:auto-snapshot=false rpool/root
-  sudo zfs set com.sun:auto-snapshot=false rpool/var
-  sudo zfs set com.sun:auto-snapshot=true rpool/home
-  ```
-
-  These commands change snapshot eligibility but do not delete existing root
-  or var snapshots. Inventory and prune those separately before considering
-  the migration complete.
-
-- Add LUKS encryption for both the ZFS system pool and the persistent swap
-  partition during a planned destructive storage migration.
-- Add encrypted, automated off-host backups with monitoring and periodic
-  restore tests.

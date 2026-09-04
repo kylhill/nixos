@@ -10,6 +10,7 @@
     inputs.sops-nix.nixosModules.sops
     ./disko.nix
     ./hardware.nix
+    ./zfs-backup.nix
     inputs.nixos-hardware.nixosModules.system76
     ../../modules/nixos/admin-tools.nix
     ../../modules/nixos/base.nix
@@ -54,15 +55,6 @@
   };
 
   services.zfs = {
-    autoSnapshot = {
-      enable = true;
-      frequent = 0;
-      hourly = 24;
-      daily = 7;
-      weekly = 4;
-      monthly = 3;
-    };
-
     autoScrub = {
       enable = true;
       interval = "monthly";

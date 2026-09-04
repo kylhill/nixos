@@ -26,6 +26,7 @@ wireguard/private-key
 wireguard/preshared-key
 ssh/private-key
 ssh/public-key
+syncoid-pang14-to-syntax
 ```
 
 Before committing, inspect the encrypted diff and confirm that `sops
@@ -87,6 +88,10 @@ existing file.
        ...
        -----END OPENSSH PRIVATE KEY-----
      public-key: "ssh-ed25519 AAAA... kyleh@shared"
+   syncoid-pang14-to-syntax: |-
+     -----BEGIN OPENSSH PRIVATE KEY-----
+     ...
+     -----END OPENSSH PRIVATE KEY-----
    ```
 
    Keep the OpenSSH private key as a YAML block scalar so its line breaks are
