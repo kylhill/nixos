@@ -83,19 +83,19 @@ existing file.
      private-key: "..."
      preshared-key: "..."
    ssh:
-     private-key: |-
+     private-key: |
        -----BEGIN OPENSSH PRIVATE KEY-----
        ...
        -----END OPENSSH PRIVATE KEY-----
      public-key: "ssh-ed25519 AAAA... kyleh@shared"
-   syncoid-pang14-to-syntax: |-
+   syncoid-pang14-to-syntax: |
      -----BEGIN OPENSSH PRIVATE KEY-----
      ...
      -----END OPENSSH PRIVATE KEY-----
    ```
 
-   Keep the OpenSSH private key as a YAML block scalar so its line breaks are
-   preserved.
+   Keep OpenSSH private keys as YAML block scalars so their line breaks and
+   final newline are preserved.
 
 5. Verify the recovered private key before wiping the old installation:
 

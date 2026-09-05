@@ -6,6 +6,9 @@
 let
   wifiProfiles = config.infrastructure.host.network.wifi;
   unique = values: builtins.length values == builtins.length (lib.unique values);
+  variableSuffix = wifi: lib.replaceStrings [ "-" ] [ "_" ] wifi.connection.uuid;
+  pskVariable = wifi: "WIFI_PSK_${variableSuffix wifi}";
+  dollar = "$";
 
   mkWifiProfile = wifi: {
     connection = {
@@ -23,7 +26,8 @@ let
 
     wifi-security = {
       key-mgmt = wifi.security;
-      psk-flags = 1;
+      psk = "${dollar}${pskVariable wifi}";
+      psk-flags = 0;
     };
 
     ipv4.method = "auto";
@@ -92,7 +96,17 @@ in
       _: wifi:
       lib.nameValuePair wifi.secretName {
         mode = "0400";
-        restartUnits = [ "nm-file-secret-agent.service" ];
+        restartUnits = [ "NetworkManager-ensure-profiles.service" ];
+      }
+    ) wifiProfiles;
+
+    sops.templates = lib.mapAttrs' (
+      name: wifi:
+      lib.nameValuePair "networkmanager-wifi-${name}.env" {
+        content = ''
+          ${pskVariable wifi}=${config.sops.placeholder.${wifi.secretName}}
+        '';
+        mode = "0400";
       }
     ) wifiProfiles;
 
@@ -101,13 +115,9 @@ in
       ensureProfiles = {
         profiles = lib.mapAttrs (_: mkWifiProfile) wifiProfiles;
 
-        secrets.entries = lib.mapAttrsToList (_: wifi: {
-          matchId = wifi.connection.id;
-          matchType = "wifi";
-          matchSetting = "802-11-wireless-security";
-          key = "psk";
-          file = config.sops.secrets.${wifi.secretName}.path;
-        }) wifiProfiles;
+        environmentFiles = lib.mapAttrsToList (
+          name: _: config.sops.templates."networkmanager-wifi-${name}.env".path
+        ) wifiProfiles;
       };
     };
   };

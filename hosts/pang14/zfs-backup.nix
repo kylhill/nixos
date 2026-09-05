@@ -1,6 +1,13 @@
 { config, ... }:
 {
   sops.secrets.syncoid-pang14-to-syntax = {
+    mode = "0400";
+  };
+
+  sops.templates.syncoid-pang14-to-syntax = {
+    content = ''
+      ${config.sops.placeholder.syncoid-pang14-to-syntax}
+    '';
     owner = "syncoid";
     group = "syncoid";
     mode = "0400";
@@ -31,7 +38,7 @@
   services.syncoid = {
     enable = true;
     interval = "*-*-* *:15:00";
-    sshKey = config.sops.secrets.syncoid-pang14-to-syntax.path;
+    sshKey = config.sops.templates.syncoid-pang14-to-syntax.path;
     commonArgs = [
       "--no-sync-snap"
       "--create-bookmark"
