@@ -33,8 +33,10 @@
   nixpkgs.config.allowUnfreePredicate =
     package:
     builtins.elem (lib.getName package) [
+      "corefonts"
       "github-copilot-cli"
       "posy-cursors"
+      "vista-fonts"
       "vscode"
     ];
 

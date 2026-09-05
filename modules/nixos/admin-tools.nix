@@ -6,6 +6,7 @@
     pkgs.curl
     pkgs.ethtool
     pkgs.git
+    pkgs.gparted
     pkgs.iotop
     pkgs.lm_sensors
     pkgs.lsof
