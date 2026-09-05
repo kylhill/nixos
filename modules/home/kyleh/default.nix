@@ -14,7 +14,7 @@
 
   home = {
     username = homeIdentity.name;
-    homeDirectory = homeIdentity.homeDirectory;
+    inherit (homeIdentity) homeDirectory;
     preferXdgDirectories = true;
   };
 

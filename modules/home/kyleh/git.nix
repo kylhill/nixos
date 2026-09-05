@@ -31,7 +31,7 @@
       rerere.enabled = true;
       safe.bareRepository = "explicit";
       user = {
-        email = homeIdentity.email;
+        inherit (homeIdentity) email;
         name = homeIdentity.fullName;
       };
     };
