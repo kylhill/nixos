@@ -10,7 +10,11 @@ in
   imports = [ ./neovim.nix ];
 
   programs.nixvim = {
+    enablePrintInit = false;
     waylandSupport = false;
+    withPython3 = false;
+
+    globals.loaded_python3_provider = 0;
 
     dependencies = {
       git.enable = false;
@@ -51,7 +55,6 @@ in
         enable = true;
         settings.keymap.preset = "super-tab";
       };
-      conform-nvim.enable = true;
       gitsigns.enable = true;
       lualine = {
         enable = true;
@@ -107,10 +110,5 @@ in
         servers.lua_ls.enable = true;
       };
     };
-
-    extraPackages = [
-      pkgs.nixfmt
-      pkgs.stylua
-    ];
   };
 }
