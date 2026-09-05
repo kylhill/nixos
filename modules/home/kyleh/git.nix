@@ -1,11 +1,12 @@
 {
-  osConfig,
+  homeIdentity,
+  pkgs,
   ...
 }:
 {
   programs.git = {
     enable = true;
-    package = null;
+    package = pkgs.git;
     settings = {
       alias.vlog = "log --show-signature";
       core = {
@@ -30,8 +31,8 @@
       rerere.enabled = true;
       safe.bareRepository = "explicit";
       user = {
-        email = osConfig.infrastructure.user.email;
-        name = osConfig.infrastructure.user.fullName;
+        email = homeIdentity.email;
+        name = homeIdentity.fullName;
       };
     };
   };

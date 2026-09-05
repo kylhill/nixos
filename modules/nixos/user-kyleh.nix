@@ -33,12 +33,21 @@ in
   };
 
   home-manager = {
-    extraSpecialArgs = { inherit inputs latestPkgs; };
+    extraSpecialArgs = {
+      inherit inputs latestPkgs;
+      homeIdentity = {
+        inherit (config.infrastructure.user)
+          name
+          fullName
+          email
+          homeDirectory
+          ;
+      };
+      networkHosts = config.infrastructure.network.hosts;
+    };
     useGlobalPkgs = true;
     users.${config.infrastructure.user.name} = {
       imports = [
-        inputs.nixvim.homeModules.nixvim
-        inputs.nix-index-database.homeModules.default
         ../home/kyleh
       ];
     };

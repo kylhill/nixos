@@ -9,7 +9,27 @@ The flake exposes `nixosConfigurations.pang14`. Home Manager is integrated into
 that system configuration, so system and user changes activate together.
 
 For hosts not yet represented here, the existing Ansible and dotfiles
-repositories remain authoritative. On `pang14`, this repository replaces
+repositories remain authoritative. Neovim is optional outside development: import `neovim-basic.nix` alongside
+the common profile for basic editing, or `neovim-development.nix` for the full
+editor (already imported by `development.nix`). Select one editor profile per
+host. Both share `neovim.nix`: Solarized, editor options, the default editor,
+and the Neovim man pager. Solarized is the basic profile's only plugin;
+mini.ai text objects and mini.pairs auto-pairing belong to development.
+
+The basic profile adds no LSPs, Treesitter, completion engines, external search
+tools, formatters, provider runtimes, or clipboard utilities. It keeps the same
+leader keys using native Neovim commands: file completion, buffer lists,
+netrw, history, help, and internal `vimgrep` with quickfix results. Searches
+use literal text and scan files under the current directory; they do not use
+Snacks' Git-ignore-aware filtering. `<leader>sR` reopens search results rather
+than resuming an arbitrary picker. The development profile retains the existing
+Snacks pickers and full plugin configuration.
+
+Both profiles enable Nixvim's `vimAlias` (a `vim` executable pointing to Neovim)
+and `vimdiffAlias` (shell aliases for `nvim -d`). A separate Bash `vim` alias
+is unnecessary. The common CLI profile alone installs no editor.
+
+On `pang14`, this repository replaces
 Dotbot, lazy.nvim, and Mason with Home Manager and Nixvim.
 
 ## Repository map
@@ -19,13 +39,60 @@ Dotbot, lazy.nvim, and Mason with Home Manager and Nixvim.
 - `hosts/pang14/` selects capabilities and owns hardware, boot, storage, and
   host-specific policy.
 - `modules/nixos/` contains reusable system capabilities and roles.
-- `modules/home/kyleh/` contains the integrated Home Manager configuration.
+- `modules/home/kyleh/` contains portable Home Manager capabilities.
 - `lib/inventory.nix` contains stable, non-secret host, user, and network data.
 - `secrets/pang14.yaml` contains only sops-encrypted values; key provisioning
   and editing procedures are in [secrets/README.md](secrets/README.md).
 
 Contributor and coding-agent constraints live in [AGENTS.md](AGENTS.md). That
 file intentionally does not duplicate the operator procedures below.
+
+## Home Manager composition
+
+`modules/home/kyleh/admin-tools.nix` is an optional home capability providing
+curl, dnsutils, iotop, ncdu, rsync, and wget. `pang14` selects it explicitly;
+other home profiles can import it independently of development tools.
+
+`modules/home/kyleh/default.nix` is the common CLI profile: Bash, readline,
+Starship, basic command-line utilities, Git, SSH, htop, and nix-index. It accepts
+`homeIdentity` (`name`, `fullName`, `email`, `homeDirectory`), `networkHosts`
+(connection names and ports), and the pinned `inputs` as module arguments.
+Shared home modules do not depend on NixOS's `osConfig`.
+
+`development.nix` adds fd, fzf, jq, ripgrep, full Nixvim and its language tools,
+direnv, GitHub CLI,
+Codex, Copilot, lazygit, and editor-related shell settings. `workstation.nix`
+adds graphical applications, GNOME preferences, and Bash VTE integration.
+Both profiles also accept `latestPkgs`, an explicitly configured package set
+from the locked `nixpkgs-unstable` input: development uses it for Codex, GitHub
+CLI, and Copilot, while the workstation uses it for VS Code.
+Nixvim and nix-index-database module imports live with the home capabilities
+that use them, so another platform can reuse the same composition.
+
+On `pang14`, `modules/nixos/user-kyleh.nix` adapts the system inventory into
+Home Manager's identity/network arguments and selects the common profile.
+The host sets `home.stateVersion` and explicitly selects development tools; the
+GNOME system role selects the workstation profile. Git, OpenSSH, and shell
+utilities are installed in the home environment rather than relying on their
+presence in system packages. Account creation, groups, authorized keys, and
+SSH secret provisioning remain system responsibilities.
+
+There are no standalone home outputs yet. A future Ubuntu entry point should
+supply the same arguments, an explicit package architecture and home state
+version, and its selected capabilities. Its package configuration must
+explicitly allow any selected unfree tools (the development profile includes
+`github-copilot-cli`), as `pang14` already does in its system base module.
+Keep that inventory separate from `lib/inventory.nix`'s NixOS `hosts` mapping.
+Ubuntu's OS and Nix bootstrap remain Ansible-owned; `pang14` continues to
+activate Home Manager with NixOS.
+
+Before enabling a standalone home, coordinate the Ansible/Dotbot handoff for
+owned paths and handlers, preserve existing files for rollback, and check
+login-shell initialization and SSH-agent behavior. Syntax's tmux, agent,
+mcp-grafana, and custom shell behavior need a separate parity review. The
+existing Ansible and dotfiles repositories still own those hosts. Moving tools
+from Ansible's latest-release installers to Nix also moves their updates to
+the inputs locked by this flake.
 
 ## Normal operation
 

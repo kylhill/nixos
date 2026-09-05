@@ -1,13 +1,20 @@
-{ lib, osConfig, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  networkHosts,
+  ...
+}:
 let
-  hosts = osConfig.infrastructure.network.hosts;
-  identityFile = "${osConfig.infrastructure.user.sshDirectory}/id_ed25519";
+  hosts = networkHosts;
+  identityFile = "${config.home.homeDirectory}/.ssh/id_ed25519";
 in
 {
   systemd.user.tmpfiles.rules = [ "d %h/.cache/ssh 0700 - - -" ];
 
   programs.ssh = {
     enable = true;
+    package = pkgs.openssh;
     enableDefaultConfig = false;
     settings = {
       syntax.HostName = hosts.syntax.fqdn;
@@ -71,7 +78,7 @@ in
         IdentityFile = identityFile;
         ServerAliveCountMax = 3;
         ServerAliveInterval = 60;
-        User = osConfig.infrastructure.user.name;
+        User = config.home.username;
       };
     };
   };

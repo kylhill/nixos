@@ -24,8 +24,18 @@ subtree needs genuinely different commands or safety constraints.
   role-specific policy out of the universal base. Introduce an abstraction only
   for credible reuse, but do not remove a useful existing abstraction solely
   because it currently has one consumer.
-- Home Manager is integrated into the NixOS configuration. Do not introduce a
-  separate Home Manager activation workflow.
+- Keep Home Manager integrated into NixOS hosts; do not introduce a separate
+  activation workflow for `pang14`. Non-NixOS hosts may use standalone Home
+  Manager outputs, with their OS and Nix bootstrap owned by Ansible.
+- Keep shared home modules independent of `osConfig`. Pass only explicit user
+  identity and network context at the platform boundary, and use Home Manager's
+  own home options for paths and login names. Compose CLI, development, and
+  desktop capabilities explicitly; install user-tool dependencies through Home
+  Manager rather than assuming NixOS system packages exist.
+- Keep standalone-home inventory separate from the inventory mapped to
+  `nixosConfigurations`. Before migrating a host, coordinate ownership of
+  dotfiles, packages, and user services with Ansible, including its handlers.
+  Preserve mutable credentials and application state outside declarative files.
 
 ## Working conventions
 
@@ -90,6 +100,9 @@ subtree needs genuinely different commands or safety constraints.
   the sandbox blocks those domains. Reuse its `/tmp` store rather than creating
   a fresh store per command. Use `./sandbox-test.sh --path` when an imported
   untracked file must be visible to the flake.
+- When standalone home outputs are added, explicitly evaluate each activation
+  derivation without building it; `flake check` alone does not guarantee that
+  custom `homeConfigurations` outputs are traversed.
 - The daemonless script validates the module graph, option types, assertions,
   package references, and flake outputs. It cannot build the formatting,
   Statix, Deadnix, or ShellCheck derivations: local chroot-store builders cannot

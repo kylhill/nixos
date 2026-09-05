@@ -1,6 +1,5 @@
 {
   config,
-  latestPkgs,
   pkgs,
   ...
 }:
@@ -11,49 +10,20 @@
     };
 
     sessionVariables = {
-      MANPAGER = "nvim +Man! -";
       PAGER = "less";
-      SOPS_AGE_KEY_FILE = "${config.xdg.configHome}/sops/age/keys.txt";
     };
 
     packages = [
-      pkgs.dnsutils
-      pkgs.ncdu
-      pkgs.shellcheck
+      pkgs.coreutils
+      pkgs.gnugrep
     ];
   };
 
   programs = {
-    codex = {
-      enable = true;
-      package = latestPkgs.codex;
-    };
-
     command-not-found.enable = false;
 
-    direnv = {
-      enable = true;
-      nix-direnv.enable = true;
-    };
-
-    fd.enable = true;
-    fzf.enable = true;
-    gh = {
-      enable = true;
-      package = latestPkgs.gh;
-    };
-    github-copilot-cli = {
-      enable = true;
-      package = latestPkgs.github-copilot-cli;
-    };
-    jq.enable = true;
-    lazygit = {
-      enable = true;
-      settings.gui.nerdFontsVersion = "3";
-    };
     less.enable = true;
     nix-index.enable = true;
-    ripgrep.enable = true;
 
     starship = {
       enable = true;
@@ -95,7 +65,6 @@
     bash = {
       enable = true;
       enableCompletion = true;
-      enableVteIntegration = true;
       historyControl = [
         "ignoreboth"
         "erasedups"
@@ -112,8 +81,6 @@
         ll = "ls -alFh --color=auto";
         ls = "ls --color=auto -h";
         grep = "grep --color=auto";
-        vim = "nvim";
-        vimdiff = "nvim -d";
       };
 
       initExtra = ''
