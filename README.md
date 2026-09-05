@@ -119,6 +119,13 @@ nix develop
 ./test.sh
 ```
 
+Direnv users can approve the repository's `.envrc` once to enter the same
+development environment automatically:
+
+```bash
+direnv allow
+```
+
 The script stops at the first failure. It evaluates every flake output with
 `nix flake check --no-build`, then builds only the formatting, Statix, Deadnix,
 and ShellCheck derivations. It never builds or activates the `pang14` system
