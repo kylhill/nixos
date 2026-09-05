@@ -2,7 +2,7 @@
   boot = {
     plymouth = {
       enable = true;
-      theme = "bgrt";
+      theme = "spinner";
     };
 
     consoleLogLevel = 3;
