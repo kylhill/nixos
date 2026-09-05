@@ -1,11 +1,5 @@
 { lib, pkgs, ... }:
 {
-  home.pointerCursor = {
-    package = pkgs.posy-cursors;
-    name = "Posy_Cursor";
-    size = 32;
-  };
-
   dconf.settings = {
     "org/freedesktop/tracker/miner/files".index-recursive-directories = [
       "$HOME"
@@ -34,8 +28,8 @@
     "org/gnome/desktop/interface" = {
       clock-format = "12h";
       color-scheme = "prefer-dark";
-      cursor-size = 32;
-      cursor-theme = "Posy_Cursor";
+      cursor-size = 24;
+      cursor-theme = "Adwaita";
       font-antialiasing = "rgba";
       font-hinting = "medium";
       font-rgba-order = "rgb";
