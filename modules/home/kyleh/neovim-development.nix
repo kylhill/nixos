@@ -10,6 +10,13 @@ in
   imports = [ ./neovim.nix ];
 
   programs.nixvim = {
+    waylandSupport = false;
+
+    dependencies = {
+      git.enable = false;
+      ripgrep.enable = false;
+    };
+
     extraPlugins = [ pkgs.vimPlugins.vim-tmux-navigator ];
 
     keymaps = [
@@ -97,13 +104,7 @@ in
 
       lsp = {
         enable = true;
-        servers = {
-          bashls.enable = true;
-          jsonls.enable = true;
-          lua_ls.enable = true;
-          nixd.enable = true;
-          yamlls.enable = true;
-        };
+        servers.lua_ls.enable = true;
       };
     };
 

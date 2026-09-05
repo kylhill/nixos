@@ -47,9 +47,20 @@
     }:
     let
       inventory = import ./lib/inventory.nix;
+      homeInventory = import ./lib/home-inventory.nix;
       devSystems = nixpkgs.lib.unique (map (host: host.system) (builtins.attrValues inventory.hosts));
       forAllSystems = nixpkgs.lib.genAttrs devSystems;
       pkgsFor = system: nixpkgs.legacyPackages.${system};
+      unfreePackages = [
+        "github-copilot-cli"
+        "vscode"
+      ];
+      mkPkgs =
+        nixpkgsInput: system:
+        import nixpkgsInput {
+          inherit system;
+          config.allowUnfreePredicate = package: builtins.elem (nixpkgs.lib.getName package) unfreePackages;
+        };
       mkHost =
         hostName: host:
         nixpkgs.lib.nixosSystem {
@@ -69,9 +80,29 @@
             }
           ];
         };
+      mkHome =
+        homeName: home:
+        inputs.home-manager.lib.homeManagerConfiguration {
+          pkgs = mkPkgs inputs.nixpkgs home.system;
+          extraSpecialArgs = {
+            inherit inputs;
+            latestPkgs = mkPkgs inputs.nixpkgs-unstable home.system;
+            homeIdentity = inventory.user // {
+              inherit (home) homeDirectory;
+            };
+            networkHosts = inventory.network.hosts;
+          };
+          modules = [
+            (./homes + "/${homeName}.nix")
+            {
+              home.stateVersion = home.stateVersion;
+            }
+          ];
+        };
     in
     {
       nixosConfigurations = nixpkgs.lib.mapAttrs mkHost inventory.hosts;
+      homeConfigurations = nixpkgs.lib.mapAttrs mkHome homeInventory;
 
       checks = forAllSystems (
         system:

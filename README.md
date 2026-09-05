@@ -77,22 +77,19 @@ utilities are installed in the home environment rather than relying on their
 presence in system packages. Account creation, groups, authorized keys, and
 SSH secret provisioning remain system responsibilities.
 
-There are no standalone home outputs yet. A future Ubuntu entry point should
-supply the same arguments, an explicit package architecture and home state
-version, and its selected capabilities. Its package configuration must
-explicitly allow any selected unfree tools (the development profile includes
-`github-copilot-cli`), as `pang14` already does in its system base module.
-Keep that inventory separate from `lib/inventory.nix`'s NixOS `hosts` mapping.
-Ubuntu's OS and Nix bootstrap remain Ansible-owned; `pang14` continues to
-activate Home Manager with NixOS.
+`homeConfigurations.syntax` is the standalone Ubuntu profile. Its inventory is
+kept separately in `lib/home-inventory.nix`; Ubuntu's account, groups, sudo
+policy, authorized keys, Nix bootstrap, and systemd linger remain
+Ansible-owned. Home Manager supplies the common shell configuration,
+administration and development tools, tmux with automatic login attachment, a
+persistent local SSH agent, and mcp-grafana. The development profile explicitly
+includes Bubblewrap and Socat for the AI command-line tools.
 
-Before enabling a standalone home, coordinate the Ansible/Dotbot handoff for
-owned paths and handlers, preserve existing files for rollback, and check
-login-shell initialization and SSH-agent behavior. Syntax's tmux, agent,
-mcp-grafana, and custom shell behavior need a separate parity review. The
-existing Ansible and dotfiles repositories still own those hosts. Moving tools
-from Ansible's latest-release installers to Nix also moves their updates to
-the inputs locked by this flake.
+Before activating the standalone home, coordinate the Ansible/Dotbot handoff
+for owned paths and handlers and preserve existing files for rollback. Moving
+tools from Ansible's latest-release installers to Nix also moves their updates
+to the inputs locked by this flake. `pang14` continues to activate Home Manager
+through NixOS.
 
 ## Normal operation
 

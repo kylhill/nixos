@@ -8,7 +8,11 @@
   imports = [ ./neovim-development.nix ];
 
   home = {
-    packages = [ pkgs.shellcheck ];
+    packages = [
+      pkgs.bubblewrap
+      pkgs.shellcheck
+      pkgs.socat
+    ];
     sessionVariables = {
       SOPS_AGE_KEY_FILE = "${config.xdg.configHome}/sops/age/keys.txt";
     };
