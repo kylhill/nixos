@@ -1,8 +1,20 @@
 {
   config,
   inputs,
+  pkgs,
   ...
 }:
+let
+  latestPkgs = import inputs.nixpkgs-unstable {
+    system = pkgs.stdenv.hostPlatform.system;
+    config.allowUnfreePredicate =
+      package:
+      builtins.elem (pkgs.lib.getName package) [
+        "github-copilot-cli"
+        "vscode"
+      ];
+  };
+in
 {
   sops.secrets."user/password-hash".neededForUsers = true;
 
@@ -21,7 +33,7 @@
   };
 
   home-manager = {
-    extraSpecialArgs = { inherit inputs; };
+    extraSpecialArgs = { inherit inputs latestPkgs; };
     useGlobalPkgs = true;
     users.${config.infrastructure.user.name} = {
       imports = [

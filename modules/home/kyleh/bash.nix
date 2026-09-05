@@ -1,5 +1,6 @@
 {
   config,
+  latestPkgs,
   pkgs,
   ...
 }:
@@ -25,6 +26,7 @@
   programs = {
     codex = {
       enable = true;
+      package = latestPkgs.codex;
     };
 
     command-not-found.enable = false;
@@ -36,8 +38,14 @@
 
     fd.enable = true;
     fzf.enable = true;
-    gh.enable = true;
-    github-copilot-cli.enable = true;
+    gh = {
+      enable = true;
+      package = latestPkgs.gh;
+    };
+    github-copilot-cli = {
+      enable = true;
+      package = latestPkgs.github-copilot-cli;
+    };
     jq.enable = true;
     lazygit = {
       enable = true;
