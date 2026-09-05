@@ -1,6 +1,7 @@
 {
   config,
   inputs,
+  pkgs,
   ...
 }:
 {
@@ -31,6 +32,35 @@
       systemd-boot = {
         enable = true;
         configurationLimit = 5;
+        extraInstallCommands = ''
+          ${pkgs.python3}/bin/python3 - <<'PY'
+          from pathlib import Path
+
+          loader_conf = Path("/boot/loader/loader.conf")
+          last_booted = Path(
+              "/sys/firmware/efi/efivars/"
+              "LoaderEntryLastBooted-4a67b082-0a4c-41cf-b6c7-440b29bb8c4f"
+          )
+
+          if last_booted.exists():
+              raw = last_booted.read_bytes()
+              entry = raw[4:].decode("utf-16-le").rstrip("\0")
+              if entry.startswith("nixos-"):
+                  default = next(
+                      line.split(maxsplit=1)[1]
+                      for line in loader_conf.read_text().splitlines()
+                      if line.startswith("default ")
+                  )
+                  last_booted.write_bytes(
+                      raw[:4] + (default + "\0").encode("utf-16-le")
+                  )
+          PY
+          ${pkgs.gnused}/bin/sed -i 's/^default .*/default @saved/' /boot/loader/loader.conf
+        '';
+        windows.windows = {
+          title = "Windows";
+          efiDeviceHandle = "FS2";
+        };
       };
       efi = {
         canTouchEfiVariables = false;
