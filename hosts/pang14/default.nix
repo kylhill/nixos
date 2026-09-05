@@ -42,19 +42,26 @@
               "LoaderEntryLastBooted-4a67b082-0a4c-41cf-b6c7-440b29bb8c4f"
           )
 
+          lines = loader_conf.read_text().splitlines()
+          generated_default = next(
+              line.split(maxsplit=1)[1]
+              for line in lines
+              if line.startswith("default ")
+          )
+
+          # Keep a saved Windows selection. When NixOS was selected, advance
+          # the saved entry to the generation that this activation installed.
           if last_booted.exists():
               raw = last_booted.read_bytes()
               entry = raw[4:].decode("utf-16-le").rstrip("\0")
-              if not entry.startswith("nixos-"):
-                  lines = loader_conf.read_text().splitlines()
-                  loader_conf.write_text(
-                      "\n".join(
-                          "default @saved" if line.startswith("default ") else line
-                          for line in lines
-                      )
-                      + "\n"
+              if entry.startswith("nixos-"):
+                  last_booted.write_bytes(
+                      raw[:4] + (generated_default + "\0").encode("utf-16-le")
                   )
           PY
+          ${pkgs.gnused}/bin/sed -i \
+            's/^default .*/default @saved/' \
+            /boot/loader/loader.conf
         '';
         windows.windows = {
           title = "Windows";
