@@ -45,17 +45,16 @@
           if last_booted.exists():
               raw = last_booted.read_bytes()
               entry = raw[4:].decode("utf-16-le").rstrip("\0")
-              if entry.startswith("nixos-"):
-                  default = next(
-                      line.split(maxsplit=1)[1]
-                      for line in loader_conf.read_text().splitlines()
-                      if line.startswith("default ")
-                  )
-                  last_booted.write_bytes(
-                      raw[:4] + (default + "\0").encode("utf-16-le")
+              if not entry.startswith("nixos-"):
+                  lines = loader_conf.read_text().splitlines()
+                  loader_conf.write_text(
+                      "\n".join(
+                          "default @saved" if line.startswith("default ") else line
+                          for line in lines
+                      )
+                      + "\n"
                   )
           PY
-          ${pkgs.gnused}/bin/sed -i 's/^default .*/default @saved/' /boot/loader/loader.conf
         '';
         windows.windows = {
           title = "Windows";
