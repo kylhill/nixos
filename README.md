@@ -101,6 +101,16 @@ linting, building, activation, and switching into one unobserved step.
 
 ### 1. Inspect and run lightweight checks
 
+In Codex, run `./test.sh --sandbox`. This includes
+untracked files, checks whitespace and shell syntax, evaluates with a persistent
+daemonless store, and runs linters directly. It prefers available pinned tools,
+then tools on PATH, then cache-only fetching of pinned tools. Network or mount
+restrictions can block the last route; the script reports failures and exits
+nonzero rather than silently skipping checks. No host closure is built.
+
+Outside Codex, `./test.sh` retains the targeted check-derivation workflow below.
+Use `./test.sh --path` to include new files without staging them.
+
 Enter the pinned development environment when the required tools are not
 already available, then run the repository checks:
 

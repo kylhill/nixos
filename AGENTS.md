@@ -79,62 +79,47 @@ subtree needs genuinely different commands or safety constraints.
 
 ## Validation workflow
 
-- Codex sessions on `syntax` cannot access the system Nix daemon Unix socket,
-  including after entering `nix develop` or requesting command escalation. Do
-  not run ordinary store-backed commands such as `nix develop`, `nix build`,
-  `nix eval`, `nix shell`, or `./test.sh` in the sandbox. Repeated socket retries
-  and approval requests do not add useful validation.
-- Use the repository's daemonless evaluation script instead. It gives Nix a
-  persistent user-owned local store and fetcher cache under `/tmp`, evaluates
-  every flake output with `--no-build`, and never contacts the system daemon:
-
-  ```bash
-  git diff --check
-  ./sandbox-test.sh
-  bash -n path/to/changed-script
-  shellcheck path/to/changed-script
-  ```
-
-- The first daemonless evaluation may need approval to fetch locked inputs from
-  GitHub and `cache.nixos.org`; request network permission for the script when
-  the sandbox blocks those domains. Reuse its `/tmp` store rather than creating
-  a fresh store per command. Use `./sandbox-test.sh --path` when an imported
-  untracked file must be visible to the flake.
-- When standalone home outputs are added, explicitly evaluate each activation
-  derivation without building it; `flake check` alone does not guarantee that
-  custom `homeConfigurations` outputs are traversed.
-- The daemonless script validates the module graph, option types, assertions,
-  package references, and flake outputs. It cannot build the formatting,
-  Statix, Deadnix, or ShellCheck derivations: local chroot-store builders cannot
-  write their logical `/nix/store` outputs through this sandbox. Run `bash -n`
-  and ShellCheck directly for each changed shell script. If `nixfmt`, Statix,
-  or Deadnix already exists on `PATH`, run it directly; do not use Nix to obtain
-  a missing tool. Otherwise, ask the user to run `./test.sh` outside Codex and
-  report those derivation builds as required user-side validation.
-- Never automatically perform a full system or closure build. In particular,
-  do not run `nix build` on `nixosConfigurations`, the `pang14` check, a VM, or
-  another target that could download or build the system package closure. This
-  repository is often edited from hosts that do not have the NixOS closure
-  cached. The user-side `./test.sh` command builds only explicitly targeted
-  formatter and linter derivations, which are not considered full builds.
-- When suggesting additional user-side validation, prefer narrow evaluation of
-  changed options or generated units over realizing the system closure.
-- Ignore Nix's expected dirty-worktree warning while validating uncommitted
-  changes. Keep `nix.settings.warn-dirty = true`; do not suppress the warning in
-  configuration or treat it as a validation failure. Continue to inspect and
-  report the actual worktree state before handoff.
-
-- Git-backed flakes omit untracked files. Use `./sandbox-test.sh --path` while
-  developing a new imported file; do not stage files merely to validate them
-  and never broadly stage unrelated changes. Before handoff, remind the user to
-  stage the new file before running the normal Git-backed `./test.sh`.
-- Never run `apply.sh`, `nixos-rebuild`, Home Manager activation, or otherwise
-  apply this configuration to a system. Do not use `apply.sh build` or
-  `apply.sh test` as validation shortcuts. The user owns all building,
-  activation, switching, and rebooting.
-- For risky service changes, inspect the evaluated configuration as narrowly as
-  practical and give the user commands and a rollback path for any live testing
-  they choose to perform themselves.
+- Run `./test.sh --sandbox` in Codex. This
+  includes untracked files automatically, checks staged/worktree whitespace and
+  shell syntax, evaluates the flake without building it, and runs Nixfmt,
+  Statix, Deadnix, and ShellCheck directly. Do not stage files just to validate.
+- The sandbox mode uses a persistent daemonless store/cache under `/tmp`.
+  Ordinary daemon-backed Nix commands remain unavailable on `syntax`; use an
+  explicit daemonless `--store` for additional evaluation. Do not retry the
+  system daemon socket or request escalation for daemon access.
+- Validation tools may be used from their evaluated pinned `/nix/store` paths,
+  from PATH (report that fallback), or fetched from the binary cache. Tool
+  fetching is authorized for validation; do not stop merely because a tool is
+  missing from PATH. Request network permission if input/tool downloads are
+  blocked. Reuse the persistent store and locked inputs; never update
+  `flake.lock` as part of validation.
+- Relocated-store tool execution may require mount permissions that this
+  environment cannot provide. If execution is blocked, use an already runnable
+  tool when available, complete independent checks, and report the exact
+  remaining check and error. Do not report skipped/failed checks as passing.
+  The script exits nonzero for an incomplete run. Only hand off checks that
+  actually cannot run here, using `./test.sh --path` outside Codex.
+- For non-host changes, go beyond module evaluation when useful: inspect
+  generated configuration, evaluate standalone Home Manager profiles and their
+  activation derivations, and run focused headless or fixture-based tests in
+  temporary directories. Inspect actual package dependencies and generated
+  scripts. Do not execute activation scripts to test their generation.
+- Narrow builds of explicitly selected formatter/linter checks, test fixtures,
+  or small non-host artifacts are allowed when the environment supports them.
+  Inspect their scope first; a user-module edit does not justify realizing a
+  complete Home Manager environment, editor toolchain, or system closure.
+  The sandbox script fetches missing tools with local and remote builds disabled.
+- Never automatically build a full system/closure, VM, `nixosConfigurations`
+  target, or host check. Never run `apply.sh`, `nixos-rebuild`, Home Manager
+  activation, switching, or rebooting. The user owns system builds and all live
+  deployment. Keep risky service/network validation read-only and provide
+  narrow live-test commands and a rollback path when needed.
+- Custom `homeConfigurations` outputs must be evaluated explicitly; ordinary
+  `flake check` does not guarantee their traversal. Use the narrowest meaningful
+  checks for a change; do not repeat successful checks without a new reason.
+- Ignore expected dirty-worktree warnings, keep `nix.settings.warn-dirty = true`,
+  and inspect the final diff and worktree state before handoff. Git-backed
+  commands still omit new files unless staged; use `--path` while developing.
 
 ## Secrets and networking
 

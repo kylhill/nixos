@@ -105,7 +105,6 @@
           shellcheck = pkgs.runCommand "shellcheck" { nativeBuildInputs = [ pkgs.shellcheck ]; } ''
             shellcheck \
               ${self}/apply.sh \
-              ${self}/sandbox-test.sh \
               ${self}/test.sh \
               ${self}/update.sh \
               ${self}/scripts/install-host-key \
