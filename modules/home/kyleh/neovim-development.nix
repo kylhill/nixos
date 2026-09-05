@@ -10,6 +10,8 @@ in
   imports = [ ./neovim.nix ];
 
   programs.nixvim = {
+    extraPlugins = [ pkgs.vimPlugins.vim-tmux-navigator ];
+
     keymaps = [
       (mkSnacksMap "<leader><space>" "Snacks.picker.files()" "Find Files")
       (mkSnacksMap "<leader>," "Snacks.picker.buffers()" "Buffers")
