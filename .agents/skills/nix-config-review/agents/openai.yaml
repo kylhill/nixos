@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nix Configuration Review"
+  short_description: "Review Nix code, complexity, and closure impact"
+  default_prompt: "Review this repository for idiomatic Nix, native option replacements, simplification opportunities, and likely closure-size drivers."

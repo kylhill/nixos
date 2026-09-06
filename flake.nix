@@ -167,6 +167,7 @@
               pkgs.git
               pkgs.nixfmt-tree
               pkgs.openssl
+              (pkgs.python3.withPackages (pythonPackages: [ pythonPackages.pyyaml ]))
               pkgs.shellcheck
               pkgs.sops
               pkgs.statix
