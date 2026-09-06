@@ -1,5 +1,13 @@
 approval_policy = "on-request"
-default_permissions = ":workspace"
+default_permissions = "nixos-development"
+
+[permissions.nixos-development]
+description = "Workspace access with network access for Nix validation"
+extends = ":workspace"
+
+[permissions.nixos-development.network]
+enabled = true
 
 [mcp_servers.nixos]
-command = "mcp-nixos"
+command = "nix"
+args = ["develop", "path:.", "--command", "mcp-nixos"]
