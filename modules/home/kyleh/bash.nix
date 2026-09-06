@@ -80,8 +80,8 @@
       initExtra = ''
         eval "$(${pkgs.coreutils}/bin/dircolors --sh ${config.xdg.configHome}/dir_colors)"
 
-        if [[ -t 1 ]]; then
-          stty -ixon 2>/dev/null || true
+        if [[ -t 0 ]]; then
+          ${pkgs.coreutils}/bin/stty -ixon 2>/dev/null || true
         fi
 
       '';
