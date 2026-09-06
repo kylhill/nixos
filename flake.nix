@@ -165,6 +165,7 @@
               pkgs.age
               pkgs.deadnix
               pkgs.git
+              pkgs.mcp-nixos
               pkgs.nix-eval-jobs
               pkgs.nix-output-monitor
               pkgs.nix-tree

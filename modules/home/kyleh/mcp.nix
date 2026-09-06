@@ -9,7 +9,6 @@
 
   home.packages = [
     pkgs.mcp-grafana
-    pkgs.mcp-nixos
   ];
 
   programs = {
