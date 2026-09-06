@@ -1,11 +1,9 @@
 {
-  inputs,
   homeIdentity,
   ...
 }:
 {
   imports = [
-    inputs.nix-index-database.homeModules.default
     ./admin-tools.nix
     ./bash.nix
     ./git.nix

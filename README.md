@@ -50,12 +50,12 @@ file intentionally does not duplicate the operator procedures below.
 ## Home Manager composition
 
 `modules/home/kyleh/admin-tools.nix` provides the administration tools in the
-user's common baseline: curl, dnsutils, iotop, ncdu, rsync, and wget. Every
+user's common baseline: curl, dnsutils, ncdu, rsync, and wget. Every
 profile imports it through the common home module because the user administers
 all of these systems.
 
 `modules/home/kyleh/default.nix` is the common CLI profile: Bash, readline,
-Starship, basic command-line utilities, Git, SSH, htop, and nix-index. It accepts
+Starship, basic command-line utilities, Git, SSH, and htop. It accepts
 `homeIdentity` (`name`, `fullName`, `email`, `homeDirectory`), `networkHosts`
 (connection names and ports), and the pinned `inputs` as module arguments.
 Shared home modules do not depend on NixOS's `osConfig`.
@@ -70,7 +70,8 @@ CLI, and Copilot, while the workstation uses it for VS Code.
 The workstation also installs Python alongside VS Code so extensions and tasks
 can use it outside project-specific development environments.
 Nixvim and nix-index-database module imports live with the home capabilities
-that use them, so another platform can reuse the same composition.
+that use them. The NixOS user boundary selects nix-index; standalone Ubuntu
+homes omit it.
 
 On `pang14`, `modules/nixos/user-kyleh.nix` adapts the system inventory into
 Home Manager's identity/network arguments and selects the common profile.
@@ -89,6 +90,9 @@ automatic login attachment, a persistent local SSH agent, syntax-only Docker
 shell helpers, and declarative mcp-grafana and mcp-nixos definitions. The
 development profile integrates those definitions with Codex and Copilot CLI
 and explicitly includes Bubblewrap and Socat for the AI command-line tools.
+The repository development shell supplies mcp-nixos and ShellCheck. The MCP
+registration references that same pinned mcp-nixos package directly, so Codex
+does not depend on shell PATH lookup to start it.
 Codex's settings are Home Manager-owned so its shared MCP integration can be
 generated without discarding the user's existing preferences. Ubuntu's account,
 groups, sudo policy, authorized keys, Nix bootstrap, and systemd linger remain

@@ -13,7 +13,6 @@
   home = {
     packages = [
       pkgs.bubblewrap
-      pkgs.shellcheck
       pkgs.socat
     ];
     sessionVariables = {

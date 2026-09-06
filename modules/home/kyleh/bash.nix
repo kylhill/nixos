@@ -20,9 +20,7 @@
   };
 
   programs = {
-    command-not-found.enable = false;
     less.enable = true;
-    nix-index.enable = true;
 
     starship = {
       enable = true;

@@ -49,6 +49,7 @@ in
     users.${config.infrastructure.user.name} = {
       imports = [
         ../home/kyleh
+        ../home/kyleh/nix-index.nix
       ];
     };
   };
