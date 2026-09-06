@@ -8,3 +8,8 @@
         - age:
             - *operator
             - *pang14
+    - path_regex: secrets/home\.yaml$
+      key_groups:
+        - age:
+            - *operator
+            - *pang14

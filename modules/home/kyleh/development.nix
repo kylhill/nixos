@@ -5,7 +5,10 @@
   ...
 }:
 {
-  imports = [ ./neovim-development.nix ];
+  imports = [
+    ./mcp.nix
+    ./neovim-development.nix
+  ];
 
   home = {
     packages = [

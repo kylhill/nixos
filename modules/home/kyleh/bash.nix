@@ -21,7 +21,6 @@
 
   programs = {
     command-not-found.enable = false;
-
     less.enable = true;
     nix-index.enable = true;
 
@@ -73,8 +72,6 @@
       historySize = 10000;
 
       shellAliases = {
-        ".." = "cd ..";
-        "..." = "cd ../../";
         l = "ls -CFh --color=auto";
         la = "ls -Ah --color=auto";
         ll = "ls -alFh --color=auto";
@@ -89,8 +86,6 @@
         if [[ -t 1 ]]; then
           stty -ixon 2>/dev/null || true
         fi
-
-        complete -d cd
 
         dbash() {
           command -v docker >/dev/null 2>&1 || {

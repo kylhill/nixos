@@ -2,8 +2,8 @@ _: {
   programs.bash.enableVteIntegration = true;
 
   imports = [
-    ./applications.nix
-    ./gnome-console.nix
     ./gnome.nix
+    ./gnome-console.nix
+    ./workstation-apps.nix
   ];
 }

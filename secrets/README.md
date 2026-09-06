@@ -2,8 +2,10 @@
 
 The repository uses an operator age identity for editing and a separate host
 identity for `pang14` activation. `.sops.yaml` commits their public recipients;
-`secrets/pang14.yaml` commits encrypted values. Private identities never belong
-in Git, the Nix store, shell history, logs, or chat.
+`secrets/pang14.yaml` commits encrypted system values, and `secrets/home.yaml`
+commits encrypted user-scoped values shared by development Home Manager
+profiles. Private identities never belong in Git, the Nix store, shell
+history, logs, or chat.
 
 ## Routine editing
 
@@ -14,6 +16,8 @@ identity merely to edit this repository.
 nix develop
 sops secrets/pang14.yaml
 sops filestatus secrets/pang14.yaml
+sops secrets/home.yaml
+sops filestatus secrets/home.yaml
 ```
 
 Keep the document schema unchanged unless the consuming Nix modules change.
@@ -29,9 +33,21 @@ ssh/public-key
 syncoid-pang14-to-syntax
 ```
 
+The current `secrets/home.yaml` keys are:
+
+```text
+grafana/service-account-token
+```
+
 Before committing, inspect the encrypted diff and confirm that `sops
 filestatus` reports the file as encrypted. Never use `sops -d` in routine
 validation or paste decrypted values into a command line.
+
+Development Home Manager profiles decrypt `secrets/home.yaml` with the
+operator identity at `~/.config/sops/age/keys.txt`. Provision that identity
+outside this repository before activating the profile. MCP clients receive the
+Grafana token through a runtime wrapper; the plaintext value is not written to
+the Nix store or generated MCP configuration.
 
 ## Initial bootstrap or intentional key rotation
 

@@ -2,9 +2,7 @@
 {
   imports = [
     ../modules/home/kyleh
-    ../modules/home/kyleh/admin-tools.nix
     ../modules/home/kyleh/development.nix
-    ../modules/home/kyleh/mcp-grafana.nix
     ../modules/home/kyleh/tmux.nix
   ];
 

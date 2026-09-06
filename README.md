@@ -77,13 +77,17 @@ utilities are installed in the home environment rather than relying on their
 presence in system packages. Account creation, groups, authorized keys, and
 SSH secret provisioning remain system responsibilities.
 
-`homeConfigurations.syntax` is the standalone Ubuntu profile. Its inventory is
-kept separately in `lib/home-inventory.nix`; Ubuntu's account, groups, sudo
-policy, authorized keys, Nix bootstrap, and systemd linger remain
-Ansible-owned. Home Manager supplies the common shell configuration,
-administration and development tools, tmux with automatic login attachment, a
-persistent local SSH agent, and mcp-grafana. The development profile explicitly
-includes Bubblewrap and Socat for the AI command-line tools.
+Standalone Ubuntu profiles are kept separately in
+`lib/home-inventory.nix`. `homeConfigurations.gateway` and
+`homeConfigurations.oci` select the common Bash, Git, htop, and SSH baseline,
+administration tools, and basic Nixvim; OCI targets AArch64.
+`homeConfigurations.syntax` additionally supplies development tools, tmux with
+automatic login attachment, a persistent local SSH agent, and declarative
+mcp-grafana and mcp-nixos integrations for Copilot CLI and Codex. The
+development profile supplies those MCP integrations and explicitly includes
+Bubblewrap and Socat for the AI command-line tools. Ubuntu's account, groups,
+sudo policy, authorized keys, Nix bootstrap, and systemd linger remain
+Ansible-owned.
 
 Before activating the standalone home, coordinate the Ansible/Dotbot handoff
 for owned paths and handlers and preserve existing files for rollback. Moving
