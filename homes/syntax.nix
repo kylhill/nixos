@@ -3,6 +3,7 @@
   imports = [
     ../modules/home/kyleh
     ../modules/home/kyleh/development.nix
+    ../modules/home/kyleh/docker-tools.nix
     ../modules/home/kyleh/tmux.nix
   ];
 
@@ -19,6 +20,7 @@
     '';
 
     tmux.newSession = true;
+    nixvim.waylandSupport = false;
   };
 
   services.ssh-agent = {

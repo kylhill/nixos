@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   mkSnacksMap = key: command: desc: {
     inherit key;
@@ -11,7 +16,7 @@ in
 
   programs.nixvim = {
     enablePrintInit = false;
-    waylandSupport = false;
+    waylandSupport = lib.mkDefault true;
     withPython3 = false;
 
     globals.loaded_python3_provider = 0;

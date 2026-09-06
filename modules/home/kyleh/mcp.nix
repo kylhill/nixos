@@ -13,8 +13,8 @@
   ];
 
   programs = {
-    #codex.enableMcpIntegration = true;
-    #github-copilot-cli.enableMcpIntegration = true;
+    codex.enableMcpIntegration = true;
+    github-copilot-cli.enableMcpIntegration = true;
 
     mcp = {
       enable = true;

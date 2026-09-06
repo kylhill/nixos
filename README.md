@@ -49,9 +49,10 @@ file intentionally does not duplicate the operator procedures below.
 
 ## Home Manager composition
 
-`modules/home/kyleh/admin-tools.nix` is an optional home capability providing
-curl, dnsutils, iotop, ncdu, rsync, and wget. `pang14` selects it explicitly;
-other home profiles can import it independently of development tools.
+`modules/home/kyleh/admin-tools.nix` provides the administration tools in the
+user's common baseline: curl, dnsutils, iotop, ncdu, rsync, and wget. Every
+profile imports it through the common home module because the user administers
+all of these systems.
 
 `modules/home/kyleh/default.nix` is the common CLI profile: Bash, readline,
 Starship, basic command-line utilities, Git, SSH, htop, and nix-index. It accepts
@@ -66,6 +67,8 @@ adds graphical applications, GNOME preferences, and Bash VTE integration.
 Both profiles also accept `latestPkgs`, an explicitly configured package set
 from the locked `nixpkgs-unstable` input: development uses it for Codex, GitHub
 CLI, and Copilot, while the workstation uses it for VS Code.
+The workstation also installs Python alongside VS Code so extensions and tasks
+can use it outside project-specific development environments.
 Nixvim and nix-index-database module imports live with the home capabilities
 that use them, so another platform can reuse the same composition.
 
@@ -82,11 +85,13 @@ Standalone Ubuntu profiles are kept separately in
 `homeConfigurations.oci` select the common Bash, Git, htop, and SSH baseline,
 administration tools, and basic Nixvim; OCI targets AArch64.
 `homeConfigurations.syntax` additionally supplies development tools, tmux with
-automatic login attachment, a persistent local SSH agent, and declarative
-mcp-grafana and mcp-nixos integrations for Copilot CLI and Codex. The
-development profile supplies those MCP integrations and explicitly includes
-Bubblewrap and Socat for the AI command-line tools. Ubuntu's account, groups,
-sudo policy, authorized keys, Nix bootstrap, and systemd linger remain
+automatic login attachment, a persistent local SSH agent, syntax-only Docker
+shell helpers, and declarative mcp-grafana and mcp-nixos definitions. The
+development profile integrates those definitions with Codex and Copilot CLI
+and explicitly includes Bubblewrap and Socat for the AI command-line tools.
+Codex's settings are Home Manager-owned so its shared MCP integration can be
+generated without discarding the user's existing preferences. Ubuntu's account,
+groups, sudo policy, authorized keys, Nix bootstrap, and systemd linger remain
 Ansible-owned.
 
 Before activating the standalone home, coordinate the Ansible/Dotbot handoff

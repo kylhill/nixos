@@ -5,6 +5,7 @@
       pkgs.hunspell
       pkgs.hunspellDicts.en_US
       pkgs.libreoffice
+      # VS Code extensions and tasks need Python outside project environments.
       pkgs.python3
     ];
 

@@ -136,6 +136,9 @@ subtree needs genuinely different commands or safety constraints.
   `wg-quick` management for the same connection.
 - Avoid disrupting the active network connection during validation. Evaluate
   profiles only; never activate them.
+- Agent forwarding for the explicitly enumerated trusted hosts in
+  `modules/home/kyleh/ssh.nix` is intentional. Preserve it and do not recommend
+  narrowing it unless the user asks to revisit that trust policy.
 
 ## Desktop configuration
 
