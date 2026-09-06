@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+sandbox_nix_root="${TMPDIR:-/tmp}/nixos-codex-nix-${UID}"
+install -d -m 0700 "$sandbox_nix_root/store" "$sandbox_nix_root/cache"
+
+export XDG_CACHE_HOME="$sandbox_nix_root/cache"
+export NIX_CONFIG="${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flakes'
+
+nix_args=(--store "$sandbox_nix_root/store")
+if [[ ${1:-} == --offline ]]; then
+    nix_args+=(--offline)
+    shift
+fi
+
+exec nix "${nix_args[@]}" "$@"

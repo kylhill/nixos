@@ -107,12 +107,21 @@ linting, building, activation, and switching into one unobserved step.
 
 ### 1. Inspect and run lightweight checks
 
-In Codex, run `./test.sh --sandbox`. This includes
-untracked files, checks whitespace and shell syntax, evaluates with a persistent
-daemonless store, and runs linters directly. It prefers available pinned tools,
-then tools on PATH, then cache-only fetching of pinned tools. Network or mount
-restrictions can block the last route; the script reports failures and exits
-nonzero rather than silently skipping checks. No host closure is built.
+In Codex, run `./test.sh --sandbox` after modifying the repository. This includes
+untracked files, checks whitespace and shell syntax, evaluates the flake and all
+standalone Home Manager activation derivations with a persistent daemonless
+store, and runs linters directly. It prefers available pinned tools, then tools
+on PATH, then cache-only fetching of pinned tools. Network or mount restrictions
+can block the last route; the script reports failures and exits nonzero rather
+than silently skipping checks. No host closure is built.
+
+For additional daemonless Nix commands in Codex, use
+`./scripts/nix-sandbox`, optionally with `--offline` before the Nix subcommand
+when all required inputs are cached. For example:
+
+```bash
+./scripts/nix-sandbox --offline eval path:.#homeConfigurations.syntax.activationPackage.drvPath
+```
 
 Outside Codex, `./test.sh` retains the targeted check-derivation workflow below.
 Use `./test.sh --path` to include new files without staging them.
@@ -133,9 +142,9 @@ direnv allow
 ```
 
 The script stops at the first failure. It evaluates every flake output with
-`nix flake check --no-build`, then builds only the formatting, Statix, Deadnix,
-and ShellCheck derivations. It never builds or activates the `pang14` system
-closure.
+`nix flake check --no-build`, explicitly evaluates every standalone Home Manager
+activation derivation, then builds only the formatting, Statix, Deadnix, and
+ShellCheck derivations. It never builds or activates the `pang14` system closure.
 
 Review the complete diff after automated checks pass:
 

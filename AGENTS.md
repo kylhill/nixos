@@ -79,14 +79,18 @@ subtree needs genuinely different commands or safety constraints.
 
 ## Validation workflow
 
-- Run `./test.sh --sandbox` in Codex. This
-  includes untracked files automatically, checks staged/worktree whitespace and
-  shell syntax, evaluates the flake without building it, and runs Nixfmt,
-  Statix, Deadnix, and ShellCheck directly. Do not stage files just to validate.
+- After modifying repository files, run `./test.sh --sandbox` in Codex. For a
+  read-only review, use narrow evaluation only where it tests a specific
+  finding; do not run all linters merely because a review was requested. The
+  script includes untracked files automatically, checks staged/worktree
+  whitespace and shell syntax, evaluates the flake and every standalone Home
+  Manager activation derivation without building them, and runs Nixfmt, Statix,
+  Deadnix, and ShellCheck directly. Do not stage files just to validate.
 - The sandbox mode uses a persistent daemonless store/cache under `/tmp`.
   Ordinary daemon-backed Nix commands remain unavailable on `syntax`; use an
-  explicit daemonless `--store` for additional evaluation. Do not retry the
-  system daemon socket or request escalation for daemon access.
+  `./scripts/nix-sandbox` invocation for additional evaluation, adding its
+  `--offline` flag when cached inputs are sufficient. Do not retry the system
+  daemon socket or request escalation for daemon access.
 - Validation tools may be used from their evaluated pinned `/nix/store` paths,
   from PATH (report that fallback), or fetched from the binary cache. Tool
   fetching is authorized for validation; do not stop merely because a tool is
@@ -115,8 +119,13 @@ subtree needs genuinely different commands or safety constraints.
   deployment. Keep risky service/network validation read-only and provide
   narrow live-test commands and a rollback path when needed.
 - Custom `homeConfigurations` outputs must be evaluated explicitly; ordinary
-  `flake check` does not guarantee their traversal. Use the narrowest meaningful
-  checks for a change; do not repeat successful checks without a new reason.
+  `flake check` does not guarantee their traversal. `./test.sh` performs this
+  evaluation. Use the narrowest meaningful additional checks for a change; do
+  not repeat successful checks without a new reason.
+- For Nix reviews, use an exposed `mcp-nixos` server when useful. If it is not
+  available in the current session, check `codex mcp get nixos` and
+  `command -v mcp-nixos`; do not enumerate unrelated MCP resources. A newly
+  configured server requires a new Codex session before its tools are callable.
 - Ignore expected dirty-worktree warnings, keep `nix.settings.warn-dirty = true`,
   and inspect the final diff and worktree state before handoff. Git-backed
   commands still omit new files unless staged; use `--path` while developing.

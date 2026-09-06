@@ -165,7 +165,12 @@
               pkgs.age
               pkgs.deadnix
               pkgs.git
+              pkgs.nix-eval-jobs
+              pkgs.nix-output-monitor
+              pkgs.nix-tree
               pkgs.nixfmt-tree
+              pkgs.nixd
+              pkgs.nvd
               pkgs.openssl
               (pkgs.python3.withPackages (pythonPackages: [ pythonPackages.pyyaml ]))
               pkgs.shellcheck

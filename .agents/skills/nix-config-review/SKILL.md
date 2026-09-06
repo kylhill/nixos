@@ -22,7 +22,12 @@ Use evidence in this order:
 3. A Nix or NixOS MCP server, when exposed, for option/package lookup, version-specific documentation, or package metadata.
 4. Current authoritative online documentation from NixOS, Nix, Home Manager, and the upstream projects represented by locked inputs.
 
-Search local pinned sources with `rg` before browsing. Browse authoritative online documentation during every substantive review so recommendations are checked against maintained guidance, but do not let current online docs override behavior in an older or different pinned revision. State the relevant pinned branch/revision when it affects a finding.
+Search local pinned sources with `rg` before browsing. Browse authoritative
+online documentation when maintained upstream guidance materially informs a
+recommendation or pinned sources do not establish the intended behavior. Do not
+browse merely to duplicate conclusive evaluation or pinned-source evidence, and
+do not let current online docs override behavior in an older or different pinned
+revision. State the relevant pinned branch/revision when it affects a finding.
 
 Discover whether a Nix-specific MCP is available; use it when it can answer the question more directly. Verify MCP claims against the locked source or evaluation when practical. If it is unavailable, proceed with local evaluation and authoritative web sources and mention the unavailable evidence channel briefly; do not treat absence as a blocker.
 

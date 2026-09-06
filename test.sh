@@ -28,28 +28,33 @@ run_stage() {
     "$@"
 }
 
-shell_files=(apply.sh test.sh update.sh scripts/install-host-key scripts/install-preflight)
+shell_files=(apply.sh test.sh update.sh scripts/install-host-key scripts/install-preflight scripts/nix-sandbox)
 run_stage 'Checking worktree whitespace' git diff --check
 run_stage 'Checking staged whitespace' git diff --cached --check
 for script in "${shell_files[@]}"; do
     run_stage "Checking shell syntax: $script" bash -n "$script"
 done
 
-nix_args=()
+nix_cmd=(nix)
 if "$sandbox"; then
     flake_ref=path:.
-    sandbox_nix_root="${TMPDIR:-/tmp}/nixos-codex-nix-${UID}"
-    install -d -m 0700 "$sandbox_nix_root/store" "$sandbox_nix_root/cache"
-    export XDG_CACHE_HOME="$sandbox_nix_root/cache"
-    nix_args=(--store "$sandbox_nix_root/store")
+    nix_cmd=("$repo_dir/scripts/nix-sandbox")
 fi
 
 failed=0
 if ! run_stage 'Evaluating flake outputs without building them' \
-    nix flake check "$flake_ref" "${nix_args[@]}" --no-build --no-update-lock-file; then
+    "${nix_cmd[@]}" flake check "$flake_ref" --no-build --no-update-lock-file; then
     if ! "$sandbox"; then exit 1; fi
     failed=1
     echo 'Flake evaluation failed; continuing independent source checks.' >&2
+fi
+
+if ! run_stage 'Evaluating standalone Home Manager activation derivations' \
+    "${nix_cmd[@]}" eval "$flake_ref#homeConfigurations" --no-update-lock-file --json \
+        --apply 'homes: builtins.mapAttrs (_: home: home.activationPackage.drvPath) homes'; then
+    if ! "$sandbox"; then exit 1; fi
+    failed=1
+    echo 'Standalone Home Manager evaluation failed; continuing independent source checks.' >&2
 fi
 
 if ! "$sandbox"; then
@@ -63,7 +68,7 @@ else
     export VALIDATION_FLAKE="path:$repo_dir"
     for tool in nixfmt statix deadnix shellcheck; do
         expression="(builtins.getFlake (builtins.getEnv \"VALIDATION_FLAKE\")).inputs.nixpkgs.legacyPackages.\${builtins.currentSystem}.$tool"
-        if ! tool_path=$(nix eval "${nix_args[@]}" --impure --raw --expr "$expression.outPath"); then
+        if ! tool_path=$("${nix_cmd[@]}" eval --impure --raw --expr "$expression.outPath"); then
             echo "Cannot resolve pinned $tool" >&2
             failed=1
             continue
@@ -76,7 +81,7 @@ else
         else
             # Substitute tool binaries only. Never build source or use remote builders.
             # Nix may need mount permissions to execute from this relocated store.
-            runner=(nix shell "${nix_args[@]}" --max-jobs 0 --builders '' --impure --expr "$expression" --command "$tool")
+            runner=("${nix_cmd[@]}" shell --max-jobs 0 --builders '' --impure --expr "$expression" --command "$tool")
         fi
         case "$tool" in
             nixfmt)
