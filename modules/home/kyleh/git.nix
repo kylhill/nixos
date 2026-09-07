@@ -1,17 +1,15 @@
 {
   homeIdentity,
-  pkgs,
   ...
 }:
 {
   programs.git = {
     enable = true;
-    package = pkgs.git;
     settings = {
       alias.vlog = "log --show-signature";
       core = {
         autocrlf = "input";
-        whitespace = "trailing-space,space-before-tab,cr-at-eol";
+        whitespace = "cr-at-eol";
       };
       diff = {
         algorithm = "histogram";
