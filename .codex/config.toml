@@ -10,4 +10,4 @@ enabled = true
 
 [mcp_servers.nixos]
 command = "nix"
-args = ["develop", "path:.", "--command", "mcp-nixos"]
+args = ["run", "path:.#mcp-nixos"]

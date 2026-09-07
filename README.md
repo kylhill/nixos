@@ -90,9 +90,9 @@ automatic login attachment, a persistent local SSH agent, syntax-only Docker
 shell helpers, and declarative mcp-grafana and mcp-nixos definitions. The
 development profile integrates those definitions with Codex and Copilot CLI
 and explicitly includes Bubblewrap and Socat for the AI command-line tools.
-The repository development shell supplies mcp-nixos and ShellCheck. The MCP
-registration references that same pinned mcp-nixos package directly, so Codex
-does not depend on shell PATH lookup to start it.
+The repository agent shell supplies ShellCheck and the other validation tools.
+The MCP app and registration reference the same pinned mcp-nixos package
+directly, so Codex does not depend on shell PATH lookup to start it.
 Codex's settings are Home Manager-owned so its shared MCP integration can be
 generated without discarding the user's existing preferences. Ubuntu's account,
 groups, sudo policy, authorized keys, Nix bootstrap, and systemd linger remain
@@ -195,25 +195,43 @@ deleted or migrated; unrelated temporary stores are not used by this workflow.
 Outside Codex, the same scopes use daemon-backed Nix and build only the selected
 formatter/linter check derivations. Use `--path` to include untracked files.
 
-Enter the pinned development environment when the required tools are not
-already available, then run the repository checks:
+Ubuntu 26.04 LTS is the minimum supported non-NixOS development host. Install
+both the Nix CLI and its systemd daemon setup from Ubuntu's `universe`
+repository:
 
 ```bash
-nix develop .#lint
+sudo apt install nix-bin nix-setup-systemd
+nix --version
+```
+
+Ubuntu 26.04 supplies Nix 2.34.3. Older Ubuntu/Nix combinations are not tested
+for this repository. The test runner enables `nix-command` and `flakes` for its
+own invocations; enable those experimental features separately when invoking
+`nix develop` directly if the host has not enabled them globally.
+
+Enter the pinned agent environment when the required tools are not already
+available, then run the repository checks:
+
+```bash
+nix develop .#agent
 ./test.sh --path --lint
 ```
 
-Direnv users can approve the repository's `.envrc` once to enter the default,
-broader development environment automatically:
+Direnv users can approve the repository's `.envrc` once to enter the default
+operator environment automatically:
 
 ```bash
 direnv allow
 ```
 
-The small `lint` shell supplies Git and the four linters. The default
-`nix develop` shell retains the broader administration and Nix development tools.
-Both shells and development checks are exposed for architectures present in
-either host inventory, including AArch64 standalone homes.
+Agents select the `agent` shell as directed by `AGENTS.md`; it supplies the
+linters, structured-data/search helpers, and Nix evaluation and closure-review
+tools. The `mcp-nixos` app keeps Codex MCP startup limited to that package. The
+default `nix develop` and direnv shell is the operator environment: it shares the
+routine editing and validation tools with the agent shell, then adds age, sops
+and OpenSSL for the credential procedures in `secrets/README.md`. Shells, apps
+and development checks are exposed for architectures present in either host
+inventory, including AArch64 standalone homes.
 
 The runner collects independent source failures before stopping output
 evaluation, and collects independent evaluation failures within the selected
@@ -229,10 +247,11 @@ git diff
 
 ### Review tools and closure analysis
 
-The default development shell includes the tools below. Check `command -v TOOL`
+The agent development shell includes the tools below. Check `command -v TOOL`
 first; agents should reuse available executables or evaluated pinned executable
-paths rather than realize the entire default shell just to run one tool.
-For lint-only work, use `./test.sh --sandbox --lint` or the smaller `lint` shell.
+paths rather than realize a shell just to run one tool.
+For lint-only work, use `./test.sh --sandbox --lint`; the runner resolves only
+the required validation executables.
 
 | Tool | Useful work | Limits and trade-offs |
 | --- | --- | --- |
@@ -241,9 +260,9 @@ For lint-only work, use `./test.sh --sandbox --lint` or the smaller `lint` shell
 | `nix-tree` | Interactive dependency browsing; `--dot` exports a graph for noninteractive analysis | Prefer Nix JSON/text for routine agent work; the TUI is mainly useful to operators |
 | `nix-eval-jobs` | Bounded parallel evaluation of a selected derivation set, emitting JSON lines; optional cache-status checks | Useful for larger matrices, not automatically faster for one home; workers consume memory, and JSON can contain per-job errors |
 | `mcp-nixos` | Connected package/option discovery for NixOS, Home Manager and related projects | Use an exposed MCP tool directly; verify results against locked sources. An executable alone does not make it callable in an existing agent session |
-| `nixfmt-tree`, Statix, Deadnix, ShellCheck | Formatting and static checks through the runner; `nixfmt-tree` is the flake formatter | The lint shell uses direct `nixfmt`; avoid repeating successful checks |
-| Git, Python with PyYAML | Diff inspection, JSON/structured-data analysis and small fixtures | PyYAML is useful for YAML-aware checks but is not a closure-analysis dependency |
-| age, sops, OpenSSL | Operator credential provisioning and recovery | Follow `secrets/README.md`; their presence does not authorize decrypting or rotating secrets |
+| Nixfmt, `nixfmt-tree`, Statix, Deadnix, ShellCheck | Formatting and static checks through the runner; `nixfmt-tree` is the flake formatter | Use direct `nixfmt` for focused files; avoid repeating successful checks |
+| Git and jq | Diff inspection and JSON/structured-data analysis | Prefer direct machine-readable output over adding language-specific parsing dependencies |
+| age, sops, OpenSSL (operator default only) | Operator credential provisioning and recovery | Follow `secrets/README.md`; their presence does not authorize decrypting or rotating secrets |
 
 For an existing realized closure, replace `ROOT`, `DEPENDENCY`, `OLD` and
 `NEW` below with explicit `/nix/store/...` paths. A standalone home generation

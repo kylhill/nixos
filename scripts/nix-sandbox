@@ -12,10 +12,12 @@ install -d -m 0700 "$sandbox_nix_root/cache"
 export XDG_CACHE_HOME="$sandbox_nix_root/cache"
 export NIX_CONFIG="${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flakes'
 
-nix_args=(--store daemon)
+nix_args=()
 if [[ $backend == local ]]; then
     install -d -m 0700 "$sandbox_nix_root/store"
     nix_args=(--store "$sandbox_nix_root/store")
+else
+    export NIX_REMOTE=daemon
 fi
 if [[ ${1:-} == --offline ]]; then
     nix_args+=(--offline)

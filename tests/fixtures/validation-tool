@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 tool=${0##*/}
-printf '%s %s\n' "$tool" "$*" >> "$FIXTURE_LOG"
+printf '%s NIX_REMOTE=%s %s\n' "$tool" "${NIX_REMOTE:-}" "$*" >> "$FIXTURE_LOG"
 if [[ $tool != nix ]]; then
     [[ ${FAIL_TOOL:-} != "$tool" ]]
     exit
 fi
-if [[ $* == *'--store daemon'* && ${FAIL_DAEMON:-0} == 1 ]]; then
+if [[ ${NIX_REMOTE:-} == daemon && ${FAIL_DAEMON:-0} == 1 ]]; then
     echo 'cannot connect to daemon socket: Operation not permitted' >&2
     exit 1
 fi

@@ -151,45 +151,56 @@
       );
       formatter = forAllSystems (system: (pkgsFor system).nixfmt-tree);
 
-      apps = forAllSystems (system: {
-        disko = {
-          type = "app";
-          program = "${disko.packages.${system}.disko}/bin/disko";
-          meta.description = "Declaratively partition and format disks with Disko";
-        };
-      });
-
-      devShells = forAllSystems (
+      apps = forAllSystems (
         system:
         let
           pkgs = pkgsFor system;
         in
         {
-          lint = pkgs.mkShellNoCC {
-            packages = [
-              pkgs.git
-              pkgs.nixfmt
-              pkgs.statix
-              pkgs.deadnix
-              pkgs.shellcheck
-            ];
+          disko = {
+            type = "app";
+            program = "${disko.packages.${system}.disko}/bin/disko";
+            meta.description = "Declaratively partition and format disks with Disko";
+          };
+
+          mcp-nixos = {
+            type = "app";
+            program = "${pkgs.mcp-nixos}/bin/mcp-nixos";
+            meta.description = "Query version-matched NixOS and Home Manager documentation";
+          };
+        }
+      );
+
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = pkgsFor system;
+          commonPackages = [
+            pkgs.deadnix
+            pkgs.git
+            (pkgs.lib.getBin pkgs.jq)
+            pkgs.nixfmt
+            pkgs.nixfmt-tree
+            pkgs.ripgrep
+            pkgs.shellcheck
+            pkgs.statix
+          ];
+          agentPackages = commonPackages ++ [
+            (pkgs.lib.getBin pkgs.nix-eval-jobs)
+            pkgs.nix-tree
+            pkgs.nvd
+          ];
+        in
+        {
+          agent = pkgs.mkShellNoCC {
+            packages = agentPackages;
           };
 
           default = pkgs.mkShellNoCC {
-            packages = [
+            packages = commonPackages ++ [
               pkgs.age
-              pkgs.deadnix
-              pkgs.git
-              pkgs.mcp-nixos
-              pkgs.nix-eval-jobs
-              pkgs.nix-tree
-              pkgs.nixfmt-tree
-              pkgs.nvd
-              pkgs.openssl
-              (pkgs.python3.withPackages (pythonPackages: [ pythonPackages.pyyaml ]))
-              pkgs.shellcheck
+              (pkgs.lib.getBin pkgs.openssl)
               pkgs.sops
-              pkgs.statix
             ];
           };
 

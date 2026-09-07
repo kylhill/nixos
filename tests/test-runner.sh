@@ -52,7 +52,7 @@ for tool in nixfmt statix deadnix shellcheck; do
 done
 export FIXTURE_TOOLS="$fixture_dir/pinned"
 run_case 0 --sandbox --offline --lint
-require_call '--store daemon --offline eval'
+require_call 'NIX_REMOTE=daemon --offline eval'
 [[ $(grep -c concatStringsSep "$FIXTURE_LOG") == 1 ]]
 [[ ! -e $NIX_SANDBOX_ROOT/store ]]
 export FAIL_DAEMON=1
@@ -65,7 +65,7 @@ run_case 0 --sandbox --home gateway --home oci --dev aarch64-linux
 require_call 'homeConfigurations.gateway.activationPackage.drvPath'
 require_call 'homeConfigurations.oci.activationPackage.drvPath'
 require_call 'devShells.aarch64-linux'
-require_call '--store daemon'
+require_call 'NIX_REMOTE=daemon'
 reject_call 'flake check'
 reject_call 'homeConfigurations.syntax'
 reject_call 'nix build'
@@ -99,7 +99,7 @@ require_call 'concatStringsSep'
 
 export FAIL_DAEMON=1
 run_case 1 --sandbox --offline --home gateway
-require_call '--store daemon --offline eval'
+require_call 'NIX_REMOTE=daemon --offline eval'
 reject_call 'store info'
 reject_call "--store $NIX_SANDBOX_ROOT/store"
 [[ ! -e $NIX_SANDBOX_ROOT/store ]]
@@ -107,7 +107,7 @@ unset FAIL_DAEMON
 export NIX_SANDBOX_BACKEND=daemon
 run_case 0 --sandbox --home gateway
 reject_call 'store info'
-require_call '--store daemon eval'
+require_call 'NIX_REMOTE=daemon eval'
 export NIX_SANDBOX_BACKEND=local
 run_case 0 --sandbox --home gateway
 reject_call 'store info'

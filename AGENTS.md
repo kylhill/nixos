@@ -22,6 +22,10 @@
 - For unfamiliar options, search evaluated declarations or pinned input source
   with `rg` first. `flake.lock` is authoritative; verify external examples
   against pinned sources or version-matched upstream documentation.
+- Use tools from the `agent` development shell for repository work; the ambient
+  direnv shell is the operator environment. Prefer the scoped test runner, or
+  run an individual missing tool with
+  `nix develop path:.#agent --command TOOL ...`.
 - For tool selection and closure reviews, see README's "Review tools and closure
   analysis": `nvd`, `nix-tree`, `nix-eval-jobs`, and MCP have different
   roles. Prefer existing executables and machine-readable, non-building checks.
