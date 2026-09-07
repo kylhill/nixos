@@ -19,19 +19,10 @@
           TIME
           COMM
         ];
-        hide_kernel_threads = true;
         hide_userland_threads = true;
         highlight_base_name = true;
-        highlight_deleted_exe = true;
-        highlight_megabytes = true;
-        highlight_threads = true;
-        find_comm_in_cmdline = true;
-        strip_exe_from_cmdline = true;
         color_scheme = 6;
-        delay = 15;
-        header_layout = "two_50_50";
         sort_key = fields.TIME;
-        sort_direction = -1;
       }
       // leftMeters [
         (bar "LeftCPUs2")
