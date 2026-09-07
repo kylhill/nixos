@@ -1,16 +1,18 @@
 { pkgs, ... }:
 {
+  home.sessionVariables.TMUX_NERD_FONT = "1";
+
   programs.tmux = {
     enable = true;
     baseIndex = 1;
-    clock24 = false;
     escapeTime = 0;
     focusEvents = true;
+    historyLimit = 50000;
     prefix = "C-a";
+    sensibleOnTop = true;
     terminal = "tmux-256color";
 
     plugins = [
-      pkgs.tmuxPlugins.sensible
       pkgs.tmuxPlugins.vim-tmux-navigator
       {
         plugin = pkgs.tmuxPlugins.dracula;
@@ -24,9 +26,9 @@
           set -g @dracula-border-contrast true
           set -g @dracula-cpu-display-load false
 
-          if-shell 'test -z "''${KASM_SSH+x}" && test -n "$SSH_CONNECTION$DISPLAY$WAYLAND_DISPLAY"' {
+          if-shell 'test "$TMUX_NERD_FONT" = 1 && test -z "''${KASM_SSH+x}"' {
             set -g @dracula-show-powerline true
-            set -g @dracula-show-left-icon ""
+            set -g @dracula-show-left-icon "󱄅"
             set -g @dracula-cpu-usage-label ""
             set -g @dracula-ram-usage-label ""
           } {
@@ -54,9 +56,9 @@
 
     extraConfig = ''
       set -g set-clipboard external
-      set -as terminal-features ',xterm-256color:RGB'
       set -ag update-environment WAYLAND_DISPLAY
       set -ag update-environment KASM_SSH
+      set -ag update-environment TMUX_NERD_FONT
 
       set -g set-titles on
       set -g set-titles-string "#{user}@#h: #W"
