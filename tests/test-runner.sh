@@ -4,9 +4,8 @@ set -euo pipefail
 repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 fixture_dir=$(mktemp -d)
 trap 'rm -rf -- "$fixture_dir"' EXIT
-mkdir -p "$fixture_dir/repo/scripts" "$fixture_dir/repo/tests/fixtures" "$fixture_dir/tools/bin"
+mkdir -p "$fixture_dir/repo/tests/fixtures" "$fixture_dir/tools/bin"
 cp "$repo_dir/test.sh" "$repo_dir/apply.sh" "$repo_dir/update.sh" "$repo_dir/flake.lock" "$fixture_dir/repo/"
-cp "$repo_dir/scripts/nix-sandbox" "$fixture_dir/repo/scripts/"
 cp "$repo_dir/tests/test-runner.sh" "$fixture_dir/repo/tests/"
 cp "$repo_dir/tests/fixtures/validation-tool" "$fixture_dir/repo/tests/fixtures/"
 for tool in nix nixfmt statix deadnix shellcheck; do
@@ -16,8 +15,10 @@ done
 git -C "$fixture_dir/repo" init -q
 export PATH="$fixture_dir/tools/bin:/usr/bin:/bin"
 export FIXTURE_LOG="$fixture_dir/calls"
-# Isolate the wrapper's writable Nix cache.
+# Model the writable cache inherited from the agent development shell.
 export TMPDIR="$fixture_dir"
+export XDG_CACHE_HOME="$fixture_dir/nixos-codex-nix-${UID}/cache"
+mkdir -p "$XDG_CACHE_HOME"
 run_case() {
     local expected=$1 status=0
     shift
@@ -40,14 +41,13 @@ reject_call 'homeConfigurations'
 reject_call 'devShells'
 require_call 'nixfmt'
 reject_nix
-[[ ! -e $fixture_dir/nixos-codex-nix-${UID} ]]
 
 run_case 0 --sandbox --home gateway --home oci --dev aarch64-linux
 require_call 'homeConfigurations.gateway.activationPackage.drvPath'
 require_call 'homeConfigurations.oci.activationPackage.drvPath'
 require_call 'devShells.aarch64-linux'
 require_call 'nix NIX_REMOTE= '
-require_call "XDG_CACHE_HOME=$fixture_dir/nixos-codex-nix-${UID}/cache"
+require_call "XDG_CACHE_HOME=$XDG_CACHE_HOME"
 reject_call 'flake check'
 reject_call 'homeConfigurations.syntax'
 reject_call 'nix build'

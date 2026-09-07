@@ -123,7 +123,8 @@ and failures; a scoped pass does not claim full coverage.
 | Documentation/instructions | `git diff --check`, `git diff --cached --check`, verify referenced paths/commands | Same; no Nix evaluation |
 | Shell helper | `bash -n SCRIPT`, `shellcheck SCRIPT`, relevant fixtures | `./test.sh --sandbox --lint`; for the runner, `bash tests/test-runner.sh` |
 | One standalone home | Evaluate the changed setting | `./test.sh --sandbox --home syntax` |
-| Shared home module | Evaluate one representative consumer | Select all affected homes; use `--full` if NixOS consumers are affected |
+| Shared Home Manager option | Evaluate the changed option or generated file in one representative consumer | Evaluate one activation derivation per distinct platform or module context; use the narrow integrated-home command below when applicable |
+| Home/NixOS module composition | Evaluate affected options while editing | `./test.sh --sandbox --full` when imports, arguments, overlays, package sets, or cross-module wiring change |
 | Development shell/package | Evaluate the selected output | `./test.sh --sandbox --dev x86_64-linux`, plus a small targeted build if useful |
 | Lock file/shared flake composition | Narrow checks while editing | `./test.sh --sandbox --full` |
 
@@ -139,27 +140,54 @@ systems evaluate all their development-shell derivations. Neither evaluates a
 NixOS configuration. In sandbox mode, `--lint` runs source checks only and does
 not invoke Nix. No scope builds or activates a host or Home Manager environment.
 
+A shared Home Manager module does not require `--full` merely because NixOS also
+integrates it. For an option-only change with no platform branch, evaluate one
+standalone activation derivation and the integrated home activation derivation:
+
+```bash
+./test.sh --sandbox --home syntax
+nix eval \
+  path:.#nixosConfigurations.pang14.config.home-manager.users.kyleh.home.activationPackage.drvPath
+```
+
+Add consumers only when they exercise a distinct architecture, conditional,
+package set, module argument, or integration path. Use `--full` for composition
+changes or when a narrow evaluation cannot establish the affected boundary.
+
 The default remains `--full`: lint, all-system flake evaluation without builds,
 and explicit evaluation of every standalone home activation derivation.
 `flake check` alone does not traverse custom `homeConfigurations`.
 
 Sandbox mode includes untracked files and runs the linters supplied by the agent
-development shell directly. Launch Codex from that shell as described below;
+development shell directly. Launch Codex with `./agent` from the repository root;
 lint-only runs do not invoke Nix.
 
-`scripts/nix-sandbox` leaves store selection to Nix; the supported setup uses the
-default systemd daemon and real `/nix/store`. The wrapper keeps writable metadata under
-`${TMPDIR:-/tmp}/nixos-codex-nix-${UID}/cache`; it does not select or create a
-separate store. Daemon access failures are returned directly.
+Codex's managed sandbox makes the normal user cache read-only. The Codex-only
+`agent` development shell sets `XDG_CACHE_HOME` to
+`${TMPDIR:-/tmp}/nixos-codex-nix-${UID}/cache` and enables the required Nix CLI
+features, so direct `nix` and `nix-store` commands are safe when Codex is launched
+through `./agent`. The default operator shell keeps the normal user cache. Daemon
+access failures are returned directly.
 
 For mount restrictions, use runnable tools or run the same scope with `--path`
 outside Codex. Failed or unavailable checks exit nonzero.
 
-For additional Nix commands in Codex, use `./scripts/nix-sandbox`. For example:
+Additional Nix commands can be run directly inside that agent environment:
 
 ```bash
-./scripts/nix-sandbox eval path:.#homeConfigurations.syntax.activationPackage.drvPath
+nix eval path:.#homeConfigurations.syntax.activationPackage.drvPath
 ```
+
+To realize an explicit store path with the legacy store command (for example, a
+pinned source archive needed for inspection), use the British-spelled option:
+
+```bash
+nix-store --realise /nix/store/EXPLICIT-PATH
+```
+
+`nix store realise` is not available in the supported Nix CLI. Realizing a
+source path is a narrow artifact fetch; it is not authorization to build a full
+system or Home Manager closure.
 
 The repository's `.codex/config.toml` selects the `nixos-development` permission
 profile with network access enabled. This profile permits the daemon socket;
@@ -175,8 +203,8 @@ codex sandbox -P nixos-development -- ./test.sh --sandbox --home gateway
 Start a new Codex session using that repository profile if the current session
 retains a restrictive policy. Do not broaden filesystem permissions on the
 daemon socket, change Nix trusted users, or disable sandboxing to fix this.
-Even with daemon access, the helper's writable metadata cache is needed when
-`~/.cache/nix` is read-only.
+If a session was not launched with `./agent`, restart it rather than allowing Nix
+to use the read-only normal user cache.
 
 Outside Codex, omit `--sandbox` to run formatter and linter check derivations
 through Nix before the selected output evaluations. Use `--path` to include
@@ -196,12 +224,17 @@ for this repository. The test runner enables `nix-command` and `flakes` for its
 own invocations; enable those experimental features separately when invoking
 `nix develop` directly if the host has not enabled them globally.
 
-Launch Codex from the pinned agent environment so every session has the expected
-linters and review tools on `PATH`:
+After changing to the repository root, launch Codex through the pinned agent
+environment so every session has the expected linters and review tools on
+`PATH`:
 
 ```bash
-nix develop path:.#agent --command codex
+./agent
 ```
+
+The launcher forwards arguments to Codex and is equivalent to
+`nix develop path:.#agent --command codex`. For example, use `./agent --help`
+to show the Codex command-line help without starting an interactive session.
 
 Inside that Codex session, use `./test.sh --sandbox` with the scope appropriate
 to the change. From an ordinary shell, run a one-off check in the same pinned
@@ -261,9 +294,9 @@ For an existing realized closure, replace `ROOT`, `DEPENDENCY`, `OLD` and
 is a valid root; do not assume `/run/current-system` exists on Ubuntu.
 
 ```bash
-./scripts/nix-sandbox path-info --json --json-format 1 --closure-size ROOT
-./scripts/nix-sandbox path-info --recursive --size --closure-size ROOT
-./scripts/nix-sandbox why-depends ROOT DEPENDENCY
+nix path-info --json --json-format 1 --closure-size ROOT
+nix path-info --recursive --size --closure-size ROOT
+nix why-depends ROOT DEPENDENCY
 nvd --color never diff OLD NEW
 nix-tree --dot ROOT
 ```

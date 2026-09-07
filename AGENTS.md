@@ -37,22 +37,16 @@
 
 ## Validation
 
-- Match checks to the change; see `README.md` for commands. In Codex use
-  `./test.sh --sandbox` with `--lint`, selected `--home NAME`/`--dev SYSTEM`,
-  or `--full`. Docs need whitespace/reference checks; shell edits need syntax,
-  ShellCheck and relevant fixtures. Do not stage files just to validate.
-- Iterate on specific settings, then evaluate affected activation derivations.
-  Shared home edits must cover affected standalone and NixOS consumers; lock or
-  shared flake changes need `--full`. Use the `nix-development` skill for
-  consumer tracing and generated-config checks, not the audit skill.
-- Use `./scripts/nix-sandbox` for additional Nix evaluation (`path:.` for new
-  files). It leaves store selection to Nix and uses a writable temporary metadata
-  cache. See README for the Codex permission profile.
-- Sandbox validation tools come from the `agent` development shell. Outside
-  sandbox mode, missing check dependencies may be fetched from the binary cache;
-  request network permission if blocked. Complete independent checks if
-  mount/tool execution fails; report exact failures and hand off only blocked
-  checks via `./test.sh --path`.
+- Match checks to the change. Use the `nix-development` skill to select consumers
+  and inspect generated configuration; use README's lightweight-check section
+  for commands and scope mechanics. Do not stage files just to validate.
+- Launch Codex with `./agent` from the repository root. The wrapper enters the
+  `path:.#agent` development shell so direct Nix commands inherit its writable
+  temporary cache. Use `./test.sh --sandbox` for repository checks and `path:.`
+  when evaluation must include untracked files. If the cache is not writable,
+  restart with `./agent` instead of invoking Nix against the normal user cache.
+- Complete independent checks when one check is blocked, and report the exact
+  failure plus an outside-Codex handoff command when needed.
 - Add narrow evaluations, generated-config inspections, or small fixture builds
   when they test the change. Read-only reviews need only checks that substantiate
   findings. Do not repeat successful checks without a new reason.

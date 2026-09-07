@@ -140,7 +140,6 @@
               ${self}/apply.sh \
               ${self}/test.sh \
               ${self}/update.sh \
-              ${self}/scripts/nix-sandbox \
               ${self}/tests/test-runner.sh \
               ${self}/tests/fixtures/validation-tool
             touch $out
@@ -192,6 +191,13 @@
         {
           agent = pkgs.mkShellNoCC {
             packages = agentPackages;
+            shellHook = ''
+              agent_cache_root="''${TMPDIR:-/tmp}/nixos-codex-nix-''${UID}/cache"
+              install -d -m 0700 "$agent_cache_root"
+              export XDG_CACHE_HOME="$agent_cache_root"
+              export NIX_CONFIG="''${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flakes'
+              unset agent_cache_root
+            '';
           };
 
           default = pkgs.mkShellNoCC {

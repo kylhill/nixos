@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-cache_root="${TMPDIR:-/tmp}/nixos-codex-nix-${UID}/cache"
-install -d -m 0700 "$cache_root"
-export XDG_CACHE_HOME="$cache_root"
-export NIX_CONFIG="${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flakes'
-
-exec nix "$@"

@@ -5,16 +5,21 @@ description: Choose focused validation for implementation changes to this reposi
 
 # Nix development
 
-Use the scope commands in the repository README's lightweight-check section.
-Keep command mechanics in the runner; this skill covers what to validate.
+Use the commands and scope mechanics in README's lightweight-check section. This
+skill only decides which behavior and consumer contexts need validation.
 
-- Trace imports from the changed module to `homes/` and NixOS consumers.
-  A syntax-only module can use one selected home; a common CLI module may affect
-  gateway, OCI, syntax, and pang14. Architecture-specific branches need a consumer
-  of each affected architecture. Do not infer consumers from filenames alone.
+- Trace imports from the changed module to standalone and NixOS-integrated Home
+  Manager consumers. Select one consumer per distinct architecture, conditional,
+  package set, module argument, or integration path; do not require every
+  consumer when they evaluate the same option path with equivalent inputs. Do
+  not infer consumers from filenames alone.
 - During iteration, evaluate the specific non-secret `config` attribute being
-  changed. At completion, evaluate affected activation derivations to force
-  broader module validation. A setting evaluation alone is not that check.
+  changed. At completion, evaluate an activation derivation for each selected
+  context. A setting evaluation alone is not that check. An option-only Home
+  Manager change does not require full flake evaluation solely because one
+  selected context is integrated into NixOS; evaluate that integrated home
+  activation derivation narrowly. Reserve full evaluation for composition,
+  shared package-set/argument wiring, lock changes, or uncertain boundaries.
 - Inspect generated text at its owning option (for example,
   `config.home.file`, `config.xdg.configFile`, or `config.systemd.user.services`).
   Read pinned module source to locate it. A source path may be unrealized:

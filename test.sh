@@ -43,7 +43,6 @@ cd "$repo_dir"
 nix_cmd=(nix)
 if "$sandbox"; then
     flake_ref=path:.
-    nix_cmd=("$repo_dir/scripts/nix-sandbox")
 fi
 
 failed=0
@@ -57,7 +56,7 @@ run_stage() {
     return "$status"
 }
 printf 'Validation scope: %s; homes: %s; dev systems: %s\n' "$mode" "${homes[*]:-none}" "${dev_systems[*]:-none}"
-shell_files=(apply.sh test.sh update.sh scripts/nix-sandbox tests/test-runner.sh tests/fixtures/validation-tool)
+shell_files=(apply.sh test.sh update.sh tests/test-runner.sh tests/fixtures/validation-tool)
 run_stage 'Worktree whitespace' git diff --check || :
 run_stage 'Staged whitespace' git diff --cached --check || :
 for script in "${shell_files[@]}"; do
