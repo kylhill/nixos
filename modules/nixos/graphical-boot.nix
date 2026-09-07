@@ -2,15 +2,20 @@
   boot = {
     plymouth = {
       enable = true;
-      theme = "bgrt";
+      theme = "spinner";
     };
+
+    initrd.kernelModules = [
+      "amdgpu"
+    ];
 
     consoleLogLevel = 3;
     initrd.verbose = false;
 
     kernelParams = [
       "quiet"
-      "udev.log_priority=3"
+      "udev.log_level=3"
+      "rd.udev.log_level=3"
       "systemd.show_status=auto"
       "rd.systemd.show_status=auto"
     ];

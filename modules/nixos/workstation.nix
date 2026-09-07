@@ -59,11 +59,9 @@
       openFirewall = true;
     };
 
-    colord.enable = false;
     displayManager.gdm.enable = true;
     desktopManager.gnome.enable = true;
     dleyna.enable = false;
-    geoclue2.enable = false;
     gnome = {
       gcr-ssh-agent.enable = true;
       gnome-remote-desktop.enable = false;
@@ -101,11 +99,6 @@
       simple-scan
       yelp
     ];
-
-    sessionVariables = {
-      MOZ_ENABLE_WAYLAND = "1";
-      NIXOS_OZONE_WL = "1";
-    };
 
     systemPackages = [
       pkgs.file-roller

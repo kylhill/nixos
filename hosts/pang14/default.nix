@@ -16,13 +16,12 @@
     ../../modules/nixos/admin-tools.nix
     ../../modules/nixos/base.nix
     ../../modules/nixos/graphical-boot.nix
-    ../../modules/nixos/gnome-workstation.nix
     ../../modules/nixos/laptop.nix
     ../../modules/nixos/networkmanager-wireguard.nix
     ../../modules/nixos/networkmanager-wifi.nix
     ../../modules/nixos/secrets.nix
-    ../../modules/nixos/shared-ssh-identity.nix
     ../../modules/nixos/user-kyleh.nix
+    ../../modules/nixos/workstation.nix
     ../../modules/nixos/zfs-root.nix
   ];
 
@@ -32,30 +31,7 @@
         enable = true;
         configurationLimit = 5;
         extraInstallCommands = ''
-          ${pkgs.python3}/bin/python3 - <<'PY'
-          from pathlib import Path
-
-          loader_conf = Path("/boot/loader/loader.conf")
-          last_booted = Path(
-              "/sys/firmware/efi/efivars/"
-              "LoaderEntryLastBooted-4a67b082-0a4c-41cf-b6c7-440b29bb8c4f"
-          )
-
-          # Keep a saved non-NixOS selection. After booting NixOS, retain the
-          # newly generated NixOS default without modifying EFI variables.
-          if last_booted.exists():
-              raw = last_booted.read_bytes()
-              entry = raw[4:].decode("utf-16-le").rstrip("\0")
-              if not entry.startswith("nixos-"):
-                  lines = loader_conf.read_text().splitlines()
-                  loader_conf.write_text(
-                      "\n".join(
-                          "default @saved" if line.startswith("default ") else line
-                          for line in lines
-                      )
-                      + "\n"
-                  )
-          PY
+          ${pkgs.gnused}/bin/sed -i 's/^default .*/default @saved/' /boot/loader/loader.conf
         '';
         windows.windows = {
           title = "Windows";
@@ -94,6 +70,26 @@
       enable = true;
       interval = "weekly";
     };
+  };
+
+  systemd.services.clear-ssh-control-sockets = {
+    description = "Remove SSH control sockets before sleep";
+    wantedBy = [ "sleep.target" ];
+    before = [ "sleep.target" ];
+
+    serviceConfig = {
+      Type = "oneshot";
+      User = config.infrastructure.user.name;
+    };
+
+    script = ''
+      socket_dir="${config.infrastructure.user.homeDirectory}/.cache/ssh"
+
+      if [[ -d "$socket_dir" ]]; then
+        ${pkgs.findutils}/bin/find "$socket_dir" \
+          -maxdepth 1 -type s -name '*.sock' -delete
+      fi
+    '';
   };
 
   sops.defaultSopsFile = ../../secrets/pang14.yaml;

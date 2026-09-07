@@ -13,6 +13,7 @@
   programs = {
     firefox = {
       enable = true;
+      package = latestPkgs.firefox;
       profiles.default = {
         id = 0;
         isDefault = true;

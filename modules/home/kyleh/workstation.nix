@@ -3,7 +3,6 @@ _: {
 
   imports = [
     ./gnome.nix
-    ./gnome-console.nix
     ./workstation-apps.nix
   ];
 }
