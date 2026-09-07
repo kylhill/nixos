@@ -80,18 +80,13 @@
 
 ## Secrets and storage
 
-- Read `secrets/README.md` for secret work. Keep values sops-encrypted under
-  `secrets/` and private age identities outside the repo. Never expose plaintext
-  in Git, logs, chat, or the Nix store. Decrypting, editing, or rekeying secrets
-  requires an explicit request; encrypted files/recipient metadata are safe to
-  inspect. Use `sops.placeholder` and root-only `sops.templates` for system
-  service files containing secrets.
-- Before storage changes, read `README.md`, `hosts/pang14/disko.nix`, and
-  `scripts/install-preflight`. Never automatically format, repartition, or roll
-  back ZFS. Destructive operations require an explicit request and immediate
-  device verification. The only allowed installation target is
-  `/dev/disk/by-id/nvme-KINGSTON_SKC3000S1024G_50026B7686B97472`;
-  never modify the WD Blue SN580 containing Windows and Ubuntu.
+- Keep values sops-encrypted under `secrets/` and private age identities outside
+  the repo. Never expose plaintext in Git, logs, chat, or the Nix store.
+  Decrypting, editing, or rekeying secrets requires an explicit request;
+  encrypted files/recipient metadata are safe to inspect. Use `sops.placeholder`
+  and root-only `sops.templates` for system service files containing secrets.
+- Never automatically format, repartition, or roll back ZFS. Destructive operations
+  require an explicit request and immediate device verification.
 
 Keep operator procedures in `README.md`, secrets procedures in
 `secrets/README.md`, and agent constraints here. Avoid duplicating those docs;

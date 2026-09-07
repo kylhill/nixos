@@ -6,7 +6,7 @@ fixture_dir=$(mktemp -d)
 trap 'rm -rf -- "$fixture_dir"' EXIT
 mkdir -p "$fixture_dir/repo/scripts" "$fixture_dir/repo/tests/fixtures" "$fixture_dir/tools/bin"
 cp "$repo_dir/test.sh" "$repo_dir/apply.sh" "$repo_dir/update.sh" "$repo_dir/flake.lock" "$fixture_dir/repo/"
-cp "$repo_dir/scripts/"{nix-sandbox,install-host-key,install-preflight} "$fixture_dir/repo/scripts/"
+cp "$repo_dir/scripts/nix-sandbox" "$fixture_dir/repo/scripts/"
 cp "$repo_dir/tests/test-runner.sh" "$fixture_dir/repo/tests/"
 cp "$repo_dir/tests/fixtures/validation-tool" "$fixture_dir/repo/tests/fixtures/"
 for tool in nix nixfmt statix deadnix shellcheck; do

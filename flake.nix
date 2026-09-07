@@ -140,8 +140,6 @@
               ${self}/apply.sh \
               ${self}/test.sh \
               ${self}/update.sh \
-              ${self}/scripts/install-host-key \
-              ${self}/scripts/install-preflight \
               ${self}/scripts/nix-sandbox \
               ${self}/tests/test-runner.sh \
               ${self}/tests/fixtures/validation-tool
