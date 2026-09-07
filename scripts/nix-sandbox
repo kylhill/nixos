@@ -1,27 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-sandbox_nix_root="${NIX_SANDBOX_ROOT:-${TMPDIR:-/tmp}/nixos-codex-nix-${UID}}"
-backend=${NIX_SANDBOX_BACKEND:-daemon}
-case "$backend" in
-    daemon|local) ;;
-    *) echo 'NIX_SANDBOX_BACKEND must be daemon (default) or local (explicit fallback).' >&2; exit 2 ;;
-esac
-
-install -d -m 0700 "$sandbox_nix_root/cache"
-export XDG_CACHE_HOME="$sandbox_nix_root/cache"
+cache_root="${TMPDIR:-/tmp}/nixos-codex-nix-${UID}/cache"
+install -d -m 0700 "$cache_root"
+export XDG_CACHE_HOME="$cache_root"
 export NIX_CONFIG="${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flakes'
 
-nix_args=()
-if [[ $backend == local ]]; then
-    install -d -m 0700 "$sandbox_nix_root/store"
-    nix_args=(--store "$sandbox_nix_root/store")
-else
-    export NIX_REMOTE=daemon
-fi
-if [[ ${1:-} == --offline ]]; then
-    nix_args+=(--offline)
-    shift
-fi
-
-exec nix "${nix_args[@]}" "$@"
+exec nix "$@"
