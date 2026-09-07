@@ -29,8 +29,9 @@ Recommend deletion only after verifying all imports and references. Optimize for
 Classify closure observations as one of:
 
 1. **Measured:** compare realized closures using `nix path-info -Sh`, `nix path-info -rs`, `nix store diff-closures`, or equivalent version-supported commands.
-2. **Structurally confirmed:** the evaluated configuration demonstrably adds a package/output/runtime, but its byte impact was not measured.
-3. **Suspected:** package metadata or dependency structure suggests impact; provide a measurement command rather than a size claim.
+2. **Cache-backed estimate:** exact output paths and their references have binary-cache size metadata; name the cache and distinguish this from local disk usage. Missing custom outputs prevent a complete estimate.
+3. **Structurally confirmed:** the evaluated configuration demonstrably adds a package/output/runtime, but its byte impact was not measured.
+4. **Suspected:** package metadata or dependency structure suggests impact; provide a measurement command rather than a size claim.
 
 Inspect common drivers:
 

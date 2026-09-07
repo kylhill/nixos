@@ -48,7 +48,9 @@
     let
       inventory = import ./lib/inventory.nix;
       homeInventory = import ./lib/home-inventory.nix;
-      devSystems = nixpkgs.lib.unique (map (host: host.system) (builtins.attrValues inventory.hosts));
+      devSystems = nixpkgs.lib.unique (
+        map (host: host.system) (builtins.attrValues inventory.hosts ++ builtins.attrValues homeInventory)
+      );
       forAllSystems = nixpkgs.lib.genAttrs devSystems;
       pkgsFor = system: nixpkgs.legacyPackages.${system};
       unfreePackages = [
@@ -139,7 +141,10 @@
               ${self}/test.sh \
               ${self}/update.sh \
               ${self}/scripts/install-host-key \
-              ${self}/scripts/install-preflight
+              ${self}/scripts/install-preflight \
+              ${self}/scripts/nix-sandbox \
+              ${self}/tests/test-runner.sh \
+              ${self}/tests/fixtures/validation-tool
             touch $out
           '';
         }
@@ -160,6 +165,16 @@
           pkgs = pkgsFor system;
         in
         {
+          lint = pkgs.mkShellNoCC {
+            packages = [
+              pkgs.git
+              pkgs.nixfmt
+              pkgs.statix
+              pkgs.deadnix
+              pkgs.shellcheck
+            ];
+          };
+
           default = pkgs.mkShellNoCC {
             packages = [
               pkgs.age
@@ -167,10 +182,8 @@
               pkgs.git
               pkgs.mcp-nixos
               pkgs.nix-eval-jobs
-              pkgs.nix-output-monitor
               pkgs.nix-tree
               pkgs.nixfmt-tree
-              pkgs.nixd
               pkgs.nvd
               pkgs.openssl
               (pkgs.python3.withPackages (pythonPackages: [ pythonPackages.pyyaml ]))

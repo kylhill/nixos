@@ -37,6 +37,12 @@ Read [references/review-rubric.md](references/review-rubric.md) before analyzing
 
 ## Analyze deliberately
 
+For tool choice or closure analysis, read the "Review tools and closure analysis"
+section in [README.md](../../../README.md). It maps installed tools to useful
+tasks and gives non-building commands. Prefer Nix JSON/text and `nvd` for agent
+evidence; use `nix-tree` for graph exploration and bounded `nix-eval-jobs` only
+when multiple evaluations justify its overhead.
+
 Trace imports and configuration flow before criticizing duplication or indirection. Account for the repository's intended reuse boundaries, platform boundaries, state-version policy, secrets ownership, and deployment model.
 
 Prefer findings that identify a concrete improvement:

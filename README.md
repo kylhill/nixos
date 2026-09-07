@@ -111,15 +111,62 @@ linting, building, activation, and switching into one unobserved step.
 
 ### 1. Inspect and run lightweight checks
 
-In Codex, run `./test.sh --sandbox` after modifying the repository. This includes
-untracked files, checks whitespace and shell syntax, evaluates the flake and all
-standalone Home Manager activation derivations with a persistent daemonless
-store, and runs linters directly. It prefers available pinned tools, then tools
-on PATH, then cache-only fetching of pinned tools. Network or mount restrictions
-can block the last route; the script reports failures and exits nonzero rather
-than silently skipping checks. No host closure is built.
+Choose a validation scope for the change. All test-runner scopes check source
+whitespace, shell syntax, Nixfmt, Statix, Deadnix and ShellCheck first. Output
+evaluation starts only when source checks pass. Each stage reports elapsed time
+and failures; a scoped pass does not claim full coverage.
 
-For additional daemonless Nix commands in Codex, use
+| Change | Fast feedback | Completion check |
+| --- | --- | --- |
+| Documentation/instructions | `git diff --check`, `git diff --cached --check`, verify referenced paths/commands | Same; no Nix evaluation |
+| Shell helper | `bash -n SCRIPT`, `shellcheck SCRIPT`, relevant fixtures | `./test.sh --sandbox --lint`; for the runner, `bash tests/test-runner.sh` |
+| One standalone home | Evaluate the changed setting | `./test.sh --sandbox --home syntax` |
+| Shared home module | Evaluate one representative consumer | Select all affected homes; use `--full` if NixOS consumers are affected |
+| Development shell/package | Evaluate the selected output | `./test.sh --sandbox --dev x86_64-linux`, plus a small targeted build if useful |
+| Lock file/shared flake composition | Narrow checks while editing | `./test.sh --sandbox --full` |
+
+`--home` and `--dev` are repeatable and can be combined. For example:
+
+```bash
+./test.sh --sandbox --offline --home gateway --home oci
+./test.sh --sandbox --offline --dev x86_64-linux --dev aarch64-linux
+```
+
+Selected homes evaluate only their activation derivations; selected development
+systems evaluate all their development-shell derivations. Neither evaluates a
+NixOS configuration. `--lint` evaluates only tool metadata in sandbox mode.
+No scope builds or activates a host or Home Manager environment.
+
+The default remains `--full`: lint, all-system flake evaluation without builds,
+and explicit evaluation of every standalone home activation derivation.
+`flake check` alone does not traverse custom `homeConfigurations`.
+
+Sandbox mode includes untracked files and runs linters directly. Runnable pinned
+paths are cached by lock-file hash and architecture; otherwise available PATH
+tools are used and reported. When tools are missing, their pinned paths are
+resolved together, with binary-cache fetching if needed and source/remote builds
+disabled. Once tools are available, lint-only runs do not invoke Nix or create
+a temporary store.
+
+`scripts/nix-sandbox` uses the system daemon and real `/nix/store` by default. It keeps
+only writable metadata/tool-path caches under
+`${TMPDIR:-/tmp}/nixos-codex-nix-${UID}/cache`. Daemon access failures are returned
+directly; there is no probe or automatic store fallback. If a separate store is
+needed, explicitly set `NIX_SANDBOX_BACKEND=local` to use the sibling `store`
+directory. The default backend is `daemon`; `auto` is no longer accepted.
+`NIX_SANDBOX_ROOT` overrides the cache/fallback root when a different writable
+location is needed. For example:
+
+```bash
+NIX_SANDBOX_BACKEND=local ./test.sh --sandbox --offline --home gateway
+```
+
+`--offline` disables downloads without automatic online retries. If cached
+inputs/tools are missing, rerun the same scope without `--offline` when network
+access is available. For mount restrictions, use runnable tools or run the same
+scope with `--path` outside Codex. Failed or unavailable checks exit nonzero.
+
+For additional Nix commands in Codex, use
 `./scripts/nix-sandbox`, optionally with `--offline` before the Nix subcommand
 when all required inputs are cached. For example:
 
@@ -127,28 +174,51 @@ when all required inputs are cached. For example:
 ./scripts/nix-sandbox --offline eval path:.#homeConfigurations.syntax.activationPackage.drvPath
 ```
 
-Outside Codex, `./test.sh` retains the targeted check-derivation workflow below.
-Use `./test.sh --path` to include new files without staging them.
+The repository's `.codex/config.toml` selects the `nixos-development` permission
+profile with network access enabled. This profile permits the daemon socket;
+a conversation started with a different effective policy can still reject it
+with `Operation not permitted`. From an ordinary terminal, verify the profile
+without building anything:
+
+```bash
+codex sandbox -P nixos-development -- nix --store daemon store info --json
+codex sandbox -P nixos-development -- ./test.sh --sandbox --offline --home gateway
+```
+
+Start a new Codex session using that repository profile if the current session
+retains a restrictive policy. Do not broaden filesystem permissions on the
+daemon socket, change Nix trusted users, or disable sandboxing to fix this.
+Even with daemon access, the helper's writable metadata cache is needed when
+`~/.cache/nix` is read-only. Existing fallback stores are not automatically
+deleted or migrated; unrelated temporary stores are not used by this workflow.
+
+Outside Codex, the same scopes use daemon-backed Nix and build only the selected
+formatter/linter check derivations. Use `--path` to include untracked files.
 
 Enter the pinned development environment when the required tools are not
 already available, then run the repository checks:
 
 ```bash
-nix develop
-./test.sh
+nix develop .#lint
+./test.sh --path --lint
 ```
 
-Direnv users can approve the repository's `.envrc` once to enter the same
-development environment automatically:
+Direnv users can approve the repository's `.envrc` once to enter the default,
+broader development environment automatically:
 
 ```bash
 direnv allow
 ```
 
-The script stops at the first failure. It evaluates every flake output with
-`nix flake check --no-build`, explicitly evaluates every standalone Home Manager
-activation derivation, then builds only the formatting, Statix, Deadnix, and
-ShellCheck derivations. It never builds or activates the `pang14` system closure.
+The small `lint` shell supplies Git and the four linters. The default
+`nix develop` shell retains the broader administration and Nix development tools.
+Both shells and development checks are exposed for architectures present in
+either host inventory, including AArch64 standalone homes.
+
+The runner collects independent source failures before stopping output
+evaluation, and collects independent evaluation failures within the selected
+scope. Run `./test.sh --path --full` for the complete lightweight suite outside
+Codex.
 
 Review the complete diff after automated checks pass:
 
@@ -156,6 +226,67 @@ Review the complete diff after automated checks pass:
 git diff --stat
 git diff
 ```
+
+### Review tools and closure analysis
+
+The default development shell includes the tools below. Check `command -v TOOL`
+first; agents should reuse available executables or evaluated pinned executable
+paths rather than realize the entire default shell just to run one tool.
+For lint-only work, use `./test.sh --sandbox --lint` or the smaller `lint` shell.
+
+| Tool | Useful work | Limits and trade-offs |
+| --- | --- | --- |
+| Nix CLI (provided by the host) | `path-info` for size/reference metadata, `why-depends` for dependency causes, `store diff-closures` for comparisons | Start with explicit store paths; runtime and derivation graphs answer different questions |
+| `nvd` | Readable package/version and size deltas between two existing closures; `list` inventories one closure | Strong review tool; its Python runtime may already be shared with other tools |
+| `nix-tree` | Interactive dependency browsing; `--dot` exports a graph for noninteractive analysis | Prefer Nix JSON/text for routine agent work; the TUI is mainly useful to operators |
+| `nix-eval-jobs` | Bounded parallel evaluation of a selected derivation set, emitting JSON lines; optional cache-status checks | Useful for larger matrices, not automatically faster for one home; workers consume memory, and JSON can contain per-job errors |
+| `mcp-nixos` | Connected package/option discovery for NixOS, Home Manager and related projects | Use an exposed MCP tool directly; verify results against locked sources. An executable alone does not make it callable in an existing agent session |
+| `nixfmt-tree`, Statix, Deadnix, ShellCheck | Formatting and static checks through the runner; `nixfmt-tree` is the flake formatter | The lint shell uses direct `nixfmt`; avoid repeating successful checks |
+| Git, Python with PyYAML | Diff inspection, JSON/structured-data analysis and small fixtures | PyYAML is useful for YAML-aware checks but is not a closure-analysis dependency |
+| age, sops, OpenSSL | Operator credential provisioning and recovery | Follow `secrets/README.md`; their presence does not authorize decrypting or rotating secrets |
+
+For an existing realized closure, replace `ROOT`, `DEPENDENCY`, `OLD` and
+`NEW` below with explicit `/nix/store/...` paths. A standalone home generation
+is a valid root; do not assume `/run/current-system` exists on Ubuntu.
+
+```bash
+./scripts/nix-sandbox --offline path-info --json --json-format 1 --closure-size ROOT
+./scripts/nix-sandbox --offline path-info --recursive --size --closure-size ROOT
+./scripts/nix-sandbox --offline why-depends ROOT DEPENDENCY
+nvd --color never diff OLD NEW
+nix-tree --dot ROOT
+```
+
+`closureSize` is the sum of NAR sizes for unique reachable store paths, not
+filesystem allocation or compressed download size. Do not sum individual package
+closure sizes: dependencies overlap. To estimate removal savings, compare the
+union of retained runtime paths before/after; other generations and GC roots can
+still keep those paths alive. A `.drv` graph describes build dependencies and
+does not measure the resulting runtime closure.
+
+For an unbuilt output, first evaluate its exact `outPath` with the locked flake.
+If that path and all its references are in a binary cache, metadata can provide a
+cache-backed runtime-size estimate without downloading package contents:
+
+```bash
+nix path-info --store https://cache.nixos.org --json --json-format 1 --closure-size ROOT
+```
+
+This query uses network access, not `--offline`. Report the cache and exact path.
+An uncached custom home/system output has no such metadata: inspect its selected
+packages and derivation inputs, and label the result structural or incomplete.
+Do not build a home/system closure to fill that gap. Likewise, a development
+shell's `drvPath` or output alone is not the runtime union of its tools.
+
+For larger evaluation reviews, `nix-eval-jobs --workers 2 --no-instantiate`
+can evaluate a deliberately selected attribute set of derivations. Use its
+`--select` option to map home configurations to activation packages; never
+blindly recurse through all flake outputs. Inspect JSON error entries as well as
+exit status. `--check-cache-status` adds availability information, not byte sizes.
+Keep ordinary single-home checks on the existing test runner.
+
+Upstream references: [nix-tree](https://github.com/utdemir/nix-tree),
+[nix-eval-jobs](https://github.com/NixOS/nix-eval-jobs).
 
 ### 2. Build on `pang14` without activating
 
