@@ -99,8 +99,6 @@
 
   sops.defaultSopsFile = ../../secrets/pang14.yaml;
 
-  users.users.${config.infrastructure.user.name}.extraGroups = [ "dialout" ];
-
   home-manager.users.${config.infrastructure.user.name} = {
     imports = [
       ../../modules/home/kyleh/admin-tools.nix
