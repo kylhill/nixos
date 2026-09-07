@@ -87,18 +87,12 @@ Standalone Ubuntu profiles are kept separately in
 administration tools, and basic Nixvim; OCI targets AArch64.
 `homeConfigurations.syntax` additionally supplies development tools, tmux with
 automatic login attachment, a persistent local SSH agent, syntax-only Docker
-shell helpers, and declarative mcp-grafana and mcp-nixos definitions. The
-development profile integrates those definitions with Codex and Copilot CLI
-and explicitly includes Bubblewrap and Socat for the AI command-line tools.
-The repository agent shell supplies ShellCheck and the other validation tools.
-The Home Manager registration invokes the pinned mcp-nixos package directly by
-store path. The repository-local Codex registration reaches the same package
-through `nix run path:.#mcp-nixos`, so neither registration depends on finding
-mcp-nixos on the shell `PATH`.
-Codex's settings are Home Manager-owned so its shared MCP integration can be
-generated without discarding the user's existing preferences. Ubuntu's account,
-groups, sudo policy, authorized keys, Nix bootstrap, and systemd linger remain
-Ansible-owned.
+shell helpers, Bubblewrap, and Socat for the AI command-line tools. MCP servers
+are project-scoped: this repository's Codex configuration invokes its pinned
+mcp-nixos package through `nix run path:.#mcp-nixos`. Grafana MCP configuration
+and its encrypted credential belong to the infrastructure repository. Ubuntu's
+account, groups, sudo policy, authorized keys, Nix bootstrap, and systemd linger
+remain Ansible-owned.
 
 Before activating the standalone home, coordinate the Ansible/Dotbot handoff
 for owned paths and handlers and preserve existing files for rollback. Moving

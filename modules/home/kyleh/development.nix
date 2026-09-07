@@ -5,7 +5,6 @@
 }:
 {
   imports = [
-    ./mcp.nix
     ./neovim-development.nix
   ];
 
