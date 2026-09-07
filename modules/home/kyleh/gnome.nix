@@ -30,8 +30,10 @@
       color-scheme = "prefer-dark";
       cursor-size = 24;
       cursor-theme = "Adwaita";
+      document-font-name = "Adwaita Sans 11";
       font-antialiasing = "rgba";
-      font-hinting = "medium";
+      font-hinting = "slight";
+      font-name = "Adwaita Sans 11";
       font-rgba-order = "rgb";
       monospace-font-name = "CaskaydiaCove Nerd Font Mono 10";
       show-battery-percentage = false;

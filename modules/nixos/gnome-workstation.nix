@@ -18,6 +18,25 @@
     })
   ];
 
+  console.colors = [
+    "002b36"
+    "dc322f"
+    "859900"
+    "b58900"
+    "268bd2"
+    "d33682"
+    "2aa198"
+    "93a1a1"
+    "657b83"
+    "dc322f"
+    "859900"
+    "b58900"
+    "268bd2"
+    "d33682"
+    "2aa198"
+    "fdf6e3"
+  ];
+
   home-manager.users.${config.infrastructure.user.name}.imports = [ ../home/kyleh/workstation.nix ];
 
   users.users.${config.infrastructure.user.name}.extraGroups = [
@@ -96,19 +115,32 @@
 
   fonts = {
     packages = [
+      pkgs.adwaita-fonts
       pkgs.caladea
       pkgs.carlito
+      pkgs.dejavu_fonts
       pkgs.liberation_ttf
+      pkgs.nerd-fonts.caskaydia-cove
+      pkgs.noto-fonts
+      pkgs.noto-fonts-color-emoji
+
+      # Non-free Microsoft fonts
       pkgs.corefonts
       pkgs.vista-fonts
     ];
 
     fontconfig = {
       antialias = true;
+      defaultFonts = {
+        sansSerif = [ "Adwaita Sans" ];
+        serif = [ "DejaVu Serif" ];
+        monospace = [ "CaskaydiaCove Nerd Font Mono" ];
+        emoji = [ "Noto Color Emoji" ];
+      };
       hinting = {
         enable = true;
         autohint = false;
-        style = "medium";
+        style = "slight";
       };
       subpixel = {
         rgba = "rgb";

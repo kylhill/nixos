@@ -8,8 +8,6 @@
       # VS Code extensions and tasks need Python outside project environments.
       pkgs.python3
     ];
-
-    sessionVariables.ELECTRON_OZONE_PLATFORM_HINT = "auto";
   };
 
   programs = {
@@ -22,9 +20,6 @@
           "browser.backspace_action" = 0;
           "browser.display.use_document_fonts" = 1;
           "font.default.x-western" = "sans-serif";
-          "font.name.monospace.x-western" = "CaskaydiaCove Nerd Font Mono";
-          "font.name.sans-serif.x-western" = "Arial";
-          "font.name.serif.x-western" = "Times New Roman";
           "font.size.fixed.x-western" = 13;
           "font.size.variable.x-western" = 16;
           "media.ffmpeg.vaapi.enabled" = true;
