@@ -115,16 +115,28 @@
 
   fonts = {
     packages = [
+      # Modern desktop fonts
       pkgs.adwaita-fonts
-      pkgs.caladea
-      pkgs.carlito
-      pkgs.dejavu_fonts
-      pkgs.liberation_ttf
       pkgs.nerd-fonts.caskaydia-cove
+
+      # Broad Unicode coverage
       pkgs.noto-fonts
+      pkgs.noto-fonts-cjk-sans
+      pkgs.noto-fonts-cjk-serif
       pkgs.noto-fonts-color-emoji
 
-      # Non-free Microsoft fonts
+      # Linux / legacy fallback
+      pkgs.dejavu_fonts
+
+      # Microsoft metric-compatible fonts
+      pkgs.carlito
+      pkgs.caladea
+      pkgs.liberation_ttf
+
+      # Classic document/PostScript compatibility
+      pkgs.gyre-fonts
+
+      # Actual Microsoft fonts
       pkgs.corefonts
       pkgs.vista-fonts
     ];
@@ -132,9 +144,23 @@
     fontconfig = {
       antialias = true;
       defaultFonts = {
-        sansSerif = [ "Adwaita Sans" ];
-        serif = [ "DejaVu Serif" ];
-        monospace = [ "CaskaydiaCove Nerd Font Mono" ];
+        sansSerif = [
+          "Adwaita Sans"
+          "Noto Sans"
+          "DejaVu Sans"
+        ];
+
+        serif = [
+          "Noto Serif"
+          "DejaVu Serif"
+        ];
+
+        monospace = [
+          "CaskaydiaCove Nerd Font Mono"
+          "Noto Sans Mono"
+          "DejaVu Sans Mono"
+        ];
+
         emoji = [ "Noto Color Emoji" ];
       };
       hinting = {
