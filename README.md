@@ -91,8 +91,10 @@ shell helpers, and declarative mcp-grafana and mcp-nixos definitions. The
 development profile integrates those definitions with Codex and Copilot CLI
 and explicitly includes Bubblewrap and Socat for the AI command-line tools.
 The repository agent shell supplies ShellCheck and the other validation tools.
-The MCP app and registration reference the same pinned mcp-nixos package
-directly, so Codex does not depend on shell PATH lookup to start it.
+The Home Manager registration invokes the pinned mcp-nixos package directly by
+store path. The repository-local Codex registration reaches the same package
+through `nix run path:.#mcp-nixos`, so neither registration depends on finding
+mcp-nixos on the shell `PATH`.
 Codex's settings are Home Manager-owned so its shared MCP integration can be
 generated without discarding the user's existing preferences. Ubuntu's account,
 groups, sudo policy, authorized keys, Nix bootstrap, and systemd linger remain
@@ -259,7 +261,7 @@ the required validation executables.
 | `nvd` | Readable package/version and size deltas between two existing closures; `list` inventories one closure | Strong review tool; its Python runtime may already be shared with other tools |
 | `nix-tree` | Interactive dependency browsing; `--dot` exports a graph for noninteractive analysis | Prefer Nix JSON/text for routine agent work; the TUI is mainly useful to operators |
 | `nix-eval-jobs` | Bounded parallel evaluation of a selected derivation set, emitting JSON lines; optional cache-status checks | Useful for larger matrices, not automatically faster for one home; workers consume memory, and JSON can contain per-job errors |
-| `mcp-nixos` | Connected package/option discovery for NixOS, Home Manager and related projects | Use an exposed MCP tool directly; verify results against locked sources. An executable alone does not make it callable in an existing agent session |
+| `mcp-nixos` | Connected package/option discovery for NixOS, Home Manager and related projects | Look for callable `mcp__nixos__*` tools, including deferred tools; the server exposes tools rather than MCP resources. Verify results against locked sources |
 | Nixfmt, `nixfmt-tree`, Statix, Deadnix, ShellCheck | Formatting and static checks through the runner; `nixfmt-tree` is the flake formatter | Use direct `nixfmt` for focused files; avoid repeating successful checks |
 | Git and jq | Diff inspection and JSON/structured-data analysis | Prefer direct machine-readable output over adding language-specific parsing dependencies |
 | age, sops, OpenSSL (operator default only) | Operator credential provisioning and recovery | Follow `secrets/README.md`; their presence does not authorize decrypting or rotating secrets |

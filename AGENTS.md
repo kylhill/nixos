@@ -29,6 +29,11 @@
 - For tool selection and closure reviews, see README's "Review tools and closure
   analysis": `nvd`, `nix-tree`, `nix-eval-jobs`, and MCP have different
   roles. Prefer existing executables and machine-readable, non-building checks.
+- For Nix questions, inspect the callable tool inventory, including deferred
+  tools, for `mcp__nixos__*`. Do not infer that mcp-nixos is unavailable from
+  `list_mcp_resources` or `list_mcp_resource_templates`; it exposes tools rather
+  than resources. When `mcp__nixos__nix` is available, use it as directed and
+  verify repository-specific claims against evaluation or pinned source.
 
 ## Validation
 
