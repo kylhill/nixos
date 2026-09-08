@@ -56,6 +56,7 @@
 
     extraConfig = ''
       set -g set-clipboard external
+      set -as terminal-features ',xterm-256color:RGB'
       set -ag update-environment WAYLAND_DISPLAY
       set -ag update-environment KASM_SSH
       set -ag update-environment TMUX_NERD_FONT
