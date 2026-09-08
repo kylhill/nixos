@@ -13,7 +13,7 @@ usage() {
     echo '  --lint          source checks only; no host, home, or development output evaluation'
     echo '  --home NAME     lint and evaluate a selected home activation derivation; repeatable'
     echo '  --dev SYSTEM    lint and evaluate all development shells for a system; repeatable'
-    echo '  --sandbox       direct agent-shell linters and Nix with a writable temporary cache'
+    echo '  --sandbox       direct PATH linters and evaluation including untracked files'
     echo '  --path          include untracked files outside sandbox mode'
 }
 die() { echo "$*" >&2; exit 2; }
@@ -66,7 +66,7 @@ done
 if "$sandbox"; then
     for tool in nixfmt statix deadnix shellcheck; do
         if ! command -v "$tool" >/dev/null 2>&1; then
-            echo "Cannot run $tool: enter nix develop .#agent first." >&2
+            echo "Cannot run $tool: expected on PATH from the default development shell." >&2
             failed=1
             continue
         fi

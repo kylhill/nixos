@@ -15,10 +15,12 @@ done
 git -C "$fixture_dir/repo" init -q
 export PATH="$fixture_dir/tools/bin:/usr/bin:/bin"
 export FIXTURE_LOG="$fixture_dir/calls"
-# Model the writable cache inherited from the agent development shell.
+# Model Codex's shell environment policy without changing the ordinary XDG cache.
 export TMPDIR="$fixture_dir"
-export XDG_CACHE_HOME="$fixture_dir/nixos-codex-nix-${UID}/cache"
-mkdir -p "$XDG_CACHE_HOME"
+export NIX_CACHE_HOME="$fixture_dir/nixos-codex-nix-cache"
+export NIX_REMOTE=daemon
+export XDG_CACHE_HOME="$fixture_dir/ordinary-cache"
+mkdir -p "$NIX_CACHE_HOME"
 run_case() {
     local expected=$1 status=0
     shift
@@ -46,7 +48,8 @@ run_case 0 --sandbox --home gateway --home oci --dev aarch64-linux
 require_call 'homeConfigurations.gateway.activationPackage.drvPath'
 require_call 'homeConfigurations.oci.activationPackage.drvPath'
 require_call 'devShells.aarch64-linux'
-require_call 'nix NIX_REMOTE= '
+require_call 'nix NIX_REMOTE=daemon '
+require_call "NIX_CACHE_HOME=$NIX_CACHE_HOME"
 require_call "XDG_CACHE_HOME=$XDG_CACHE_HOME"
 reject_call 'flake check'
 reject_call 'homeConfigurations.syntax'
@@ -68,11 +71,11 @@ require_call 'shellcheck'
 reject_call 'flake check'
 unset FAIL_TOOL
 
-# Missing agent-shell tools fail clearly while available linters still run.
+# Missing development tools fail clearly while available linters still run.
 mv "$fixture_dir/tools/bin/statix" "$fixture_dir/statix"
 run_case 1 --sandbox --lint
 require_call 'shellcheck'
-[[ $(< "$fixture_dir/output") == *'enter nix develop .#agent first'* ]]
+[[ $(< "$fixture_dir/output") == *'expected on PATH from the default development shell'* ]]
 mv "$fixture_dir/statix" "$fixture_dir/tools/bin/statix"
 
 run_case 1 --sandbox --home missing --home gateway

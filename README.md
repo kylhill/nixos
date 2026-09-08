@@ -8,29 +8,13 @@ configurations or imposing laptop policy on every machine.
 The flake exposes `nixosConfigurations.pang14`. Home Manager is integrated into
 that system configuration, so system and user changes activate together.
 
-For hosts not yet represented here, the existing Ansible and dotfiles
-repositories remain authoritative. Neovim is optional outside development: import `neovim-basic.nix` alongside
-the common profile for basic editing, or `neovim-development.nix` for the full
-editor (already imported by `development.nix`). Select one editor profile per
-host. Both share `neovim.nix`: Solarized, editor options, the default editor,
-and the Neovim man pager. Solarized is the basic profile's only plugin;
-mini.ai text objects and mini.pairs auto-pairing belong to development.
+For hosts not yet represented here, Ansible and dotfiles remain authoritative.
+On `pang14`, Home Manager and Nixvim replace Dotbot, lazy.nvim, and Mason.
 
-The basic profile adds no LSPs, Treesitter, completion engines, external search
-tools, formatters, provider runtimes, or clipboard utilities. It keeps the same
-leader keys using native Neovim commands: file completion, buffer lists,
-netrw, history, help, and internal `vimgrep` with quickfix results. Searches
-use literal text and scan files under the current directory; they do not use
-Snacks' Git-ignore-aware filtering. `<leader>sR` reopens search results rather
-than resuming an arbitrary picker. The development profile retains the existing
-Snacks pickers and full plugin configuration.
-
-Both profiles enable Nixvim's `vimAlias` (a `vim` executable pointing to Neovim)
-and `vimdiffAlias` (shell aliases for `nvim -d`). A separate Bash `vim` alias
-is unnecessary. The common CLI profile alone installs no editor.
-
-On `pang14`, this repository replaces
-Dotbot, lazy.nvim, and Mason with Home Manager and Nixvim.
+Neovim is optional in the common home profile. Select `neovim-basic.nix` for
+native editing and search without language servers or external tooling, or
+`neovim-development.nix` for the full plugin setup (included by
+`development.nix`). Both share `neovim.nix` and provide Vim aliases.
 
 ## Repository map
 
@@ -88,9 +72,8 @@ administration tools, and basic Nixvim; OCI targets AArch64.
 `homeConfigurations.syntax` additionally supplies development tools, tmux with
 automatic login attachment, a persistent local SSH agent, syntax-only Docker
 shell helpers, Bubblewrap, and Socat for the AI command-line tools. MCP servers
-are project-scoped: this repository's Codex configuration invokes its pinned
-mcp-nixos package through `nix run path:.#mcp-nixos`. Grafana MCP configuration
-and its encrypted credential belong to the infrastructure repository. Ubuntu's
+are project-scoped; Grafana MCP configuration and its encrypted credential belong
+to the infrastructure repository. Ubuntu's
 account, groups, sudo policy, authorized keys, Nix bootstrap, and systemd linger
 remain Ansible-owned.
 
@@ -100,177 +83,106 @@ tools from Ansible's latest-release installers to Nix also moves their updates
 to the inputs locked by this flake. `pang14` continues to activate Home Manager
 through NixOS.
 
+## Development environment
+
+With direnv's shell hook installed:
+
+```bash
+cd ~/nixos
+direnv allow    # once, if needed
+codex
+```
+
+`.envrc` contains only `use flake`. Without direnv, enter `nix develop` once
+before launching Codex. The default `mkShellNoCC` supplies all repository
+development and operator tools: nixfmt, nixfmt-tree (`treefmt`), Statix, Deadnix,
+ShellCheck, Git, jq, ripgrep, fd, nix-eval-jobs, nix-tree, nvd, mcp-nixos, age,
+sops, OpenSSL, socat and bubblewrap. Use tools directly from `PATH`; routinely
+missing tools belong in this shell. Outputs cover architectures in both inventories.
+
+Nix remains host-provided and talks to the multi-user daemon. The supported
+Ubuntu baseline is 26.04 LTS, with `nix-bin` and `nix-setup-systemd` installed.
+Enable `nix-command` and `flakes` on the host for direct flake commands;
+the test runner enables them for its own invocations.
+
+### Codex permissions and cache
+
+Trusted project configuration in `.codex/config.toml` selects
+`nixos-development`, extending `:workspace` with network access and an explicit
+allow entry for `/nix/var/nix/daemon-socket/socket`. Sandboxing stays enabled;
+`/nix` is not generally writable. MCP executes `mcp-nixos` directly from `PATH`.
+
+Codex's shell environment policy inherits the development environment and sets
+`NIX_CACHE_HOME=/tmp/nixos-codex-nix-cache` and `NIX_REMOTE=daemon`.
+It leaves `XDG_CACHE_HOME` unchanged; ordinary development-shell processes keep
+the user's normal cache.
+
+From the repository in an ordinary terminal, diagnose the selected profile
+without building a closure:
+
+```bash
+codex sandbox -- nix --store daemon store info --json
+codex sandbox -- ./test.sh --sandbox --home gateway
+```
+
+Use `-P nixos-development` to select the profile explicitly. If an existing
+session retains an older policy, start a new `codex` session. Do not change
+daemon socket permissions, Nix trusted users, or disable sandboxing.
+See the [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference).
+
 ## Normal operation
 
-Promote a change progressively. Stop at the first failure instead of combining
-linting, building, activation, and switching into one unobserved step.
+Run lightweight validation on Syntax or another development host. Full builds
+and activation on `pang14` are operator steps, not agent actions. Review each
+stage before proceeding.
 
 ### 1. Inspect and run lightweight checks
 
-Choose a validation scope for the change. All test-runner scopes check source
-whitespace, shell syntax, Nixfmt, Statix, Deadnix and ShellCheck first. Output
-evaluation starts only when source checks pass. Each stage reports elapsed time
-and failures; a scoped pass does not claim full coverage.
+Use `./test.sh --sandbox` inside Codex. It runs linters directly from `PATH`
+and uses `path:.` to include dirty and untracked files. Dirty-worktree warnings
+are expected; do not stage files just to validate. Outside Codex, `--path`
+includes untracked files while omitting `--sandbox` runs linter check derivations.
 
-| Change | Fast feedback | Completion check |
-| --- | --- | --- |
-| Documentation/instructions | `git diff --check`, `git diff --cached --check`, verify referenced paths/commands | Same; no Nix evaluation |
-| Shell helper | `bash -n SCRIPT`, `shellcheck SCRIPT`, relevant fixtures | `./test.sh --sandbox --lint`; for the runner, `bash tests/test-runner.sh` |
-| One standalone home | Evaluate the changed setting | `./test.sh --sandbox --home syntax` |
-| Shared Home Manager option | Evaluate the changed option or generated file in one representative consumer | Evaluate one activation derivation per distinct platform or module context; use the narrow integrated-home command below when applicable |
-| Home/NixOS module composition | Evaluate affected options while editing | `./test.sh --sandbox --full` when imports, arguments, overlays, package sets, or cross-module wiring change |
-| Development shell/package | Evaluate the selected output | `./test.sh --sandbox --dev x86_64-linux`, plus a small targeted build if useful |
-| Lock file/shared flake composition | Narrow checks while editing | `./test.sh --sandbox --full` |
+| Scope | Checks |
+| --- | --- |
+| `--lint` | Whitespace, shell syntax, Nixfmt, Statix, Deadnix and ShellCheck; no Nix invocation with `--sandbox` |
+| `--home NAME` | Source checks and the selected standalone home activation `drvPath` |
+| `--dev SYSTEM` | Source checks and the default development shell `drvPath` |
+| `--full` (default) | Source checks, all-system flake evaluation without builds, and every standalone home activation `drvPath` |
 
-`--home` and `--dev` are repeatable and can be combined. For example:
+`--home` and `--dev` can be repeated and combined; selected scopes do not
+evaluate NixOS configurations. The runner collects independent failures within
+a stage and skips output evaluation when source checks fail. No scope builds or
+activates a system or Home Manager closure.
 
 ```bash
+./test.sh --sandbox --lint
 ./test.sh --sandbox --home gateway --home oci
 ./test.sh --sandbox --dev x86_64-linux --dev aarch64-linux
 ```
 
-Selected homes evaluate only their activation derivations; selected development
-systems evaluate all their development-shell derivations. Neither evaluates a
-NixOS configuration. In sandbox mode, `--lint` runs source checks only and does
-not invoke Nix. No scope builds or activates a host or Home Manager environment.
+For documentation-only changes, check `git diff --check`,
+`git diff --cached --check`, and referenced paths/commands. For runner changes,
+also run `bash tests/test-runner.sh`. Use the
+[nix-development skill](.agents/skills/nix-development/SKILL.md) to select
+consumers for module changes. Reserve `--full` for shared composition, lock
+changes, or uncertain evaluation boundaries.
 
-A shared Home Manager module does not require `--full` merely because NixOS also
-integrates it. For an option-only change with no platform branch, evaluate one
-standalone activation derivation and the integrated home activation derivation:
-
-```bash
-./test.sh --sandbox --home syntax
-nix eval \
-  path:.#nixosConfigurations.pang14.config.home-manager.users.kyleh.home.activationPackage.drvPath
-```
-
-Add consumers only when they exercise a distinct architecture, conditional,
-package set, module argument, or integration path. Use `--full` for composition
-changes or when a narrow evaluation cannot establish the affected boundary.
-
-The default remains `--full`: lint, all-system flake evaluation without builds,
-and explicit evaluation of every standalone home activation derivation.
-`flake check` alone does not traverse custom `homeConfigurations`.
-
-Sandbox mode includes untracked files and runs the linters supplied by the agent
-development shell directly. Launch Codex with `./agent` from the repository root;
-lint-only runs do not invoke Nix.
-
-Codex's managed sandbox makes the normal user cache read-only. The Codex-only
-`agent` development shell sets `XDG_CACHE_HOME` to
-`${TMPDIR:-/tmp}/nixos-codex-nix-${UID}/cache` and enables the required Nix CLI
-features, so direct `nix` and `nix-store` commands are safe when Codex is launched
-through `./agent`. The default operator shell keeps the normal user cache. Daemon
-access failures are returned directly.
-
-For mount restrictions, use runnable tools or run the same scope with `--path`
-outside Codex. Failed or unavailable checks exit nonzero.
-
-Additional Nix commands can be run directly inside that agent environment:
+For focused evaluation, select the changed non-secret option or activation
+derivation directly. An integrated Home Manager check can stay narrow:
 
 ```bash
 nix eval path:.#homeConfigurations.syntax.activationPackage.drvPath
+nix eval path:.#nixosConfigurations.pang14.config.home-manager.users.kyleh.home.activationPackage.drvPath
 ```
 
-To realize an explicit store path with the legacy store command (for example, a
-pinned source archive needed for inspection), use the British-spelled option:
-
-```bash
-nix-store --realise /nix/store/EXPLICIT-PATH
-```
-
-`nix store realise` is not available in the supported Nix CLI. Realizing a
-source path is a narrow artifact fetch; it is not authorization to build a full
-system or Home Manager closure.
-
-The repository's `.codex/config.toml` selects the `nixos-development` permission
-profile with network access enabled. This profile permits the daemon socket;
-a conversation started with a different effective policy can still reject it
-with `Operation not permitted`. From an ordinary terminal, verify the profile
-without building anything:
-
-```bash
-codex sandbox -P nixos-development -- nix --store daemon store info --json
-codex sandbox -P nixos-development -- ./test.sh --sandbox --home gateway
-```
-
-Start a new Codex session using that repository profile if the current session
-retains a restrictive policy. Do not broaden filesystem permissions on the
-daemon socket, change Nix trusted users, or disable sandboxing to fix this.
-If a session was not launched with `./agent`, restart it rather than allowing Nix
-to use the read-only normal user cache.
-
-Outside Codex, omit `--sandbox` to run formatter and linter check derivations
-through Nix before the selected output evaluations. Use `--path` to include
-untracked files.
-
-Ubuntu 26.04 LTS is the minimum supported non-NixOS development host. Install
-both the Nix CLI and its systemd daemon setup from Ubuntu's `universe`
-repository:
-
-```bash
-sudo apt install nix-bin nix-setup-systemd
-nix --version
-```
-
-Ubuntu 26.04 supplies Nix 2.34.3. Older Ubuntu/Nix combinations are not tested
-for this repository. The test runner enables `nix-command` and `flakes` for its
-own invocations; enable those experimental features separately when invoking
-`nix develop` directly if the host has not enabled them globally.
-
-After changing to the repository root, launch Codex through the pinned agent
-environment so every session has the expected linters and review tools on
-`PATH`:
-
-```bash
-./agent
-```
-
-The launcher forwards arguments to Codex and is equivalent to
-`nix develop path:.#agent --command codex`. For example, use `./agent --help`
-to show the Codex command-line help without starting an interactive session.
-
-Inside that Codex session, use `./test.sh --sandbox` with the scope appropriate
-to the change. From an ordinary shell, run a one-off check in the same pinned
-environment with, for example:
-
-```bash
-nix develop path:.#agent --command ./test.sh --path --lint
-```
-
-Direnv users can approve the repository's `.envrc` once to enter the default
-operator environment automatically:
-
-```bash
-direnv allow
-```
-
-Agents select the `agent` shell as directed by `AGENTS.md`; it supplies the
-linters, structured-data/search helpers, and Nix evaluation and closure-review
-tools. The `mcp-nixos` app keeps Codex MCP startup limited to that package. The
-default `nix develop` and direnv shell is the operator environment: it shares the
-routine editing and validation tools with the agent shell, then adds age, sops
-and OpenSSL for encrypted-secret maintenance. Shells, apps and development
-checks are exposed for architectures present in either host inventory,
-including AArch64 standalone homes.
-
-The runner collects independent source failures before stopping output
-evaluation, and collects independent evaluation failures within the selected
-scope. Run `./test.sh --path --full` for the complete lightweight suite outside
-Codex.
-
-Review the complete diff after automated checks pass:
-
-```bash
-git diff --stat
-git diff
-```
+A successful evaluation does not establish runtime behavior. Report the scope
+checked and any failures; if sandbox restrictions block a check, run the same
+scope with `--path` outside Codex. Review the final diff before handoff.
 
 ### Review tools and closure analysis
 
-The agent development shell includes the tools below. Check `command -v TOOL`
-first and reuse available executables. For lint-only work inside Codex, use
-`./test.sh --sandbox --lint`; it runs the agent-shell linters directly.
+Use the installed tools for non-building inspection:
 
 | Tool | Useful work | Limits and trade-offs |
 | --- | --- | --- |
@@ -279,9 +191,6 @@ first and reuse available executables. For lint-only work inside Codex, use
 | `nix-tree` | Interactive dependency browsing; `--dot` exports a graph for noninteractive analysis | Prefer Nix JSON/text for routine agent work; the TUI is mainly useful to operators |
 | `nix-eval-jobs` | Bounded parallel evaluation of a selected derivation set, emitting JSON lines; optional cache-status checks | Useful for larger matrices, not automatically faster for one home; workers consume memory, and JSON can contain per-job errors |
 | `mcp-nixos` | Connected package/option discovery for NixOS, Home Manager and related projects | Look for callable `mcp__nixos__*` tools, including deferred tools; the server exposes tools rather than MCP resources. Verify results against locked sources |
-| Nixfmt, `nixfmt-tree`, Statix, Deadnix, ShellCheck | Formatting and static checks through the runner; `nixfmt-tree` is the flake formatter | Use direct `nixfmt` for focused files; avoid repeating successful checks |
-| Git and jq | Diff inspection and JSON/structured-data analysis | Prefer direct machine-readable output over adding language-specific parsing dependencies |
-| age, sops, OpenSSL (operator default only) | Operator encrypted-secret maintenance and recovery | Private identities stay outside the repository; their presence does not authorize decrypting or rotating secrets |
 
 For an existing realized closure, replace `ROOT`, `DEPENDENCY`, `OLD` and
 `NEW` below with explicit `/nix/store/...` paths. A standalone home generation
@@ -380,6 +289,4 @@ the lock-file diff, and then run the complete progression above:
 git diff -- flake.lock
 ```
 
-Commit the reviewed lock-file update separately from unrelated changes. Both
-NetworkManager WireGuard profiles are intentional full IPv4/IPv6 tunnels. They
-appear in GNOME as `Home VPN` and `OCI VPN` after secrets are provisioned.
+Commit the reviewed lock-file update separately from unrelated changes.

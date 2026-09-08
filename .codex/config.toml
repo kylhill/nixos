@@ -8,6 +8,16 @@ extends = ":workspace"
 [permissions.nixos-development.network]
 enabled = true
 
+[permissions.nixos-development.network.unix_sockets]
+"/nix/var/nix/daemon-socket/socket" = "allow"
+
+[shell_environment_policy]
+inherit = "all"
+ignore_default_excludes = false
+
+[shell_environment_policy.set]
+NIX_CACHE_HOME = "/tmp/nixos-codex-nix-cache"
+NIX_REMOTE = "daemon"
+
 [mcp_servers.nixos]
-command = "nix"
-args = ["run", "path:.#mcp-nixos"]
+command = "mcp-nixos"

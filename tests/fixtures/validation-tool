@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 tool=${0##*/}
-printf '%s NIX_REMOTE=%s XDG_CACHE_HOME=%s %s\n' \
-    "$tool" "${NIX_REMOTE:-}" "${XDG_CACHE_HOME:-}" "$*" >> "$FIXTURE_LOG"
+printf '%s NIX_REMOTE=%s NIX_CACHE_HOME=%s XDG_CACHE_HOME=%s %s\n' \
+    "$tool" "${NIX_REMOTE:-}" "${NIX_CACHE_HOME:-}" "${XDG_CACHE_HOME:-}" "$*" >> "$FIXTURE_LOG"
 if [[ $tool != nix ]]; then
     [[ ${FAIL_TOOL:-} != "$tool" ]]
     exit

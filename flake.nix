@@ -172,42 +172,28 @@
         system:
         let
           pkgs = pkgsFor system;
-          commonPackages = [
-            pkgs.deadnix
-            pkgs.git
-            (pkgs.lib.getBin pkgs.jq)
-            pkgs.nixfmt
-            pkgs.nixfmt-tree
-            pkgs.ripgrep
-            pkgs.shellcheck
-            pkgs.statix
-          ];
-          agentPackages = commonPackages ++ [
-            (pkgs.lib.getBin pkgs.nix-eval-jobs)
-            pkgs.nix-tree
-            pkgs.nvd
-          ];
         in
         {
-          agent = pkgs.mkShellNoCC {
-            packages = agentPackages;
-            shellHook = ''
-              agent_cache_root="''${TMPDIR:-/tmp}/nixos-codex-nix-''${UID}/cache"
-              install -d -m 0700 "$agent_cache_root"
-              export XDG_CACHE_HOME="$agent_cache_root"
-              export NIX_CONFIG="''${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flakes'
-              unset agent_cache_root
-            '';
-          };
-
           default = pkgs.mkShellNoCC {
-            packages = commonPackages ++ [
+            packages = [
               pkgs.age
+              pkgs.deadnix
+              pkgs.fd
+              pkgs.git
+              (pkgs.lib.getBin pkgs.jq)
+              pkgs.mcp-nixos
+              pkgs.nixfmt
+              pkgs.nixfmt-tree
+              pkgs.ripgrep
+              pkgs.shellcheck
+              pkgs.statix
+              (pkgs.lib.getBin pkgs.nix-eval-jobs)
+              pkgs.nix-tree
+              pkgs.nvd
               (pkgs.lib.getBin pkgs.openssl)
               pkgs.sops
             ];
           };
-
         }
       );
     };

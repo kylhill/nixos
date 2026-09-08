@@ -22,13 +22,12 @@
 - For unfamiliar options, search evaluated declarations or pinned input source
   with `rg` first. `flake.lock` is authoritative; verify external examples
   against pinned sources or version-matched upstream documentation.
-- Use tools from the `agent` development shell for repository work; the ambient
-  direnv shell is the operator environment. Prefer the scoped test runner, or
-  run an individual missing tool with
-  `nix develop path:.#agent --command TOOL ...`.
-- For tool selection and closure reviews, see README's "Review tools and closure
-  analysis": `nvd`, `nix-tree`, `nix-eval-jobs`, and MCP have different
-  roles. Prefer existing executables and machine-readable, non-building checks.
+- Launch with `cd ~/nixos` then `codex`. Direnv loads the default development
+  shell, with all normal repository tools on `PATH`. Use those tools directly;
+  do not recursively invoke `nix develop` merely to obtain tools. A routinely
+  required tool that is absent belongs in the default development shell.
+- For tool selection and closure commands, see
+  [README.md](README.md#review-tools-and-closure-analysis).
 - For Nix questions, inspect the callable tool inventory, including deferred
   tools, for `mcp__nixos__*`. Do not infer that mcp-nixos is unavailable from
   `list_mcp_resources` or `list_mcp_resource_templates`; it exposes tools rather
@@ -40,11 +39,8 @@
 - Match checks to the change. Use the `nix-development` skill to select consumers
   and inspect generated configuration; use README's lightweight-check section
   for commands and scope mechanics. Do not stage files just to validate.
-- Launch Codex with `./agent` from the repository root. The wrapper enters the
-  `path:.#agent` development shell so direct Nix commands inherit its writable
-  temporary cache. Use `./test.sh --sandbox` for repository checks and `path:.`
-  when evaluation must include untracked files. If the cache is not writable,
-  restart with `./agent` instead of invoking Nix against the normal user cache.
+- Use `./test.sh --sandbox` for repository checks and `path:.` when evaluation
+  must include untracked files. See README for Codex permission/cache diagnostics.
 - Complete independent checks when one check is blocked, and report the exact
   failure plus an outside-Codex handoff command when needed.
 - Add narrow evaluations, generated-config inspections, or small fixture builds
@@ -82,6 +78,6 @@
 - Never automatically format, repartition, or roll back ZFS. Destructive operations
   require an explicit request and immediate device verification.
 
-Keep operator procedures in `README.md`, secrets procedures in
-`secrets/README.md`, and agent constraints here. Avoid duplicating those docs;
+Keep operator procedures in `README.md` and agent constraints here. If secrets
+procedures are added, place them in `secrets/README.md`. Avoid duplicating docs;
 add nested instructions only for different local commands or safety rules.

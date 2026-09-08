@@ -5,8 +5,9 @@ description: Choose focused validation for implementation changes to this reposi
 
 # Nix development
 
-Use the commands and scope mechanics in README's lightweight-check section. This
-skill only decides which behavior and consumer contexts need validation.
+Follow [AGENTS.md](../../../AGENTS.md) for the default-shell environment and
+safety constraints. Use [README's lightweight checks](../../../README.md#1-inspect-and-run-lightweight-checks)
+for commands and scope mechanics. This skill selects behavior and consumer contexts.
 
 - Trace imports from the changed module to standalone and NixOS-integrated Home
   Manager consumers. Select one consumer per distinct architecture, conditional,
@@ -29,9 +30,9 @@ skill only decides which behavior and consumer contexts need validation.
   fixture using temporary home/config directories and explicit dependencies.
   Avoid login shells, real user services, credentials, and activation scripts.
 - Development-shell evaluation checks derivation generation, not whether every
-  package builds or the shell works. Use a small selected artifact or fixture
-  when behavior needs testing; do not enter the broad shell just to obtain a
-  linter. Confirm the target architecture has an exposed output.
+  package builds or the shell works. Confirm the target architecture has an
+  exposed output. Use tools already on `PATH`; enter the default shell explicitly
+  only when testing shell behavior itself, not to obtain a linter.
 - For runner changes, run its fixture tests to check scope isolation, argument
   handling and failure propagation, then exercise actual selected outputs.
   Report the scope checked and any untested consumers or runtime behavior.

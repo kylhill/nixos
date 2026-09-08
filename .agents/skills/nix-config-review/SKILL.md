@@ -3,69 +3,40 @@ name: nix-config-review
 description: Review a Nix, NixOS, Home Manager, or flake repository for idiomatic Nix, native-option replacements, unnecessary abstractions, configuration complexity, and closure-size drivers. Use when the user asks for a Nix configuration audit, simplification review, best-practice assessment, or closure analysis; do not use for routine implementation that does not request a review.
 ---
 
-# Nix Configuration Review
+# Nix configuration review
 
-Produce an evidence-backed review, not a generic Nix style checklist. Read the repository's `AGENTS.md` and operator documentation first, inspect the worktree without changing it, and respect all local validation, deployment, storage, and secrets constraints.
+Review the requested configuration scope; implement fixes only when requested.
+Follow [AGENTS.md](../../../AGENTS.md) for environment, validation, deployment,
+and secrets constraints. Tools come from the default development shell.
 
-## Establish the review boundary
+Read [references/review-rubric.md](references/review-rubric.md) for module,
+complexity, and closure criteria. For closure commands and tool selection, use
+[README.md](../../../README.md#review-tools-and-closure-analysis).
 
-Infer the requested scope from the prompt. If none is stated, review the flake structure, host composition, reusable NixOS modules, Home Manager modules, overlays/package sets, custom options, generated files or scripts, and package-selection patterns. Do not edit configuration unless the user separately requests fixes.
+## Evidence and scope
 
-Inspect `git status --short` and relevant imports before drawing conclusions. Treat uncommitted changes as user work. Never decrypt secrets, activate a configuration, build a full system closure, or mutate live services as part of a review.
+If the request gives no narrower boundary, inspect flake composition, host and
+home modules, package sets, custom options, generated files, and package selection.
+Trace imports and callers before recommending removal or moving policy.
 
-## Gather version-matched evidence
+Ground repository-specific findings in narrow evaluation or sources pinned by
+`flake.lock`. Use the available Nix MCP tools as directed by AGENTS.md, and
+verify results against those pinned inputs. Consult authoritative upstream
+documentation when needed; identify version differences that affect a finding.
 
-Use evidence in this order:
+Distinguish native-option replacements and unnecessary indirection from
+intentional capability modules, platform boundaries, and explicit composition.
+A shorter expression alone is not an improvement.
 
-1. Narrow evaluation of the repository's locked outputs and option declarations.
-2. Source and tests from the revisions pinned by `flake.lock`.
-3. A Nix or NixOS MCP server, when exposed, for option/package lookup, version-specific documentation, or package metadata.
-4. Current authoritative online documentation from NixOS, Nix, Home Manager, and the upstream projects represented by locked inputs.
+For closure findings, use existing realized paths or exact binary-cache metadata
+where available. Otherwise report structural evidence or an unmeasured hypothesis.
+Follow the README's measurement limits; source simplification does not prove byte
+savings.
 
-Search local pinned sources with `rg` before browsing. Browse authoritative
-online documentation when maintained upstream guidance materially informs a
-recommendation or pinned sources do not establish the intended behavior. Do not
-browse merely to duplicate conclusive evaluation or pinned-source evidence, and
-do not let current online docs override behavior in an older or different pinned
-revision. State the relevant pinned branch/revision when it affects a finding.
+## Report
 
-Discover whether a Nix-specific MCP is available; use it when it can answer the question more directly. Verify MCP claims against the locked source or evaluation when practical. If it is unavailable, proceed with local evaluation and authoritative web sources and mention the unavailable evidence channel briefly; do not treat absence as a blocker.
-
-For unfamiliar options, inspect evaluated option metadata or their pinned declarations. Do not recommend an option solely because it appears in a blog, forum, wiki, search snippet, or a different release.
-
-Read [references/review-rubric.md](references/review-rubric.md) before analyzing findings or closure impact.
-
-## Analyze deliberately
-
-For tool choice or closure analysis, read the "Review tools and closure analysis"
-section in [README.md](../../../README.md). It maps installed tools to useful
-tasks and gives non-building commands. Prefer Nix JSON/text and `nvd` for agent
-evidence; use `nix-tree` for graph exploration and bounded `nix-eval-jobs` only
-when multiple evaluations justify its overhead.
-
-Trace imports and configuration flow before criticizing duplication or indirection. Account for the repository's intended reuse boundaries, platform boundaries, state-version policy, secrets ownership, and deployment model.
-
-Prefer findings that identify a concrete improvement:
-
-- replace hand-written files, shell fragments, services, or custom options with a supported NixOS/Home Manager option;
-- use module-system composition, `lib` helpers, package options, or existing input APIs more directly;
-- remove pass-through values, wrappers, repeated imports, redundant defaults, unnecessary package-set instantiations, or abstractions without a credible reuse or policy purpose;
-- move host identity and hardware policy to the proper boundary without over-generalizing one host;
-- identify duplicate packages, broad meta-packages, propagated runtimes, debug/docs outputs, multiple package-set revisions, or optional features that materially affect closures.
-
-Do not label code non-idiomatic merely because another spelling is shorter. Preserve useful capability modules and explicit composition when they communicate policy or enable credible reuse. Treat readability, evaluation behavior, operational safety, and closure impact as separate concerns.
-
-Use narrow read-only evaluation where it materially tests a claim. Use closure inspection commands only if a suitable realized derivation already exists or the user authorizes an appropriately scoped build. Never infer byte savings from source syntax. Separate evaluation simplification from realized closure reduction.
-
-## Deliver the review
-
-Lead with the highest-value findings, ordered by likely impact and confidence. For each finding include:
-
-- location and current behavior;
-- why it matters;
-- a concrete native or simpler alternative;
-- evidence, including version-matched option/source references and authoritative links;
-- tradeoffs or reasons the current design may be intentional;
-- confidence and, for closure findings, measured size/difference or a precise command to measure it.
-
-Group lower-confidence ideas as opportunities to investigate, not defects. Include a short section for sound existing choices so the review does not incentivize churn. End with checks performed, evidence limitations, and confirmation that no full build or activation ran.
+Lead with findings ordered by impact and confidence. Include the location,
+current behavior, proposed improvement, supporting evidence, and relevant
+tradeoffs. Label uncertain opportunities clearly and preserve sound intentional
+choices. End with checks performed and limitations, following AGENTS.md's handoff
+requirements.
