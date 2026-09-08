@@ -78,6 +78,12 @@
       };
 
       initExtra = ''
+        # Windows OpenSSH can allocate a capable terminal while reporting
+        # TERM=dumb, which makes Home Manager skip Starship initialization.
+        if [[ -n "''${SSH_TTY:-}" && "''${TERM:-dumb}" == dumb ]]; then
+          export TERM=xterm-256color
+        fi
+
         eval "$(${pkgs.coreutils}/bin/dircolors --sh ${config.xdg.configHome}/dir_colors)"
 
         if [[ -t 0 ]]; then
