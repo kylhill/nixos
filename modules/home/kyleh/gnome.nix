@@ -192,6 +192,7 @@ in
       switch-windows = [ "<Alt>Tab" ];
       switch-windows-backward = [ "<Shift><Alt>Tab" ];
     };
+    "org/gnome/desktop/wm/preferences".button-layout = "appmenu:minimize,close";
     "org/gnome/nautilus/preferences".default-folder-viewer = "list-view";
 
     "org/gnome/Console" = {
