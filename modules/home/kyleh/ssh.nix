@@ -14,7 +14,6 @@ in
 
   programs.ssh = {
     enable = true;
-    package = pkgs.openssh;
     enableDefaultConfig = false;
     settings = {
       syntax.HostName = hosts.syntax.fqdn;
