@@ -13,26 +13,17 @@
 
   programs = {
     bash.profileExtra = lib.mkAfter ''
-      export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+      export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent"
 
       if [[ $- == *i* ]] \
-        && command -v tmux >/dev/null 2>&1 \
         && [[ -z "''${TMUX:-}" ]] \
         && [[ "''${TERM:-}" != dumb ]]; then
-        exec tmux attach-session -t 0 >/dev/null
+        exec tmux new-session -A -s 0
       fi
     '';
 
-    tmux.newSession = true;
     nixvim.waylandSupport = false;
   };
 
-  services.ssh-agent = {
-    enable = true;
-    socket = "ssh-agent.socket";
-  };
-
-  systemd.user.sessionVariables = {
-    SSH_AUTH_SOCK = "%t/ssh-agent.socket";
-  };
+  services.ssh-agent.enable = true;
 }
