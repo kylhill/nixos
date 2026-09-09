@@ -7,6 +7,9 @@ if [[ $tool != nix ]]; then
     [[ ${FAIL_TOOL:-} != "$tool" ]]
     exit
 fi
+if [[ -n ${FAIL_NIX_MATCH:-} && $* == *"$FAIL_NIX_MATCH"* ]]; then
+    exit 1
+fi
 case "$*" in
     *builtins.currentSystem*) printf x86_64-linux ;;
     *homeConfigurations.missing*) exit 1 ;;

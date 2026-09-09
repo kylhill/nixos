@@ -12,4 +12,4 @@ echo
 git --no-pager diff --stat -- flake.lock
 echo
 echo "Inputs updated. Review with: git diff -- flake.lock"
-echo "Then validate with: ./test.sh"
+echo "Then validate with: ./test.sh --full"

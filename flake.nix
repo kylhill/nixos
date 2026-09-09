@@ -110,8 +110,26 @@
         system:
         let
           pkgs = pkgsFor system;
+          fixtureCheck =
+            suite:
+            pkgs.runCommand "${suite}-fixtures"
+              {
+                nativeBuildInputs = [
+                  pkgs.bash
+                  pkgs.coreutils
+                  pkgs.git
+                  pkgs.gnugrep
+                ];
+              }
+              ''
+                bash ${self}/tests/${suite}.sh
+                touch $out
+              '';
         in
         {
+          apply-fixtures = fixtureCheck "test-apply";
+          runner-fixtures = fixtureCheck "test-runner";
+
           formatting =
             pkgs.runCommand "nixfmt-check"
               {

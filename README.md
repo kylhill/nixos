@@ -156,7 +156,9 @@ stage before proceeding.
 
 ### 1. Inspect and run lightweight checks
 
-Use `./test.sh --sandbox` inside Codex. It runs linters directly from `PATH`
+Use `./test.sh --sandbox SCOPE ...` inside Codex with an explicit scope (below).
+Missing scope, including `--sandbox` alone, exits 2 before any checks; `--help`
+does not require a scope. The runner runs linters directly from `PATH`
 and uses `path:.` to include dirty and untracked files. Dirty-worktree warnings
 are expected; do not stage files just to validate. Outside Codex, `--path`
 includes untracked files while omitting `--sandbox` runs linter check derivations.
@@ -165,26 +167,55 @@ includes untracked files while omitting `--sandbox` runs linter check derivation
 | --- | --- |
 | `--lint` | Whitespace, shell syntax, Nixfmt, Statix, Deadnix and ShellCheck; no Nix invocation with `--sandbox` |
 | `--home NAME` | Source checks and the selected standalone home activation `drvPath` |
-| `--dev SYSTEM` | Source checks and the default development shell `drvPath` |
-| `--full` (default) | Source checks, all-system flake evaluation without builds, and every standalone home activation `drvPath` |
+| `--integrated-home HOST USER` | Source checks and only `nixosConfigurations.HOST.config.home-manager.users.USER.home.activationPackage.drvPath`, not the system toplevel |
+| `--dev SYSTEM` | Source checks and all development shell `drvPath`s for the selected architecture |
+| `--full` | Explicit opt-in: source checks, all-system flake evaluation without builds, and every standalone home activation `drvPath` |
 
-`--home` and `--dev` can be repeated and combined; selected scopes do not
-evaluate NixOS configurations. The runner collects independent failures within
+`--home`, `--integrated-home` and `--dev` can be repeated and combined;
+`--lint` and `--full` are exclusive of other scopes. Names must start with a
+letter or underscore and contain only letters, digits, underscores or hyphens.
+Standalone home and development scopes do not evaluate NixOS configurations;
+integrated scopes evaluate only the selected home within NixOS. The runner collects independent failures within
 a stage and skips output evaluation when source checks fail. No scope builds or
 activates a system or Home Manager closure.
 
 ```bash
 ./test.sh --sandbox --lint
 ./test.sh --sandbox --home gateway --home oci
+./test.sh --sandbox --home gateway --integrated-home pang14 kyleh
 ./test.sh --sandbox --dev x86_64-linux --dev aarch64-linux
+./test.sh --sandbox --full
 ```
 
 For documentation-only changes, check `git diff --check`,
 `git diff --cached --check`, and referenced paths/commands. For runner changes,
-also run `bash tests/test-runner.sh`. Use the
+also run `bash tests/test-runner.sh`; for deployment-helper changes run
+`bash tests/test-apply.sh`. Run both for shared fixture/check wiring changes.
+Use the
 [nix-development skill](.agents/skills/nix-development/SKILL.md) to select
 consumers for module changes. Reserve `--full` for shared composition, lock
 changes, or uncertain evaluation boundaries.
+
+Keep `test.sh` (scoped orchestration) separate from the two independent fixture
+suites (fake-tool behavior tests). Native flake checks execute the existing
+suites without real Nix, builds or activation inside the fixtures; they also
+retain the existing native lints. Run fixtures directly or build just their
+small check derivations for the current architecture:
+
+```bash
+bash tests/test-runner.sh
+bash tests/test-apply.sh
+system=$(nix eval --impure --raw --expr builtins.currentSystem)
+nix build --no-link --no-update-lock-file \
+  "path:.#checks.$system.runner-fixtures" \
+  "path:.#checks.$system.apply-fixtures"
+```
+
+`nix flake check --no-build` evaluates check derivations but does **not**
+execute them. Full `nix flake check` builds checks and is broader than the
+inner loop; neither form is needed for ordinary Home Manager option changes.
+Selected home activation evaluations remain runner scopes, not native checks
+that would build home/system closures.
 
 For focused evaluation, select the changed non-secret option or activation
 derivation directly. An integrated Home Manager check can stay narrow:

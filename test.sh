@@ -6,17 +6,24 @@ sandbox=false
 flake_ref=.
 mode=
 homes=()
+integrated_hosts=()
+integrated_users=()
 dev_systems=()
 usage() {
-    echo 'usage: ./test.sh [--sandbox] [--path] [--lint | --full | --home NAME ... --dev SYSTEM ...]'
-    echo '  default/--full  lint, evaluate all flake outputs and standalone homes (no host build)'
+    echo 'usage: ./test.sh [--sandbox] [--path] SCOPE ...'
+    echo '  An explicit scope is required; --lint and --full are exclusive.'
+    echo '  --full          lint, evaluate all flake outputs and standalone homes (no host build)'
     echo '  --lint          source checks only; no host, home, or development output evaluation'
     echo '  --home NAME     lint and evaluate a selected home activation derivation; repeatable'
+    echo '  --integrated-home HOST USER'
+    echo '                  lint and evaluate only an integrated home activation derivation'
     echo '  --dev SYSTEM    lint and evaluate all development shells for a system; repeatable'
+    echo '  --home, --integrated-home and --dev are repeatable and combinable.'
     echo '  --sandbox       direct PATH linters and evaluation including untracked files'
     echo '  --path          include untracked files outside sandbox mode'
 }
 die() { echo "$*" >&2; exit 2; }
+safe_attr() { [[ $1 =~ ^[a-zA-Z_][a-zA-Z0-9_-]*$ ]]; }
 while (($#)); do
     case "$1" in
         --sandbox) sandbox=true ;;
@@ -26,18 +33,30 @@ while (($#)); do
             mode=${1#--}
             ;;
         --home|--dev)
-            [[ $# -ge 2 && $2 =~ ^[a-zA-Z0-9_-]+$ ]] || die "$1 requires a name containing letters, digits, underscores or hyphens."
+            if [[ $# -lt 2 ]] || ! safe_attr "$2"; then
+                die "$1 requires a safe attribute identifier (letter/underscore, then letters, digits, underscores or hyphens)."
+            fi
             [[ -z $mode || $mode == selected ]] || die 'Do not combine --lint/--full with selected outputs.'
             mode=selected
             if [[ $1 == --home ]]; then homes+=("$2"); else dev_systems+=("$2"); fi
             shift
+            ;;
+        --integrated-home)
+            if [[ $# -lt 3 ]] || ! safe_attr "$2" || ! safe_attr "$3"; then
+                die '--integrated-home requires HOST USER, each a safe attribute identifier (letter/underscore, then letters, digits, underscores or hyphens).'
+            fi
+            [[ -z $mode || $mode == selected ]] || die 'Do not combine --lint/--full with selected outputs.'
+            mode=selected
+            integrated_hosts+=("$2")
+            integrated_users+=("$3")
+            shift 2
             ;;
         --help|-h) usage; exit 0 ;;
         *) die "Unknown argument: $1" ;;
     esac
     shift
 done
-mode=${mode:-full}
+[[ -n $mode ]] || die 'An explicit scope is required: --lint, --full, --home NAME, --integrated-home HOST USER or --dev SYSTEM. See --help.'
 export NIX_CONFIG="${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flakes'
 cd "$repo_dir"
 nix_cmd=(nix)
@@ -56,6 +75,9 @@ run_stage() {
     return "$status"
 }
 printf 'Validation scope: %s; homes: %s; dev systems: %s\n' "$mode" "${homes[*]:-none}" "${dev_systems[*]:-none}"
+for i in "${!integrated_hosts[@]}"; do
+    printf 'Integrated home: %s/%s\n' "${integrated_hosts[i]}" "${integrated_users[i]}"
+done
 shell_files=(
     apply.sh
     test.sh
@@ -114,6 +136,13 @@ if ((failed == 0)); then
         for home in "${homes[@]}"; do
             run_stage "Home: $home activation derivation" "${nix_cmd[@]}" eval \
                 "$flake_ref#homeConfigurations.$home.activationPackage.drvPath" --json --no-update-lock-file || :
+        done
+        for i in "${!integrated_hosts[@]}"; do
+            host=${integrated_hosts[i]}
+            user=${integrated_users[i]}
+            run_stage "Integrated home: $host/$user activation derivation" "${nix_cmd[@]}" eval \
+                "$flake_ref#nixosConfigurations.$host.config.home-manager.users.$user.home.activationPackage.drvPath" \
+                --json --no-update-lock-file || :
         done
         for system in "${dev_systems[@]}"; do
             run_stage "Development shells: $system" "${nix_cmd[@]}" eval \

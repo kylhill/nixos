@@ -14,6 +14,10 @@ for commands and scope mechanics. This skill selects behavior and consumer conte
   package set, module argument, or integration path; do not require every
   consumer when they evaluate the same option path with equivalent inputs. Do
   not infer consumers from filenames alone.
+- Before editing, select affected contexts and checks, assign one validation
+  owner, and establish a baseline when relevant. Iterate with narrow checks; batch
+  repository-wide lint and selected activation evaluations at completion.
+  Rerun a successful check only after its relevant inputs change.
 - During iteration, evaluate the specific non-secret `config` attribute being
   changed. At completion, evaluate an activation derivation for each selected
   context. A setting evaluation alone is not that check. An option-only Home

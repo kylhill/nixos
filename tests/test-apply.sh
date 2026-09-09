@@ -3,15 +3,22 @@
 set -euo pipefail
 
 repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
-fixture_dir=$(mktemp -d)
+fixture_dir="$PWD/.apply-fixture-$$"
+mkdir -m 700 "$fixture_dir"
 trap 'rm -rf -- "$fixture_dir"' EXIT
 mkdir -p "$fixture_dir/repo" "$fixture_dir/tools/bin"
+for tool in bash cat dirname grep rm; do
+    ln -s "$(command -v "$tool")" "$fixture_dir/tools/bin/$tool"
+done
 cp "$repo_dir/apply.sh" "$fixture_dir/repo/"
 for tool in home-manager hostname nixos-rebuild sudo; do
-    cp "$repo_dir/tests/fixtures/apply-tool" "$fixture_dir/tools/bin/$tool"
+    {
+        printf '#!%s\n' "$(command -v bash)"
+        tail -n +2 "$repo_dir/tests/fixtures/apply-tool"
+    } > "$fixture_dir/tools/bin/$tool"
     chmod +x "$fixture_dir/tools/bin/$tool"
 done
-export PATH="$fixture_dir/tools/bin:/usr/bin:/bin"
+export PATH="$fixture_dir/tools/bin"
 export FIXTURE_LOG="$fixture_dir/calls"
 
 run_case() {

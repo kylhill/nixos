@@ -24,7 +24,7 @@
   against pinned sources or version-matched upstream documentation.
 - Launch with `cd ~/nixos` then `codex`. Direnv loads the default development
   shell, with all normal repository tools on `PATH`. Use those tools directly;
-  do not recursively invoke `nix develop` merely to obtain tools. A routinely
+  do not recursively invoke `nix develop` or `nix-shell` merely to obtain tools. A routinely
   required tool that is absent belongs in the default development shell.
 - For tool selection and closure commands, see
   [README.md](README.md#review-tools-and-closure-analysis).
@@ -39,7 +39,11 @@
 - Match checks to the change. Use the `nix-development` skill to select consumers
   and inspect generated configuration; use README's lightweight-check section
   for commands and scope mechanics. Do not stage files just to validate.
-- Use `./test.sh --sandbox` for repository checks and `path:.` when evaluation
+- Select affected contexts and checks up front, with one validation owner to
+  avoid duplicate runs. Establish a baseline when relevant to the change.
+  Iterate narrowly, then batch repository-wide completion lint and selected
+  context checks; rerun successful checks only when their relevant inputs change.
+- Use `./test.sh --sandbox SCOPE ...` with an explicit scope for repository checks and `path:.` when evaluation
   must include untracked files. See README for Codex permission/cache diagnostics.
 - Complete independent checks when one check is blocked, and report the exact
   failure plus an outside-Codex handoff command when needed.
@@ -67,6 +71,24 @@
   state. VS Code settings/extensions belong to GitHub Settings Sync; do not add
   `userSettings` without a request to override Sync. Respect dotfile ownership.
 - Keep `nix.settings.warn-dirty = true`; dirty-worktree warnings are expected.
+
+## Temporary files and caches
+
+- Create agent-owned scratch directories with `mktemp -d`. Install an EXIT
+  cleanup trap immediately in the same shell invocation, and finish scratch work
+  within that invocation. Keep downloads, extracted sources, and fixture
+  home/config directories inside it; avoid loose files or predictable paths in
+  `/tmp`. Clean up only the exact directory created by that invocation.
+- Keep intentional cross-command artifacts in the agent's session directory
+  outside the repository, not ad hoc `/tmp` directories. Remove disposable
+  artifacts when finished; report leftovers if interruption prevents cleanup.
+- Reuse configured caches; do not create a new Nix cache per command or treat
+  shared caches as scratch. Cache relocation requires checking sandbox access
+  and updating the configuration and README together; prefer a stable,
+  user-owned cache location when supported.
+- Do not blanket-delete `/tmp`, `nix-shell.*`, or agent caches. Cleanup outside
+  task-owned scratch requires an explicit request and checking ownership and
+  active use; age or a temporary-looking name alone does not establish safety.
 
 ## Secrets and storage
 
