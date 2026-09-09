@@ -5,12 +5,9 @@
   programs.tmux = {
     enable = true;
     baseIndex = 1;
-    escapeTime = 0;
-    focusEvents = true;
-    historyLimit = 50000;
     prefix = "C-a";
-    sensibleOnTop = true;
     terminal = "tmux-256color";
+    sensibleOnTop = true;
 
     plugins = [
       pkgs.tmuxPlugins.vim-tmux-navigator
@@ -20,11 +17,8 @@
           set -g @dracula-plugins "cpu-usage ram-usage"
           set -g @dracula-cpu-usage-colors "light_purple dark_gray"
           set -g @dracula-ram-usage-colors "green dark_gray"
-          set -g @dracula-show-flags false
-          set -g @dracula-left-pad ' '
           set -g @dracula-left-icon-padding 0
           set -g @dracula-border-contrast true
-          set -g @dracula-cpu-display-load false
 
           if-shell 'test "$TMUX_NERD_FONT" = 1 && test -z "''${KASM_SSH+x}"' {
             set -g @dracula-show-powerline true
@@ -38,7 +32,6 @@
             set -g @dracula-ram-usage-label ""
           }
 
-          set -g @dracula-options 'patched'
           set -g @dracula-colors "white=#93a1a1
           gray=#586e75
           dark_gray=#002b36
@@ -55,7 +48,6 @@
     ];
 
     extraConfig = ''
-      set -g set-clipboard external
       set -as terminal-features ',xterm-256color:RGB'
       set -ag update-environment WAYLAND_DISPLAY
       set -ag update-environment KASM_SSH
@@ -63,7 +55,6 @@
 
       set -g set-titles on
       set -g set-titles-string "#{user}@#h: #W"
-      set -g automatic-rename on
       set -g renumber-windows on
 
       bind Tab select-pane -t :.+
@@ -84,8 +75,6 @@
       bind -r J resize-pane -D 10
       bind -r K resize-pane -U 10
       bind -r L resize-pane -R 10
-
-      bind r source-file ~/.config/tmux/tmux.conf \; display-message "Sourced tmux configuration"
     '';
   };
 }
