@@ -113,10 +113,6 @@ in
           autoInstall.enable = true;
           lintersByFt.sh = [ "shellcheck" ];
         };
-
-        lsp = {
-          enable = true;
-        };
       };
     };
   };
