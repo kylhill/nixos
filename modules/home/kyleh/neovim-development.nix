@@ -16,12 +16,7 @@ in
 
   programs = {
     fd.enable = true;
-    fzf.enable = true;
     ripgrep.enable = true;
-    lazygit = {
-      enable = true;
-      settings.gui.nerdFontsVersion = "3";
-    };
 
     nixvim = {
       enablePrintInit = false;
@@ -32,7 +27,6 @@ in
 
       dependencies = {
         git.enable = false;
-        ripgrep.enable = false;
       };
 
       extraPlugins = [ pkgs.vimPlugins.vim-tmux-navigator ];
@@ -116,6 +110,7 @@ in
 
         lint = {
           enable = true;
+          autoInstall.enable = true;
           lintersByFt.sh = [ "shellcheck" ];
         };
 
