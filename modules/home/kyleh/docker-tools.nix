@@ -1,4 +1,6 @@
 _: {
+  programs.lazydocker.enable = true;
+
   programs.bash = {
     shellAliases.dsh = "dbash";
 
