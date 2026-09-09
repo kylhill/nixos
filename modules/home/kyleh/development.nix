@@ -45,7 +45,6 @@ in
       nix-direnv.enable = true;
       silent = true;
     };
-    gh.enable = true;
     github-copilot-cli = {
       enable = true;
       package = latestPkgs.github-copilot-cli;
