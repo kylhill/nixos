@@ -114,10 +114,12 @@ codex
 `.envrc` contains only `use flake`. Without direnv, enter `nix develop` once
 before launching Codex. The default `mkShellNoCC` supplies all repository
 development and operator tools: nixfmt, nixfmt-tree (`treefmt`), Statix, Deadnix,
-ShellCheck, Git, jq, ripgrep, fd, nix-eval-jobs, nix-tree, nvd, mcp-nixos, age,
+ShellCheck, jq, ripgrep, fd, nix-eval-jobs, nix-tree, nvd, mcp-nixos, age,
 sops, OpenSSL, and socat. Use tools directly from `PATH`; routinely
 missing tools belong in this shell. Outputs cover architectures in both inventories.
 
+Git must already be available from Ubuntu or the user's Home Manager profile;
+the development shell does not install it.
 Nix remains host-provided and talks to the multi-user daemon. The supported
 Ubuntu baseline is 26.04 LTS, with `nix-bin` and `nix-setup-systemd` installed.
 Enable `nix-command` and `flakes` on the host for direct flake commands;

@@ -199,7 +199,6 @@
               pkgs.age
               pkgs.deadnix
               pkgs.fd
-              pkgs.git
               (pkgs.lib.getBin pkgs.jq)
               pkgs.mcp-nixos
               pkgs.nixfmt

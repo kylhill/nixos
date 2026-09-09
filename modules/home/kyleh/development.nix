@@ -28,12 +28,6 @@ in
     ./neovim-development.nix
   ];
 
-  home = {
-    packages = [
-      pkgs.socat
-    ];
-  };
-
   programs = {
     codex = {
       enable = true;
