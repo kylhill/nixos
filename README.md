@@ -44,8 +44,9 @@ Starship, basic command-line utilities, Git, SSH, and htop. It accepts
 (connection names and ports), and the pinned `inputs` as module arguments.
 Shared home modules do not depend on NixOS's `osConfig`.
 
-`development.nix` adds full Nixvim and its supporting fd, fzf, ripgrep, and
-lazygit tools, plus direnv, GitHub CLI, Codex, Copilot, and MCP integration.
+`development.nix` adds the development Nixvim profile with fd, ripgrep,
+Treesitter, completion, and ShellCheck linting, plus direnv, Codex, and Copilot.
+It does not configure language servers or install fzf, lazygit, or GitHub CLI.
 `workstation.nix` adds graphical applications, GNOME preferences, and Bash VTE
 integration.
 Both profiles also accept `latestPkgs`, an explicitly configured package set
@@ -70,8 +71,8 @@ Standalone Ubuntu profiles are kept separately in
 `homeConfigurations.oci` select the common Bash, Git, htop, and SSH baseline,
 administration tools, and basic Nixvim; OCI targets AArch64.
 `homeConfigurations.syntax` additionally supplies development tools, tmux with
-automatic login attachment, a persistent local SSH agent, syntax-only Docker
-shell helpers and Socat for the AI command-line tools. MCP servers
+automatic login attachment, and a persistent local SSH agent. Syntax and OCI
+both select Docker shell helpers. MCP servers
 are project-scoped; Grafana MCP configuration and its encrypted credential belong
 to the infrastructure repository. Ubuntu's
 account, groups, sudo policy, authorized keys, Nix bootstrap, and systemd linger
@@ -115,7 +116,7 @@ codex
 before launching Codex. The default `mkShellNoCC` supplies all repository
 development and operator tools: nixfmt, nixfmt-tree (`treefmt`), Statix, Deadnix,
 ShellCheck, jq, ripgrep, fd, nix-eval-jobs, nix-tree, nvd, mcp-nixos, age,
-sops, OpenSSL, and socat. Use tools directly from `PATH`; routinely
+sops, and OpenSSL. Use tools directly from `PATH`; routinely
 missing tools belong in this shell. Outputs cover architectures in both inventories.
 
 Git must already be available from Ubuntu or the user's Home Manager profile;
