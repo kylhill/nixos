@@ -60,10 +60,10 @@ homes omit it.
 On `pang14`, `modules/nixos/user-kyleh.nix` adapts the system inventory into
 Home Manager's identity/network arguments and selects the common profile.
 The host sets `home.stateVersion` and explicitly selects development tools; the
-GNOME system role selects the workstation profile. Git, OpenSSH, and shell
-utilities are installed in the home environment rather than relying on their
-presence in system packages. Account creation, groups, authorized keys, and
-SSH secret provisioning remain system responsibilities.
+GNOME system role selects the workstation profile. Git is installed in the home
+environment rather than relying on its presence in system packages. Account
+creation, groups, authorized keys, and SSH secret provisioning remain system
+responsibilities.
 
 Standalone Ubuntu profiles are kept separately in
 `lib/home-inventory.nix`. `homeConfigurations.gateway` and
@@ -71,17 +71,35 @@ Standalone Ubuntu profiles are kept separately in
 administration tools, and basic Nixvim; OCI targets AArch64.
 `homeConfigurations.syntax` additionally supplies development tools, tmux with
 automatic login attachment, a persistent local SSH agent, syntax-only Docker
-shell helpers, Bubblewrap, and Socat for the AI command-line tools. MCP servers
+shell helpers and Socat for the AI command-line tools. MCP servers
 are project-scoped; Grafana MCP configuration and its encrypted credential belong
 to the infrastructure repository. Ubuntu's
 account, groups, sudo policy, authorized keys, Nix bootstrap, and systemd linger
 remain Ansible-owned.
 
-Before activating the standalone home, coordinate the Ansible/Dotbot handoff
-for owned paths and handlers and preserve existing files for rollback. Moving
-tools from Ansible's latest-release installers to Nix also moves their updates
-to the inputs locked by this flake. `pang14` continues to activate Home Manager
-through NixOS.
+Before the first standalone activation, run the host's Ansible user role. For a
+Home Manager host it preserves the legacy dotfiles checkout for rollback but
+removes only home paths that are still symlinks into that checkout. Build and
+activate the selected generation as the user immediately afterward:
+
+```bash
+cd ~/nixos
+nix build .#homeConfigurations.syntax.activationPackage
+HOME_MANAGER_BACKUP_EXT=pre-home-manager ./result/activate
+```
+
+The backup extension is intended only for this one-time migration. After the
+first activation, Home Manager owns those paths and installs the `home-manager`
+command. Apply subsequent configuration updates explicitly from the repository:
+
+```bash
+cd ~/nixos
+./apply.sh switch
+```
+
+Moving tools from Ansible's latest-release installers to Nix also moves their
+updates to the inputs locked by this flake. `pang14` continues to activate Home
+Manager through NixOS.
 
 ## Development environment
 
@@ -97,7 +115,7 @@ codex
 before launching Codex. The default `mkShellNoCC` supplies all repository
 development and operator tools: nixfmt, nixfmt-tree (`treefmt`), Statix, Deadnix,
 ShellCheck, Git, jq, ripgrep, fd, nix-eval-jobs, nix-tree, nvd, mcp-nixos, age,
-sops, OpenSSL, socat and bubblewrap. Use tools directly from `PATH`; routinely
+sops, OpenSSL, and socat. Use tools directly from `PATH`; routinely
 missing tools belong in this shell. Outputs cover architectures in both inventories.
 
 Nix remains host-provided and talks to the multi-user daemon. The supported
@@ -236,6 +254,11 @@ Upstream references: [nix-tree](https://github.com/utdemir/nix-tree),
 [nix-eval-jobs](https://github.com/NixOS/nix-eval-jobs).
 
 ### 2. Build on `pang14` without activating
+
+`apply.sh` detects the short hostname. On `pang14` it runs the selected
+`nixos-rebuild` action for the NixOS configuration. On every other host it runs
+the matching standalone `homeConfigurations.<hostname>` action; those hosts
+support `build` and `switch`, but not the NixOS-only `boot` and `test` actions.
 
 Run the remaining stages on `pang14`, where the system closure is expected to
 be cached. A build catches package, module, and activation-script failures but
