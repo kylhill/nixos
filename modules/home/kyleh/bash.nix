@@ -73,9 +73,9 @@
       };
 
       initExtra = ''
-        # Windows OpenSSH can allocate a capable terminal while reporting
-        # TERM=dumb, which makes Home Manager skip Starship initialization.
-        if [[ -n "''${SSH_TTY:-}" && "''${TERM:-dumb}" == dumb ]]; then
+        # Some terminal hosts report TERM=dumb without preserving SSH_TTY.
+        # Correct it for real terminals before integrations inspect TERM.
+        if [[ "''${TERM:-dumb}" == dumb && -t 1 ]]; then
           export TERM=xterm-256color
         fi
 
