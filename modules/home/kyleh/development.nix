@@ -43,6 +43,7 @@ in
       enable = true;
       config.global.hide_env_diff = true;
       nix-direnv.enable = true;
+      silent = true;
     };
     gh.enable = true;
     github-copilot-cli = {

@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   ...
 }:
@@ -17,13 +16,18 @@
   programs = {
     less.enable = true;
 
+    dircolors = {
+      enable = true;
+      extraConfig = builtins.readFile "${pkgs.dircolors-solarized}/256dark.no-bold";
+    };
+
     starship = {
       enable = true;
       enableBashIntegration = true;
       presets = [ "nerd-font-symbols" ];
       settings = {
         add_newline = false;
-        format = "$username$hostname$directory$git_branch$git_status$character";
+        format = "$username$hostname$directory$nix_shell$git_branch$git_status$character";
         username = {
           format = "[$user]($style)";
           show_always = true;
@@ -38,6 +42,11 @@
           format = "[$path]($style) ";
           style = "cyan";
           truncation_length = 3;
+        };
+        nix_shell = {
+          format = "[$symbol]($style) ";
+          style = "cyan";
+          symbol = "";
         };
         git_branch = {
           format = "[$symbol$branch]($style) ";
@@ -56,13 +65,20 @@
 
     bash = {
       enable = true;
-      enableCompletion = true;
       historyControl = [
         "ignoreboth"
         "erasedups"
       ];
-      historyFileSize = 20000;
-      historySize = 10000;
+
+      shellOptions = [
+        "histappend"
+        "extglob"
+        "globstar"
+        "checkjobs"
+        "cdspell"
+        "dirspell"
+        "lithist"
+      ];
 
       shellAliases = {
         l = "ls -CFh --color=auto";
@@ -73,12 +89,9 @@
       };
 
       initExtra = ''
-        eval "$(${pkgs.coreutils}/bin/dircolors --sh ${config.xdg.configHome}/dir_colors)"
-
         if [[ -t 0 ]]; then
           ${pkgs.coreutils}/bin/stty -ixon 2>/dev/null || true
         fi
-
       '';
     };
 
@@ -94,6 +107,7 @@
         colored-stats = true;
         completion-ignore-case = true;
         completion-map-case = true;
+        history-preserve-point = true;
         mark-symlinked-directories = true;
         menu-complete-display-prefix = true;
         show-all-if-ambiguous = true;
@@ -102,6 +116,4 @@
       };
     };
   };
-
-  xdg.configFile.dir_colors.source = "${pkgs.dircolors-solarized}/256dark";
 }
