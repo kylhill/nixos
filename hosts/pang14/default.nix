@@ -96,7 +96,6 @@
 
   home-manager.users.${config.infrastructure.user.name} = {
     imports = [
-      ../../modules/home/kyleh/admin-tools.nix
       ../../modules/home/kyleh/development.nix
       ../../modules/home/kyleh/tmux.nix
     ];

@@ -28,10 +28,9 @@ file intentionally does not duplicate the operator procedures below.
 
 ## Home Manager composition
 
-`modules/home/kyleh/admin-tools.nix` provides the administration tools in the
-user's common baseline: curl, dnsutils, ncdu, rsync, and wget. Every
-profile imports it through the common home module because the user administers
-all of these systems.
+`modules/nixos/admin-tools.nix` provides system administration tools on
+`pang14`, including curl, dnsutils, ncdu, rsync, and wget. On standalone Ubuntu
+hosts, Ubuntu/Ansible supplies these utilities instead of Home Manager.
 
 `modules/home/kyleh/default.nix` is the common CLI profile: Bash, readline,
 Starship, basic command-line utilities, Git, SSH, htop, and shared Neovim/Nixvim
@@ -39,6 +38,13 @@ with fd, ripgrep, Treesitter, completion, and ShellCheck linting. It accepts
 `homeIdentity` (`fullName`, `email`, used by Git), `networkHosts`
 (connection names and ports), and the pinned `inputs` as module arguments.
 Shared home modules do not depend on NixOS's `osConfig`.
+
+`ubuntu.nix` is explicitly selected by all three standalone homes. It retains
+Home Manager's Bash, Git, readline, and less configuration while using Ubuntu's
+Bash, Git, less, and man executables (`package = null`). Manual-page support
+remains enabled. It restricts the Nix glibc locale archive to `en_US.UTF-8`;
+`pang14` restricts its system locales to the same locale, and integrated Home
+Manager inherits the system locale package natively.
 
 `development.nix` adds direnv, Codex, and Copilot.
 `workstation.nix` adds graphical applications, GNOME preferences, and Bash VTE
@@ -65,7 +71,7 @@ responsibilities.
 Standalone Ubuntu profiles are kept separately in
 `lib/home-inventory.nix`. `homeConfigurations.gateway` and
 `homeConfigurations.oci` select the common Bash, Git, htop, and SSH baseline,
-administration tools, and the shared Nixvim profile; OCI targets AArch64.
+the Ubuntu boundary, and the shared Nixvim profile; OCI targets AArch64.
 `homeConfigurations.syntax` additionally supplies development tools, tmux with
 automatic login attachment, and a persistent local SSH agent. Syntax and OCI
 both select Docker shell helpers. MCP servers

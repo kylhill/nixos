@@ -5,6 +5,7 @@
     ../modules/home/kyleh/development.nix
     ../modules/home/kyleh/docker-tools.nix
     ../modules/home/kyleh/tmux.nix
+    ../modules/home/kyleh/ubuntu.nix
   ];
 
   targets.genericLinux = {

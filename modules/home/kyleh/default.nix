@@ -1,6 +1,5 @@
 _: {
   imports = [
-    ./admin-tools.nix
     ./bash.nix
     ./git.nix
     ./htop.nix
@@ -13,6 +12,5 @@ _: {
   };
 
   programs.home-manager.enable = true;
-
   targets.genericLinux.gpu.enable = false;
 }
