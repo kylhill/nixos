@@ -24,10 +24,6 @@ let
       latestPkgs.codex;
 in
 {
-  imports = [
-    ./neovim-development.nix
-  ];
-
   programs = {
     codex = {
       enable = true;

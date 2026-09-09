@@ -104,7 +104,13 @@ if "$sandbox"; then
         case "$tool" in
             nixfmt)
                 mapfile -d '' -t nix_files < <(git ls-files --cached --others --exclude-standard -z -- '*.nix')
-                args=(--check "${nix_files[@]}")
+                args=(--check)
+                for file in "${nix_files[@]}"; do
+                    if [[ -e $file || -L $file ]]; then
+                        args+=("$file")
+                    fi
+                done
+                if ((${#args[@]} == 1)); then continue; fi
                 ;;
             statix) args=(check .) ;;
             deadnix) args=(--fail .) ;;

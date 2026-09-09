@@ -11,11 +11,6 @@ that system configuration, so system and user changes activate together.
 For hosts not yet represented here, Ansible and dotfiles remain authoritative.
 On `pang14`, Home Manager and Nixvim replace Dotbot, lazy.nvim, and Mason.
 
-Neovim is optional in the common home profile. Select `neovim-basic.nix` for
-native editing and search without language servers or external tooling, or
-`neovim-development.nix` for the full plugin setup (included by
-`development.nix`). Both share `neovim.nix` and provide Vim aliases.
-
 ## Repository map
 
 - `flake.nix` pins dependencies and constructs the NixOS hosts in
@@ -46,7 +41,6 @@ Shared home modules do not depend on NixOS's `osConfig`.
 
 `development.nix` adds the development Nixvim profile with fd, ripgrep,
 Treesitter, completion, and ShellCheck linting, plus direnv, Codex, and Copilot.
-It does not configure language servers or install fzf, lazygit, or GitHub CLI.
 `workstation.nix` adds graphical applications, GNOME preferences, and Bash VTE
 integration.
 Both profiles also accept `latestPkgs`, an explicitly configured package set
@@ -69,7 +63,7 @@ responsibilities.
 Standalone Ubuntu profiles are kept separately in
 `lib/home-inventory.nix`. `homeConfigurations.gateway` and
 `homeConfigurations.oci` select the common Bash, Git, htop, and SSH baseline,
-administration tools, and basic Nixvim; OCI targets AArch64.
+administration tools, and the shared Nixvim profile; OCI targets AArch64.
 `homeConfigurations.syntax` additionally supplies development tools, tmux with
 automatic login attachment, and a persistent local SSH agent. Syntax and OCI
 both select Docker shell helpers. MCP servers

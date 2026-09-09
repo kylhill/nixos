@@ -25,6 +25,11 @@ export HOME="$fixture_dir/home"
 export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null
 mkdir -p "$HOME"
 git -C "$fixture_dir/repo" init -q
+printf '{}\n' > "$fixture_dir/repo/existing.nix"
+printf '{}\n' > "$fixture_dir/repo/deleted.nix"
+git -C "$fixture_dir/repo" add existing.nix deleted.nix
+rm "$fixture_dir/repo/deleted.nix"
+printf '{}\n' > "$fixture_dir/repo/untracked.nix"
 export FIXTURE_LOG="$fixture_dir/calls"
 # Model Codex's shell environment policy without changing the ordinary XDG cache.
 export TMPDIR="$fixture_dir"
@@ -66,6 +71,9 @@ reject_call 'homeConfigurations'
 reject_call 'devShells'
 reject_call 'nixosConfigurations'
 require_call 'nixfmt'
+require_call 'existing.nix'
+require_call 'untracked.nix'
+reject_call 'deleted.nix'
 reject_nix
 
 run_case 0 --sandbox --home gateway --home oci --integrated-home pang14 kyleh --integrated-home other_host other-user --dev aarch64-linux
