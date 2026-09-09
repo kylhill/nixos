@@ -1,13 +1,13 @@
 { pkgs, ... }:
 {
-  home.sessionVariables.TMUX_NERD_FONT = "1";
-
   programs.tmux = {
     enable = true;
     baseIndex = 1;
+    escapeTime = 0;
+    focusEvents = true;
+    historyLimit = 50000;
     prefix = "C-a";
     terminal = "tmux-256color";
-    sensibleOnTop = true;
 
     plugins = [
       pkgs.tmuxPlugins.vim-tmux-navigator
@@ -19,18 +19,10 @@
           set -g @dracula-ram-usage-colors "green dark_gray"
           set -g @dracula-left-icon-padding 0
           set -g @dracula-border-contrast true
-
-          if-shell 'test "$TMUX_NERD_FONT" = 1 && test -z "''${KASM_SSH+x}"' {
-            set -g @dracula-show-powerline true
-            set -g @dracula-show-left-icon "󱄅"
-            set -g @dracula-cpu-usage-label ""
-            set -g @dracula-ram-usage-label ""
-          } {
-            set -g @dracula-show-powerline false
-            set -g @dracula-show-left-icon " "
-            set -g @dracula-cpu-usage-label ""
-            set -g @dracula-ram-usage-label ""
-          }
+          set -g @dracula-show-powerline true
+          set -g @dracula-show-left-icon "󱄅"
+          set -g @dracula-cpu-usage-label ""
+          set -g @dracula-ram-usage-label ""
 
           set -g @dracula-colors "white=#93a1a1
           gray=#586e75
@@ -42,7 +34,7 @@
           orange=#cb4b16
           red=#dc322f
           pink=#d33682
-          yellow=#cb4b16"
+          yellow=#b58900"
         '';
       }
     ];
@@ -50,12 +42,15 @@
     extraConfig = ''
       set -as terminal-features ',xterm-256color:RGB'
       set -ag update-environment WAYLAND_DISPLAY
-      set -ag update-environment KASM_SSH
-      set -ag update-environment TMUX_NERD_FONT
 
+      set -s extended-keys on
+      set -g set-clipboard on
       set -g set-titles on
       set -g set-titles-string "#{user}@#h: #W"
       set -g renumber-windows on
+
+      setw -g monitor-activity on
+      set -g visual-activity off
 
       bind Tab select-pane -t :.+
       bind BTab select-pane -t :.-
