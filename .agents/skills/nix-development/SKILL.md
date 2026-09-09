@@ -27,9 +27,16 @@ for commands and scope mechanics. This skill selects behavior and consumer conte
   shared package-set/argument wiring, lock changes, or uncertain boundaries.
 - Inspect generated text at its owning option (for example,
   `config.home.file`, `config.xdg.configFile`, or `config.systemd.user.services`).
-  Read pinned module source to locate it. A source path may be unrealized:
-  inspect the generating expression or build only that small artifact if needed,
-  never the entire home environment to obtain one file.
+  Read pinned module source to locate it. Home Manager file attributes are keyed
+  by their evaluated target path, which may be absolute rather than the relative
+  module spelling. Discover the exact key before selecting it. A source path may
+  be unrealized; realize it through its quoted `path:.#...source` flake
+  installable with `nix build --no-link --no-update-lock-file`, then inspect the
+  evaluated source path. Do not use an impure `builtins.getFlake` expression or
+  build the entire home environment to obtain one file.
+- Run required completion checks independently from optional generated-file
+  inspection. An inspection lookup or focused fixture failure must not prevent
+  the selected activation evaluations and repository checks from running.
 - For generated shell/editor configuration, run a focused syntax or headless
   fixture using temporary home/config directories and explicit dependencies.
   Avoid login shells, real user services, credentials, and activation scripts.

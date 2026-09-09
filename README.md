@@ -256,6 +256,25 @@ nix eval path:.#homeConfigurations.syntax.activationPackage.drvPath
 nix eval path:.#nixosConfigurations.pang14.config.home-manager.users.kyleh.home.activationPackage.drvPath
 ```
 
+Generated Home Manager files may have unrealized `source` paths, and
+`config.home.file` keys may be absolute evaluated targets. First list the keys,
+then realize only the selected source through its pure flake installable. Quote
+the complete installable so the target-path attribute remains intact:
+
+```bash
+nix eval --json path:.#homeConfigurations.syntax.config.home.file \
+  --apply builtins.attrNames
+nix build --no-link --no-update-lock-file \
+  'path:.#homeConfigurations.syntax.config.home.file."/home/kyleh/.config/tmux/tmux.conf".source'
+nix eval --raw \
+  'path:.#homeConfigurations.syntax.config.home.file."/home/kyleh/.config/tmux/tmux.conf".source'
+```
+
+Inspect the path printed by the final command. Run the required `test.sh` scope
+as a separate command so a failed optional inspection cannot skip validation.
+Avoid `builtins.getFlake` with `--expr` here; the direct installable stays pure,
+honors `path:.`, and includes untracked files.
+
 A successful evaluation does not establish runtime behavior. Report the scope
 checked and any failures; if sandbox restrictions block a check, run the same
 scope with `--path` outside Codex. Review the final diff before handoff.
