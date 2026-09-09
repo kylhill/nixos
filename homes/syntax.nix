@@ -13,7 +13,7 @@
 
   programs = {
     bash.profileExtra = lib.mkAfter ''
-      export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent"
+      export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
 
       if [[ $- == *i* ]] \
         && [[ -z "''${TMUX:-}" ]] \
@@ -25,5 +25,12 @@
     nixvim.waylandSupport = false;
   };
 
-  services.ssh-agent.enable = true;
+  services.ssh-agent = {
+    enable = true;
+    socket = "ssh-agent.socket";
+  };
+
+  systemd.user.sessionVariables = {
+    SSH_AUTH_SOCK = "%t/ssh-agent.socket";
+  };
 }
