@@ -10,7 +10,6 @@
 
   home = {
     packages = [
-      pkgs.bubblewrap
       pkgs.socat
     ];
   };
