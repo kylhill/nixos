@@ -6,8 +6,8 @@ fixture_dir=$(mktemp -d)
 trap 'rm -rf -- "$fixture_dir"' EXIT
 mkdir -p "$fixture_dir/repo/tests/fixtures" "$fixture_dir/tools/bin"
 cp "$repo_dir/test.sh" "$repo_dir/apply.sh" "$repo_dir/update.sh" "$repo_dir/flake.lock" "$fixture_dir/repo/"
-cp "$repo_dir/tests/test-runner.sh" "$fixture_dir/repo/tests/"
-cp "$repo_dir/tests/fixtures/validation-tool" "$fixture_dir/repo/tests/fixtures/"
+cp "$repo_dir/tests/test-apply.sh" "$repo_dir/tests/test-runner.sh" "$fixture_dir/repo/tests/"
+cp "$repo_dir/tests/fixtures/apply-tool" "$repo_dir/tests/fixtures/validation-tool" "$fixture_dir/repo/tests/fixtures/"
 for tool in nix nixfmt statix deadnix shellcheck; do
     cp "$repo_dir/tests/fixtures/validation-tool" "$fixture_dir/tools/bin/$tool"
     chmod +x "$fixture_dir/tools/bin/$tool"
@@ -91,4 +91,5 @@ run_case 2 --offline
 run_case 2 --lint --full
 run_case 0 --help
 [[ -z $calls ]]
+bash "$fixture_dir/repo/tests/test-apply.sh"
 echo 'Validation runner fixtures passed.'

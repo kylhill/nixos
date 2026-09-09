@@ -140,7 +140,9 @@
               ${self}/apply.sh \
               ${self}/test.sh \
               ${self}/update.sh \
+              ${self}/tests/test-apply.sh \
               ${self}/tests/test-runner.sh \
+              ${self}/tests/fixtures/apply-tool \
               ${self}/tests/fixtures/validation-tool
             touch $out
           '';

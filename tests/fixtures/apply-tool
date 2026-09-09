@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+tool=${0##*/}
+if [[ $tool == hostname ]]; then
+    printf '%s\n' "${FIXTURE_HOST:?}"
+else
+    printf '%s %s\n' "$tool" "$*" >> "${FIXTURE_LOG:?}"
+fi

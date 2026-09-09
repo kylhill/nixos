@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 action="${1:-switch}"
+host_name=$(hostname --short)
 
 case "$action" in
     build|boot|switch|test) ;;
@@ -16,7 +17,19 @@ export NIX_CONFIG="${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flake
 
 cd "$repo_dir"
 
-# Passing NIX_CONFIG explicitly makes the script work during bootstrap as well
-# as after this configuration has enabled flakes globally.
-exec sudo env NIX_CONFIG="$NIX_CONFIG" \
-    nixos-rebuild "$action" --flake "$repo_dir#pang14"
+if [[ $host_name == pang14 ]]; then
+    # Passing NIX_CONFIG explicitly makes the script work during bootstrap as
+    # well as after this configuration has enabled flakes globally.
+    exec sudo env NIX_CONFIG="$NIX_CONFIG" \
+        nixos-rebuild "$action" --flake "$repo_dir#pang14"
+fi
+
+case "$action" in
+    build|switch)
+        exec home-manager "$action" --flake "path:$repo_dir#$host_name"
+        ;;
+    boot|test)
+        echo "$action is only available for the pang14 NixOS configuration" >&2
+        exit 2
+        ;;
+esac
