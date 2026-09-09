@@ -7,6 +7,10 @@
     ../modules/home/kyleh/tmux.nix
   ];
 
+  targets.genericLinux = {
+    enable = true;
+  };
+
   programs = {
     bash.profileExtra = lib.mkAfter ''
       export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
