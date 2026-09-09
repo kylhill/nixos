@@ -5,6 +5,7 @@ let
     mkDictionaryEntry
     mkDouble
     mkTuple
+    mkUint32
     mkVariant
     ;
 
@@ -175,7 +176,7 @@ in
     };
 
     "org/gnome/desktop/privacy" = {
-      old-files-age = 14;
+      old-files-age = mkUint32 14;
       recent-files-max-age = 30;
       remove-old-temp-files = true;
       remove-old-trash-files = true;
@@ -237,7 +238,7 @@ in
 
     "org/gnome/settings-daemon/plugins/color" = {
       night-light-enabled = true;
-      night-light-temperature = 4000;
+      night-light-temperature = mkUint32 4000;
     };
 
     "org/gnome/settings-daemon/plugins/power".sleep-inactive-ac-timeout = 3600;
