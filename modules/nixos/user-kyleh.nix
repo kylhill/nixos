@@ -37,6 +37,7 @@ in
     mutableUsers = false;
     users.${config.infrastructure.user.name} = {
       isNormalUser = true;
+      home = user.homeDirectory;
       inherit (config.infrastructure.user) uid;
       description = config.infrastructure.user.fullName;
       extraGroups = [
@@ -50,6 +51,7 @@ in
   home-manager = {
     extraSpecialArgs = {
       inherit inputs latestPkgs;
+      isStandaloneHome = false;
       homeIdentity = {
         inherit (config.infrastructure.user)
           name

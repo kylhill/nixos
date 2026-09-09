@@ -88,6 +88,7 @@
           pkgs = mkPkgs inputs.nixpkgs home.system;
           extraSpecialArgs = {
             inherit inputs;
+            isStandaloneHome = true;
             latestPkgs = mkPkgs inputs.nixpkgs-unstable home.system;
             homeIdentity = inventory.user // {
               inherit (home) homeDirectory;
