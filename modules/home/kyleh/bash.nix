@@ -27,29 +27,29 @@
         username = {
           format = "[$user]($style)";
           show_always = true;
-          style_user = "blue bold";
+          style_user = "blue";
         };
         hostname = {
           format = "[@$hostname]($style) ";
           ssh_only = false;
-          style = "blue bold";
+          style = "blue";
         };
         directory = {
           format = "[$path]($style) ";
-          style = "cyan bold";
+          style = "cyan";
           truncation_length = 3;
         };
         git_branch = {
           format = "[$symbol$branch]($style) ";
-          style = "green bold";
+          style = "green";
         };
         git_status = {
           format = "[$all_status$ahead_behind]($style) ";
-          style = "yellow bold";
+          style = "yellow";
         };
         character = {
-          error_symbol = "[❯](red bold) ";
-          success_symbol = "[❯](green bold) ";
+          error_symbol = "[❯](red)";
+          success_symbol = "[❯](green)";
         };
       };
     };
@@ -73,12 +73,6 @@
       };
 
       initExtra = ''
-        # Some terminal hosts report TERM=dumb without preserving SSH_TTY.
-        # Correct it for real terminals before integrations inspect TERM.
-        if [[ "''${TERM:-dumb}" == dumb && -t 1 ]]; then
-          export TERM=xterm-256color
-        fi
-
         eval "$(${pkgs.coreutils}/bin/dircolors --sh ${config.xdg.configHome}/dir_colors)"
 
         if [[ -t 0 ]]; then
