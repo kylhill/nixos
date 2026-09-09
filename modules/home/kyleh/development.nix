@@ -1,8 +1,28 @@
 {
+  config,
   latestPkgs,
   pkgs,
   ...
 }:
+let
+  systemBubblewrap =
+    (pkgs.writeShellScriptBin "bwrap" ''
+      exec /usr/bin/bwrap "$@"
+    '').overrideAttrs
+      {
+        name = latestPkgs.bubblewrap.name;
+      };
+
+  codexPackage =
+    if config.targets.genericLinux.enable then
+      pkgs.replaceDependency {
+        drv = latestPkgs.codex;
+        oldDependency = latestPkgs.bubblewrap;
+        newDependency = systemBubblewrap;
+      }
+    else
+      latestPkgs.codex;
+in
 {
   imports = [
     ./neovim-development.nix
@@ -17,7 +37,7 @@
   programs = {
     codex = {
       enable = true;
-      package = latestPkgs.codex;
+      package = codexPackage;
     };
     direnv = {
       enable = true;
