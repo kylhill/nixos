@@ -12,11 +12,6 @@
     sessionVariables = {
       PAGER = "less";
     };
-
-    packages = [
-      pkgs.coreutils
-      pkgs.gnugrep
-    ];
   };
 
   programs = {
