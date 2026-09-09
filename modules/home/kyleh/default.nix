@@ -18,4 +18,6 @@
   };
 
   programs.home-manager.enable = true;
+
+  targets.genericLinux.gpu.enable = false;
 }
