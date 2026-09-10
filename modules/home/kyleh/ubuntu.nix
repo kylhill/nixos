@@ -1,5 +1,7 @@
 { pkgs, ... }:
 {
+  xdg.mime.enable = false;
+
   programs = {
     bash.package = null;
     git.package = null;

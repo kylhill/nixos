@@ -44,7 +44,8 @@ Home Manager's Bash, Git, readline, and less configuration while using Ubuntu's
 Bash, Git, less, and man executables (`package = null`). Manual-page support
 remains enabled. It restricts the Nix glibc locale archive to `en_US.UTF-8`;
 `pang14` restricts its system locales to the same locale, and integrated Home
-Manager inherits the system locale package natively.
+Manager inherits the system locale package natively. The Ubuntu profile disables
+Home Manager's XDG MIME integration; native NixOS homes retain it.
 
 `development.nix` adds direnv, Codex, and Copilot.
 `workstation.nix` adds graphical applications, GNOME preferences, and Bash VTE
