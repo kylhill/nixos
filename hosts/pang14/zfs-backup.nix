@@ -40,11 +40,25 @@
     commands."rpool/home" = {
       target = "syncoid@syntax.l.tacomafia.net:srv/backup/device/pang14/home";
       recvOptions = "u";
+      service = {
+        requires = [ "sanoid.service" ];
+        after = [ "sanoid.service" ];
+      };
     };
 
     service = {
       wants = [ "network-online.target" ];
       after = [ "network-online.target" ];
+    };
+  };
+
+  systemd = {
+    # Wait for snapshots to finish before replication, including timer catch-up.
+    services.sanoid.serviceConfig.Type = "oneshot";
+
+    timers = {
+      sanoid.timerConfig.Persistent = true;
+      syncoid-rpool-home.timerConfig.Persistent = true;
     };
   };
 }

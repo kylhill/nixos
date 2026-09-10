@@ -390,6 +390,16 @@ systemctl --failed
 git status --short
 ```
 
+### ZFS backup scheduling
+
+On `pang14`, Sanoid checks `rpool/home` for due snapshots hourly at `:00`;
+Syncoid replicates them to Syntax at `:15`. Both timers are persistent, so a
+missed schedule triggers a catch-up run when the timer becomes active again.
+Syncoid requires a successful Sanoid one-shot run before replication, including
+during catch-up, because it uses `--no-sync-snap`. Snapshot retention is unchanged.
+Catch-up can add startup I/O and still requires the remote host to be reachable;
+a failed replication waits for the next scheduled run.
+
 ### Updating pinned inputs
 
 Treat an input update like any other change: update without activation, review
