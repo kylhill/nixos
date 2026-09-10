@@ -24,7 +24,7 @@
           set -g @dracula-cpu-usage-label ""
           set -g @dracula-ram-usage-label ""
 
-          set -g @dracula-colors "white=#f8f8f2
+          set -g @dracula-colors "white=#93a1a1
           gray=#586e75
           dark_gray=#002b36
           light_purple=#268bd2
