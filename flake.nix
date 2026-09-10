@@ -165,6 +165,7 @@
           shellcheck = pkgs.runCommand "shellcheck" { nativeBuildInputs = [ pkgs.shellcheck ]; } ''
             shellcheck \
               ${self}/apply.sh \
+              ${self}/scripts/bootstrap-home.sh \
               ${self}/test.sh \
               ${self}/update.sh \
               ${self}/tests/test-apply.sh \

@@ -73,6 +73,7 @@ Standalone Ubuntu profiles are kept separately in
 `lib/home-inventory.nix`. `homeConfigurations.gateway` and
 `homeConfigurations.oci` select the common Bash, Git, htop, and SSH baseline,
 the Ubuntu boundary, and the shared Nixvim profile; OCI targets AArch64.
+`homeConfigurations.wsl` adds development tools to that x86_64 baseline.
 `homeConfigurations.syntax` additionally supplies development tools, tmux with
 automatic login attachment, and a persistent local SSH agent. Syntax and OCI
 both select Docker shell helpers. MCP servers
@@ -106,6 +107,34 @@ command. Apply subsequent configuration updates explicitly from the repository:
 cd ~/nixos
 ./apply.sh switch
 ```
+
+### WSL bootstrap
+
+Run `scripts/bootstrap-windows.ps1` from an elevated PowerShell prompt to
+install or update WSL, install the selected Ubuntu distribution, and ensure it
+uses WSL2. After the first Ubuntu launch creates the Linux user, clone this
+public repository and run the Linux bootstrap:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y git
+git clone https://git.tacomafia.net/kylhill/nixos.git ~/nixos
+~/nixos/scripts/bootstrap-home.sh
+```
+
+The Windows script intentionally stops after installing a new distribution;
+restart Windows if requested and rerun it to update WSL and verify or convert
+the distribution to WSL2. The Linux bootstrap requires an x86_64 WSL client
+and selects
+`homeConfigurations.wsl`, installs Ubuntu's `nix-bin` and
+`nix-setup-systemd` packages, validates the flake target, and activates the
+Home Manager generation from the repository's locked inputs. If systemd is not
+running, it stops with the required `/etc/wsl.conf` and PowerShell restart
+instructions.
+
+On WSL, `./apply.sh switch` always selects the generic `wsl` home rather than
+the Windows-derived hostname. Update locked inputs separately with
+`./update.sh`; ordinary bootstrap and activation do not update them.
 
 Moving tools from Ansible's latest-release installers to Nix also moves their
 updates to the inputs locked by this flake. `pang14` continues to activate Home
@@ -141,13 +170,13 @@ without starting an agent, reading keys, or activating services.
 
 `secrets/home.yaml` contains the shared encrypted SSH private/public key pair.
 Only Syntax and pang14 provision it at `~/.ssh/id_ed25519` (mode `0600`) and
-`~/.ssh/id_ed25519.pub` (mode `0644`). OCI and gateway do not provision either
+`~/.ssh/id_ed25519.pub` (mode `0644`). OCI, gateway, and WSL do not provision either
 file. Their shared SSH client configuration and trusted-host forwarding remain
 unchanged.
 
 `secrets/syntax.yaml` contains the encrypted Ubiquiti key pair and has only the
 operator age recipient. Syntax alone provisions `~/.ssh/ubnt-20220508` (mode
-`0600`) and `~/.ssh/ubnt-20220508.pub` (mode `0644`); pang14, OCI, and gateway
+`0600`) and `~/.ssh/ubnt-20220508.pub` (mode `0644`); pang14, OCI, gateway, and WSL
 do not. The existing network-device SSH configuration continues to use that path.
 
 Syntax uses Home Manager's `sops-nix` user service at login and activation.

@@ -5,6 +5,12 @@ repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 action="${1:-switch}"
 host_name=$(hostname --short)
 
+if [[ -n ${WSL_DISTRO_NAME:-} ]] || grep -qi microsoft /proc/sys/kernel/osrelease; then
+    home_name=wsl
+else
+    home_name=$host_name
+fi
+
 case "$action" in
     build|boot|switch|test) ;;
     *)
@@ -26,7 +32,7 @@ fi
 
 case "$action" in
     build|switch)
-        exec home-manager "$action" --flake "path:$repo_dir#$host_name"
+        exec home-manager "$action" --flake "path:$repo_dir#$home_name"
         ;;
     boot|test)
         echo "$action is only available for the pang14 NixOS configuration" >&2
