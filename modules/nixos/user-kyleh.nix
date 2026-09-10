@@ -51,14 +51,8 @@ in
   home-manager = {
     extraSpecialArgs = {
       inherit inputs latestPkgs;
-      isStandaloneHome = false;
       homeIdentity = {
-        inherit (config.infrastructure.user)
-          name
-          fullName
-          email
-          homeDirectory
-          ;
+        inherit (config.infrastructure.user) fullName email;
       };
       networkHosts = config.infrastructure.network.hosts;
     };

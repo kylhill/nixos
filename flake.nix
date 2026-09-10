@@ -88,17 +88,25 @@
           pkgs = mkPkgs inputs.nixpkgs home.system;
           extraSpecialArgs = {
             inherit inputs;
-            isStandaloneHome = true;
             latestPkgs = mkPkgs inputs.nixpkgs-unstable home.system;
-            homeIdentity = inventory.user // {
-              inherit (home) homeDirectory;
+            homeIdentity = {
+              inherit (inventory.user) fullName email;
             };
             networkHosts = inventory.network.hosts;
           };
           modules = [
             (./homes + "/${homeName}.nix")
             {
-              home.stateVersion = home.stateVersion;
+              home = {
+                username = inventory.user.name;
+                inherit (home) homeDirectory stateVersion;
+              };
+              services.home-manager.autoExpire = {
+                enable = true;
+                frequency = "weekly";
+                timestamp = "-7 days";
+                store.cleanup = true;
+              };
             }
           ];
         };
