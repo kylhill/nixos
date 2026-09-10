@@ -115,7 +115,7 @@ Manager through NixOS.
 
 `homes/syntax.nix` enables Home Manager's native `ssh-agent.service` at the user
 `default.target`. An empty agent after start/restart is expected: keys load
-on demand, not at service startup. SOPS provisions the existing key as described
+on demand, not at service startup. SOPS provisions the existing keys as described
 below; it does not load it into the agent or copy plaintext into the Nix store.
 
 Bash logins, tmux global/session environments and environment.d select
@@ -145,6 +145,11 @@ Only Syntax and pang14 provision it at `~/.ssh/id_ed25519` (mode `0600`) and
 file. Their shared SSH client configuration and trusted-host forwarding remain
 unchanged.
 
+`secrets/syntax.yaml` contains the encrypted Ubiquiti key pair and has only the
+operator age recipient. Syntax alone provisions `~/.ssh/ubnt-20220508` (mode
+`0600`) and `~/.ssh/ubnt-20220508.pub` (mode `0644`); pang14, OCI, and gateway
+do not. The existing network-device SSH configuration continues to use that path.
+
 Syntax uses Home Manager's `sops-nix` user service at login and activation.
 Its existing operator age identity must be installed separately at
 `~/.config/sops/age/keys.txt` with mode `0600`. Pang14 keeps system-level
@@ -155,7 +160,7 @@ SSH key being provisioned.
 
 Before activation, preserve any different existing key pair outside these
 managed paths: SOPS replaces the paths with symlinks to runtime secrets.
-On standalone Syntax, Ansible must leave this key pair and its age identity
+On standalone Syntax, Ansible must leave these key pairs and its age identity
 unmanaged while retaining ownership of account setup and authorized keys.
 Ansible-managed systemd linger keeps Syntax's user services available without
 an interactive login. Key passphrases, if present, remain unchanged.

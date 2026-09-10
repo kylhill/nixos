@@ -13,3 +13,7 @@
         - age:
             - *operator
             - *pang14
+    - path_regex: secrets/syntax\.yaml$
+      key_groups:
+        - age:
+            - *operator

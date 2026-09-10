@@ -58,6 +58,16 @@
         path = "${config.home.homeDirectory}/.ssh/id_ed25519.pub";
         mode = "0644";
       };
+      "ssh/ubnt-20220508/private-key" = {
+        sopsFile = ../secrets/syntax.yaml;
+        path = "${config.home.homeDirectory}/.ssh/ubnt-20220508";
+        mode = "0600";
+      };
+      "ssh/ubnt-20220508/public-key" = {
+        sopsFile = ../secrets/syntax.yaml;
+        path = "${config.home.homeDirectory}/.ssh/ubnt-20220508.pub";
+        mode = "0644";
+      };
     };
   };
 
