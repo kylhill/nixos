@@ -24,6 +24,8 @@ let
       latestPkgs.codex;
 in
 {
+  home.file.".config/codex/packages/standalone/current/codex".source = "${codexPackage}/bin/codex";
+
   programs = {
     codex = {
       enable = true;
