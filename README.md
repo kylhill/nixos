@@ -34,13 +34,13 @@ profile imports it through the common home module because the user administers
 all of these systems.
 
 `modules/home/kyleh/default.nix` is the common CLI profile: Bash, readline,
-Starship, basic command-line utilities, Git, SSH, and htop. It accepts
-`homeIdentity` (`name`, `fullName`, `email`, `homeDirectory`), `networkHosts`
+Starship, basic command-line utilities, Git, SSH, htop, and shared Neovim/Nixvim
+with fd, ripgrep, Treesitter, completion, and ShellCheck linting. It accepts
+`homeIdentity` (`fullName`, `email`, used by Git), `networkHosts`
 (connection names and ports), and the pinned `inputs` as module arguments.
 Shared home modules do not depend on NixOS's `osConfig`.
 
-`development.nix` adds the development Nixvim profile with fd, ripgrep,
-Treesitter, completion, and ShellCheck linting, plus direnv, Codex, and Copilot.
+`development.nix` adds direnv, Codex, and Copilot.
 `workstation.nix` adds graphical applications, GNOME preferences, and Bash VTE
 integration.
 Both profiles also accept `latestPkgs`, an explicitly configured package set
@@ -54,6 +54,8 @@ homes omit it.
 
 On `pang14`, `modules/nixos/user-kyleh.nix` adapts the system inventory into
 Home Manager's identity/network arguments and selects the common profile.
+Integrated Home Manager inherits `home.username` and `home.homeDirectory`
+natively from the NixOS user account.
 The host sets `home.stateVersion` and explicitly selects development tools; the
 GNOME system role selects the workstation profile. Git is installed in the home
 environment rather than relying on its presence in system packages. Account
@@ -71,6 +73,12 @@ are project-scoped; Grafana MCP configuration and its encrypted credential belon
 to the infrastructure repository. Ubuntu's
 account, groups, sudo policy, authorized keys, Nix bootstrap, and systemd linger
 remain Ansible-owned.
+
+The standalone flake constructor initializes `home.username` from the shared
+user inventory and `home.homeDirectory` and `home.stateVersion` from the home
+inventory. It enables weekly Home Manager generation expiry with a `-7 days`
+cutoff and Nix store cleanup. Integrated Home Manager leaves this expiry service
+disabled; system garbage collection remains separately managed.
 
 Before the first standalone activation, run the host's Ansible user role. For a
 Home Manager host it preserves the legacy dotfiles checkout for rollback but
@@ -95,6 +103,32 @@ cd ~/nixos
 Moving tools from Ansible's latest-release installers to Nix also moves their
 updates to the inputs locked by this flake. `pang14` continues to activate Home
 Manager through NixOS.
+
+### Syntax: local-only agent in persistent tmux
+
+`homes/syntax.nix` enables Home Manager's native `ssh-agent.service` at the user
+`default.target`. An empty agent after start/restart is expected: keys load
+on demand, not at service startup. No keys are created, changed, decrypted by
+configuration, or copied into the Nix store.
+
+Bash logins, tmux global/session environments and environment.d select
+`$XDG_RUNTIME_DIR/ssh-agent.socket`, replacing incoming forwarding sockets.
+There is no forwarding selector or fallback. Trusted-host forwarding still
+forwards this **local** agent onward; shared `AddKeysToAgent yes` and normal
+`ControlMaster auto`/ten-minute multiplexing remain unchanged. SSH adds a key
+when it uses that key to authenticate to a destination in the shared trusted-host
+block. Other destinations (including GitHub) can use the private key directly
+without adding it to the agent. Encrypted keys may prompt when used.
+
+`homes/syntax.nix` owns automatic interactive login attachment and the stable
+socket's global/session hooks; `modules/home/kyleh/tmux.nix` stays portable.
+Syntax's Bash socket override runs before attachment in the same block. Existing
+panes retain the stable path across agent restarts; sessions with stale forwarding
+environments are corrected on attachment for new panes.
+
+Run the isolated, non-secret configuration fixtures with
+`python3 -B tests/test-ssh-agent-config.py`; they evaluate generated settings
+without starting an agent, reading keys, or activating services.
 
 ## Development environment
 
