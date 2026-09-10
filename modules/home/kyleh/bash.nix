@@ -46,7 +46,7 @@
         nix_shell = {
           format = "[$symbol]($style) ";
           style = "cyan";
-          symbol = "";
+          symbol = " ";
         };
         git_branch = {
           format = "[$symbol$branch]($style) ";
