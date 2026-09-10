@@ -1,6 +1,12 @@
-{ lib, ... }:
+{
+  config,
+  inputs,
+  lib,
+  ...
+}:
 {
   imports = [
+    inputs.sops-nix.homeManagerModules.sops
     ../modules/home/kyleh
     ../modules/home/kyleh/development.nix
     ../modules/home/kyleh/docker-tools.nix
@@ -38,6 +44,21 @@
   services.ssh-agent = {
     enable = true;
     socket = "ssh-agent.socket";
+  };
+
+  sops = {
+    defaultSopsFile = ../secrets/home.yaml;
+    age.keyFile = "${config.xdg.configHome}/sops/age/keys.txt";
+    secrets = {
+      "ssh/private-key" = {
+        path = "${config.home.homeDirectory}/.ssh/id_ed25519";
+        mode = "0600";
+      };
+      "ssh/public-key" = {
+        path = "${config.home.homeDirectory}/.ssh/id_ed25519.pub";
+        mode = "0644";
+      };
+    };
   };
 
   systemd.user.sessionVariables.SSH_AUTH_SOCK = "\${XDG_RUNTIME_DIR}/ssh-agent.socket";

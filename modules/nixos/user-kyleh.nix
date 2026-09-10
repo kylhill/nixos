@@ -20,12 +20,14 @@ in
   sops.secrets = {
     "user/password-hash".neededForUsers = true;
     "ssh/private-key" = {
+      sopsFile = ../../secrets/home.yaml;
       owner = user.name;
       group = "users";
       mode = "0600";
       path = "${user.sshDirectory}/id_ed25519";
     };
     "ssh/public-key" = {
+      sopsFile = ../../secrets/home.yaml;
       owner = user.name;
       group = "users";
       mode = "0644";

@@ -115,8 +115,8 @@ Manager through NixOS.
 
 `homes/syntax.nix` enables Home Manager's native `ssh-agent.service` at the user
 `default.target`. An empty agent after start/restart is expected: keys load
-on demand, not at service startup. No keys are created, changed, decrypted by
-configuration, or copied into the Nix store.
+on demand, not at service startup. SOPS provisions the existing key as described
+below; it does not load it into the agent or copy plaintext into the Nix store.
 
 Bash logins, tmux global/session environments and environment.d select
 `$XDG_RUNTIME_DIR/ssh-agent.socket`, replacing incoming forwarding sockets.
@@ -136,6 +136,29 @@ environments are corrected on attachment for new panes.
 Run the isolated, non-secret configuration fixtures with
 `python3 -B tests/test-ssh-agent-config.py`; they evaluate generated settings
 without starting an agent, reading keys, or activating services.
+
+### SSH key provisioning
+
+`secrets/home.yaml` contains the shared encrypted SSH private/public key pair.
+Only Syntax and pang14 provision it at `~/.ssh/id_ed25519` (mode `0600`) and
+`~/.ssh/id_ed25519.pub` (mode `0644`). OCI and gateway do not provision either
+file. Their shared SSH client configuration and trusted-host forwarding remain
+unchanged.
+
+Syntax uses Home Manager's `sops-nix` user service at login and activation.
+Its existing operator age identity must be installed separately at
+`~/.config/sops/age/keys.txt` with mode `0600`. Pang14 keeps system-level
+provisioning, using its existing `/var/lib/sops-nix/key.txt` identity and
+user-owned secret files. Both recipients are declared in `.sops.yaml`; private
+age identities stay outside the repository and are not bootstrapped from the
+SSH key being provisioned.
+
+Before activation, preserve any different existing key pair outside these
+managed paths: SOPS replaces the paths with symlinks to runtime secrets.
+On standalone Syntax, Ansible must leave this key pair and its age identity
+unmanaged while retaining ownership of account setup and authorized keys.
+Ansible-managed systemd linger keeps Syntax's user services available without
+an interactive login. Key passphrases, if present, remain unchanged.
 
 ## Development environment
 
