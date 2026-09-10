@@ -8,6 +8,7 @@
 let
   mkSnacksMap = key: command: desc: {
     inherit key;
+    mode = "n";
     action = "<cmd>lua ${command}<cr>";
     options = { inherit desc; };
   };
@@ -42,31 +43,14 @@ in
         git.enable = false;
       };
 
-      extraConfigLua = ''
-        require("solarized").setup({
-          palette = "solarized",
-          variant = "winter",
-          transparent = {
-            enabled = false,
-          },
-        })
-        vim.cmd.colorscheme("solarized")
-      '';
-      extraPlugins = [
-        pkgs.vimPlugins.vim-tmux-navigator
-        solarizedNvim
-      ];
+      colorscheme = "solarized";
+      extraPlugins = [ solarizedNvim ];
 
       globals = {
-        loaded_node_provider = 0;
-        loaded_perl_provider = 0;
-        loaded_python3_provider = 0;
-        loaded_ruby_provider = 0;
         mapleader = " ";
       };
 
       opts = {
-        autoindent = true;
         autowrite = true;
         clipboard.__raw = ''
           vim.env.SSH_CONNECTION and "" or "unnamedplus"
@@ -75,15 +59,10 @@ in
         cursorline = true;
         expandtab = true;
         guifont = "CaskaydiaCove Nerd Font Mono:h10";
-        hidden = true;
         ignorecase = true;
-        inccommand = "nosplit";
-        laststatus = 3;
-        list = false;
         modeline = false;
         mouse = "a";
         number = true;
-        relativenumber = false;
         scrolloff = 4;
         shiftwidth = 4;
         showmatch = true;
@@ -91,7 +70,6 @@ in
         sidescrolloff = 8;
         signcolumn = "yes";
         smartcase = true;
-        smarttab = true;
         smoothscroll = true;
         softtabstop = -1;
         splitbelow = true;
@@ -131,6 +109,7 @@ in
       ];
 
       plugins = {
+        tmux-navigator.enable = true;
         mini-ai.enable = true;
         mini-pairs.enable = true;
         blink-cmp = {
@@ -177,7 +156,6 @@ in
             yaml
           ];
         };
-        trouble.enable = true;
         ts-comments.enable = true;
         web-devicons.enable = true;
         which-key.enable = true;
