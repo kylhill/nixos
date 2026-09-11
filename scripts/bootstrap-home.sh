@@ -156,6 +156,61 @@ activation_package=$(sudo -u "$BOOTSTRAP_USER" env HOME="$HOME" \
 
 sudo -u "$BOOTSTRAP_USER" env "${activation_env[@]}" "$activation_package/activate"
 
+# ---------------------------------------------------------------------------
+# Optional SSH identity provisioning
+# ---------------------------------------------------------------------------
+
+echo
+IFS= read -r -s -p \
+    "Optional SOPS age secret key (leave blank to skip SSH identity provisioning): " \
+    sops_age_key
+echo
+
+if [[ -n $sops_age_key ]]; then
+    ssh_dir="$HOME/.ssh"
+    mkdir -p "$ssh_dir"
+    chmod 700 "$ssh_dir"
+
+    provision_dir=$(mktemp -d)
+    cleanup_provision_dir() {
+        rm -rf -- "$provision_dir"
+    }
+    trap cleanup_provision_dir EXIT
+
+    age_key_file="$provision_dir/keys.txt"
+    printf '%s\n' "$sops_age_key" > "$age_key_file"
+    unset sops_age_key
+    chmod 600 "$age_key_file"
+
+    age_keygen="$activation_package/home-path/bin/age-keygen"
+    sops="$activation_package/home-path/bin/sops"
+    [[ -x $age_keygen && -x $sops ]] ||
+        die "The WSL Home Manager profile does not provide age and sops."
+
+    "$age_keygen" -y "$age_key_file" >/dev/null ||
+        die "The supplied SOPS age secret key is invalid."
+
+    private_key="$provision_dir/id_ed25519"
+    public_key="$provision_dir/id_ed25519.pub"
+    SOPS_AGE_KEY_FILE="$age_key_file" "$sops" decrypt \
+        --extract '["ssh"]["private-key"]' \
+        --output "$private_key" \
+        "$REPO_DIR/secrets/home.yaml"
+    SOPS_AGE_KEY_FILE="$age_key_file" "$sops" decrypt \
+        --extract '["ssh"]["public-key"]' \
+        --output "$public_key" \
+        "$REPO_DIR/secrets/home.yaml"
+
+    install -m 0600 "$private_key" "$ssh_dir/id_ed25519"
+    install -m 0644 "$public_key" "$ssh_dir/id_ed25519.pub"
+
+    cleanup_provision_dir
+    trap - EXIT
+    log "Provisioned the shared SSH identity and discarded the SOPS age key"
+else
+    log "Skipping SOPS age key and SSH identity provisioning"
+fi
+
 log "Bootstrap complete"
 
 echo

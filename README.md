@@ -132,6 +132,13 @@ Home Manager generation from the repository's locked inputs. If systemd is not
 running, it stops with the required `/etc/wsl.conf` and PowerShell restart
 instructions.
 
+After activation, the Linux bootstrap prompts without echo for an optional SOPS
+age secret key. When supplied, it validates the key and uses it to decrypt the
+shared SSH identity to `~/.ssh/id_ed25519` (mode `0600`) and
+`~/.ssh/id_ed25519.pub` (mode `0644`). The age key exists only in a protected
+temporary directory and is discarded after provisioning. Leaving the prompt
+blank skips provisioning and completes the bootstrap.
+
 On WSL, `./apply.sh switch` always selects the generic `wsl` home rather than
 the Windows-derived hostname. Update locked inputs separately with
 `./update.sh`; ordinary bootstrap and activation do not update them.
@@ -169,10 +176,11 @@ without starting an agent, reading keys, or activating services.
 ### SSH key provisioning
 
 `secrets/home.yaml` contains the shared encrypted SSH private/public key pair.
-Only Syntax and pang14 provision it at `~/.ssh/id_ed25519` (mode `0600`) and
-`~/.ssh/id_ed25519.pub` (mode `0644`). OCI, gateway, and WSL do not provision either
-file. Their shared SSH client configuration and trusted-host forwarding remain
-unchanged.
+Syntax and pang14 provision it declaratively at `~/.ssh/id_ed25519` (mode `0600`)
+and `~/.ssh/id_ed25519.pub` (mode `0644`). The WSL bootstrap provisions the same
+pair only when the operator supplies its optional SOPS age key. OCI and gateway
+do not provision either file. Shared SSH client configuration and trusted-host
+forwarding remain unchanged.
 
 `secrets/syntax.yaml` contains the encrypted Ubiquiti key pair and has only the
 operator age recipient. Syntax alone provisions `~/.ssh/ubnt-20220508` (mode
@@ -181,11 +189,12 @@ do not. The existing network-device SSH configuration continues to use that path
 
 Syntax uses Home Manager's `sops-nix` user service at login and activation.
 Its existing operator age identity must be installed separately at
-`~/.config/sops/age/keys.txt` with mode `0600`. Pang14 keeps system-level
-provisioning, using its existing `/var/lib/sops-nix/key.txt` identity and
-user-owned secret files. Both recipients are declared in `.sops.yaml`; private
-age identities stay outside the repository and are not bootstrapped from the
-SSH key being provisioned.
+`~/.config/sops/age/keys.txt` with mode `0600`. The WSL bootstrap uses an
+operator-supplied identity only for the duration of SSH key provisioning and
+does not retain it. Pang14 keeps system-level provisioning, using its existing
+`/var/lib/sops-nix/key.txt` identity and user-owned secret files. Both recipients
+are declared in `.sops.yaml`; private age identities stay outside the repository
+and are not bootstrapped from the SSH key being provisioned.
 
 Before activation, preserve any different existing key pair outside these
 managed paths: SOPS replaces the paths with symlinks to runtime secrets.
