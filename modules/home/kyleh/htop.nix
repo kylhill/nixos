@@ -2,7 +2,6 @@
 {
   programs.htop = {
     enable = true;
-    package = null;
     settings =
       with config.lib.htop;
       {
