@@ -110,9 +110,15 @@ cd ~/nixos
 
 ### WSL bootstrap
 
-Run `scripts/bootstrap-windows.ps1` from an elevated PowerShell prompt to
+Download `scripts/bootstrap-windows.ps1` from an elevated PowerShell prompt to
 install or update WSL, install the selected Ubuntu distribution, and ensure it
-uses WSL2. After the first Ubuntu launch creates the Linux user, clone this
+uses WSL2:
+```bash
+curl.exe -o bootstrap-windows.ps1 https://git.tacomafia.net/kylhill/nixos/raw/branch/main/scripts/bootstrap-windows.ps1
+.\bootstrap-windows.ps1
+```
+
+After the first Ubuntu launch creates the Linux user, clone this
 public repository and run the Linux bootstrap:
 
 ```bash
