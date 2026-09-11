@@ -106,6 +106,6 @@ Write-Host "Ensure /etc/wsl.conf enables systemd; bootstrap-home.sh prints exact
 Write-Host "Then run these commands inside ${Distro}:"
 Write-Host ""
 Write-Host "    sudo apt-get update"
-Write-Host "    sudo apt-get install -y git"
+Write-Host "    sudo apt-get dist-upgrade"
 Write-Host "    git clone https://git.tacomafia.net/kylhill/nixos.git ~/nixos"
 Write-Host "    ~/nixos/scripts/bootstrap-home.sh"
