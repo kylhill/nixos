@@ -80,7 +80,11 @@ sudo apt-get install -y --no-install-recommends \
     nix-setup-systemd
 
 sudo usermod --append --groups nix-users "$BOOTSTRAP_USER"
-sudo systemctl enable --now nix-daemon.socket
+
+# Ubuntu enables and starts both units even though a running daemon prevents
+# systemd from also listening on its socket. Use the always-on service mode.
+sudo systemctl disable --now nix-daemon.socket
+sudo systemctl enable --now nix-daemon.service
 
 command -v nix >/dev/null 2>&1 ||
     die "Nix installation completed but nix is unavailable."
