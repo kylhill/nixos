@@ -210,7 +210,6 @@
               pkgs.deadnix
               pkgs.fd
               (pkgs.lib.getBin pkgs.jq)
-              pkgs.mcp-nixos
               pkgs.nixfmt
               pkgs.nixfmt-tree
               pkgs.ripgrep

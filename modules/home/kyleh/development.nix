@@ -26,6 +26,11 @@ in
 {
   home.file.".config/codex/packages/standalone/current/codex".source = "${codexPackage}/bin/codex";
 
+  home.packages = [
+    pkgs.mcp-grafana
+    pkgs.mcp-nixos
+  ];
+
   programs = {
     codex = {
       enable = true;
