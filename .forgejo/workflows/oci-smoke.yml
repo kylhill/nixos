@@ -1,0 +1,26 @@
+  name: OCI runner smoke test
+
+  on:
+    workflow_dispatch:
+    push:
+      branches:
+        - main
+
+  jobs:
+    dependencies:
+      runs-on: oci-deps
+      steps:
+        - name: Show environment
+          run: |
+            node --version
+            npm --version
+            uname -m
+
+    container-build:
+      runs-on: oci-build
+      steps:
+        - name: Verify isolated Docker daemon
+          run: |
+            docker version
+            docker info
+            docker run --rm hello-world
