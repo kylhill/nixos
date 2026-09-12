@@ -81,6 +81,12 @@ sudo apt-get install -y --no-install-recommends \
 
 sudo usermod --append --groups nix-users "$BOOTSTRAP_USER"
 
+# Ubuntu's package installation can leave these pre-existing Nix state
+# directories at 0755, preventing users from creating their profile and GC-root
+# directories during the first Home Manager activation. Reapply the package's
+# tmpfiles rules, which set both per-user parent directories to 01777.
+sudo systemd-tmpfiles --create /usr/lib/tmpfiles.d/nix-daemon.conf
+
 # Ubuntu enables and starts both units even though a running daemon prevents
 # systemd from also listening on its socket. Use the always-on service mode.
 sudo systemctl disable --now nix-daemon.socket
