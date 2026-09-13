@@ -10,9 +10,12 @@ jobs:
   renovate:
     runs-on: oci-deps
     container:
-      image: docker.io/renovate/renovate:full
+      image: docker.io/renovate/renovate:latest
+      volumes:
+        - /opt/renovate-cache:/tmp/renovate/containerbase
     env:
       LOG_LEVEL: info
+      RENOVATE_CONTAINERBASE_DIR: /tmp/renovate/containerbase
       RENOVATE_ENDPOINT: https://git.tacomafia.net/api/v1
       RENOVATE_INTERNAL_HOST_ACCESS: allow
       RENOVATE_ONBOARDING: "false"
