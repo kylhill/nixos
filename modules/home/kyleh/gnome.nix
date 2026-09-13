@@ -185,6 +185,17 @@ in
     "org/gnome/desktop/peripherals/keyboard".numlock-state = true;
     "org/gnome/desktop/sound".event-sounds = false;
 
+    "org/gnome/TextEditor" = {
+      highlight-current-line = true;
+      indent-style = "space";
+      show-line-numbers = true;
+      show-right-margin = false;
+      style-scheme = "solarized-dark";
+      tab-width = mkUint32 4;
+      use-system-font = true;
+      wrap-text = false;
+    };
+
     "org/gnome/desktop/wm/keybindings" = {
       minimize = [ ];
       show-desktop = [ "<Super>d" ];
