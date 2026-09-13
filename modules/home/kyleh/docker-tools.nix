@@ -41,17 +41,20 @@ _: {
       complete -F _complete_docker_containers dbash dsh dtail
 
       dprune() {
-        local exclude="''${1:-minecraft}"
-        echo "Pruning Docker resources (excluding: $exclude)..."
+        local exclude_patterns=(-e minecraft -e forgejo)
+        if [[ -n "''${1:-}" ]]; then
+          exclude_patterns+=(-e "$1")
+        fi
+        echo "Pruning Docker resources (excluding: minecraft, forgejo''${1:+, $1})..."
 
         docker ps -a --filter status=exited --filter status=created --format '{{.Names}}' |
-          grep -Fv -- "$exclude" |
+          grep -Fv "''${exclude_patterns[@]}" |
           xargs -r docker rm
 
         docker image prune -a -f
 
         docker network ls --format '{{.Name}}' --filter type=custom |
-          grep -Fv -- "$exclude" |
+          grep -Fv "''${exclude_patterns[@]}" |
           xargs -r docker network rm 2>/dev/null || true
 
         docker volume prune -f
