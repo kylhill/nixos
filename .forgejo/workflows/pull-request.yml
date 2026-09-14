@@ -1,0 +1,24 @@
+---
+name: Pull request validation
+
+"on":
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  flake-check:
+    if: forgejo.event.pull_request.head.repo.full_name == forgejo.repository
+    runs-on: oci-deps
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
+
+      - name: Check flake
+        run: nix flake check
