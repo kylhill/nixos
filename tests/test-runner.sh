@@ -110,6 +110,19 @@ reject_call 'flake check'
 run_case 0 --sandbox --full
 require_call 'flake check path:. --no-build --all-systems'
 require_call 'path:.#homeConfigurations --no-update-lock-file'
+reject_call 'runner-fixtures'
+reject_call 'apply-fixtures'
+
+run_case 0 --ci
+require_call 'flake check . --no-build --all-systems'
+require_call '.#homeConfigurations --no-update-lock-file'
+require_call 'build --no-link --no-update-lock-file .#checks.x86_64-linux.runner-fixtures .#checks.x86_64-linux.apply-fixtures'
+
+export FAIL_NIX_MATCH=runner-fixtures
+run_case 1 --ci
+require_call '.#homeConfigurations --no-update-lock-file'
+require_call 'runner-fixtures'
+unset FAIL_NIX_MATCH
 
 run_case 0 --path --lint
 require_call 'build --no-link --no-update-lock-file path:.#checks.x86_64-linux.formatting'
@@ -166,7 +179,7 @@ for invalid in '' bad.name 'bad/user' 'bad user' '"quoted"' --lint 123host; do
     run_case 2 --integrated-home pang14 "$invalid"
     reject_checks
 done
-for exclusive in --lint --full; do
+for exclusive in --lint --full --ci; do
     run_case 2 "$exclusive" --integrated-home pang14 kyleh
     reject_checks
     run_case 2 --integrated-home pang14 kyleh "$exclusive"
@@ -177,6 +190,8 @@ reject_checks
 run_case 2 --offline
 reject_checks
 run_case 2 --lint --full
+reject_checks
+run_case 2 --full --ci
 reject_checks
 run_case 0 --help
 reject_checks

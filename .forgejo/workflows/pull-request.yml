@@ -29,5 +29,5 @@ jobs:
         with:
           enable_kvm: false
 
-      - name: Check flake
-        run: nix flake check
+      - name: Validate repository
+        run: ./test.sh --ci

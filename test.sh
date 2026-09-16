@@ -11,7 +11,8 @@ integrated_users=()
 dev_systems=()
 usage() {
     echo 'usage: ./test.sh [--sandbox] [--path] SCOPE ...'
-    echo '  An explicit scope is required; --lint and --full are exclusive.'
+    echo '  An explicit scope is required; --lint, --full and --ci are exclusive.'
+    echo '  --ci            full validation plus current-system fixture checks'
     echo '  --full          lint, evaluate all flake outputs and standalone homes (no host build)'
     echo '  --lint          source checks only; no host, home, or development output evaluation'
     echo '  --home NAME     lint and evaluate a selected home activation derivation; repeatable'
@@ -28,8 +29,8 @@ while (($#)); do
     case "$1" in
         --sandbox) sandbox=true ;;
         --path) flake_ref=path:. ;;
-        --lint|--full)
-            [[ -z $mode || $mode == "${1#--}" ]] || die 'Do not combine --lint/--full with another scope.'
+        --lint|--full|--ci)
+            [[ -z $mode || $mode == "${1#--}" ]] || die 'Do not combine --lint/--full/--ci with another scope.'
             mode=${1#--}
             ;;
         --home|--dev)
@@ -56,7 +57,7 @@ while (($#)); do
     esac
     shift
 done
-[[ -n $mode ]] || die 'An explicit scope is required: --lint, --full, --home NAME, --integrated-home HOST USER or --dev SYSTEM. See --help.'
+[[ -n $mode ]] || die 'An explicit scope is required: --lint, --full, --ci, --home NAME, --integrated-home HOST USER or --dev SYSTEM. See --help.'
 export NIX_CONFIG="${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flakes'
 cd "$repo_dir"
 nix_cmd=(nix)
@@ -132,12 +133,21 @@ fi
 # Keep collecting independent failures, but do not spend time evaluating outputs
 # after source checks fail.
 if ((failed == 0)); then
-    if [[ $mode == full ]]; then
+    if [[ $mode == full || $mode == ci ]]; then
         run_stage 'Full flake evaluation (no builds)' "${nix_cmd[@]}" flake check "$flake_ref" \
             --no-build --all-systems --no-update-lock-file || :
         run_stage 'All standalone home activation derivations' "${nix_cmd[@]}" eval \
             "$flake_ref#homeConfigurations" --no-update-lock-file --json \
             --apply 'homes: builtins.mapAttrs (_: home: home.activationPackage.drvPath) homes' || :
+        if [[ $mode == ci ]]; then
+            if system=$("${nix_cmd[@]}" eval --impure --raw --expr builtins.currentSystem); then
+                run_stage "Fixture checks: $system" "${nix_cmd[@]}" build --no-link --no-update-lock-file \
+                    "$flake_ref#checks.$system.runner-fixtures" \
+                    "$flake_ref#checks.$system.apply-fixtures" || :
+            else
+                failed=1
+            fi
+        fi
     else
         for home in "${homes[@]}"; do
             run_stage "Home: $home activation derivation" "${nix_cmd[@]}" eval \

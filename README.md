@@ -280,9 +280,10 @@ includes untracked files while omitting `--sandbox` runs linter check derivation
 | `--integrated-home HOST USER` | Source checks and only `nixosConfigurations.HOST.config.home-manager.users.USER.home.activationPackage.drvPath`, not the system toplevel |
 | `--dev SYSTEM` | Source checks and all development shell `drvPath`s for the selected architecture |
 | `--full` | Explicit opt-in: source checks, all-system flake evaluation without builds, and every standalone home activation `drvPath` |
+| `--ci` | Full validation plus the current architecture's small runner and apply fixture checks; no system or Home Manager closure build |
 
 `--home`, `--integrated-home` and `--dev` can be repeated and combined;
-`--lint` and `--full` are exclusive of other scopes. Names must start with a
+`--lint`, `--full` and `--ci` are exclusive of other scopes. Names must start with a
 letter or underscore and contain only letters, digits, underscores or hyphens.
 Standalone home and development scopes do not evaluate NixOS configurations;
 integrated scopes evaluate only the selected home within NixOS. The runner collects independent failures within
@@ -295,6 +296,7 @@ activates a system or Home Manager closure.
 ./test.sh --sandbox --home gateway --integrated-home pang14 kyleh
 ./test.sh --sandbox --dev x86_64-linux --dev aarch64-linux
 ./test.sh --sandbox --full
+./test.sh --ci
 ```
 
 For documentation-only changes, check `git diff --check`,
