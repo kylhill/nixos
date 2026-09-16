@@ -11,7 +11,14 @@ jobs:
     if: forgejo.event.pull_request.head.repo.full_name == forgejo.repository
     runs-on: oci-deps
     timeout-minutes: 60
+    env:
+      DEBIAN_FRONTEND: noninteractive
     steps:
+      - name: Install job prerequisites
+        run: |
+          apt-get update
+          apt-get install --no-install-recommends --yes ca-certificates curl git sudo xz-utils
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -19,6 +26,8 @@ jobs:
 
       - name: Install Nix
         uses: https://github.com/cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
+        with:
+          enable_kvm: false
 
       - name: Check flake
         run: nix flake check
