@@ -96,7 +96,8 @@
 
   home-manager.users.${config.infrastructure.user.name} = {
     imports = [
-      ../../modules/home/kyleh/development.nix
+      ../../modules/home/kyleh/ai.nix
+      ../../modules/home/kyleh/direnv.nix
       ../../modules/home/kyleh/tmux.nix
     ];
     home.stateVersion = "26.05";

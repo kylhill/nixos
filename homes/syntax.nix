@@ -8,7 +8,8 @@
   imports = [
     inputs.sops-nix.homeManagerModules.sops
     ../modules/home/kyleh
-    ../modules/home/kyleh/development.nix
+    ../modules/home/kyleh/ai.nix
+    ../modules/home/kyleh/direnv.nix
     ../modules/home/kyleh/docker-tools.nix
     ../modules/home/kyleh/tmux.nix
     ../modules/home/kyleh/ubuntu.nix

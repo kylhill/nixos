@@ -47,12 +47,12 @@ remains enabled. It restricts the Nix glibc locale archive to `en_US.UTF-8`;
 Manager inherits the system locale package natively. The Ubuntu profile disables
 Home Manager's XDG MIME integration; native NixOS homes retain it.
 
-`development.nix` adds direnv, Codex, and Copilot.
+`direnv.nix` adds direnv; `ai.nix` adds Codex, Copilot, and MCP tools.
 `workstation.nix` adds graphical applications, GNOME preferences, and Bash VTE
 integration.
-Both profiles also accept `latestPkgs`, an explicitly configured package set
-from the locked `nixpkgs-unstable` input: development uses it for Codex and
-Copilot, while the workstation uses it for Firefox and VS Code.
+The AI and workstation profiles also accept `latestPkgs`, an explicitly
+configured package set from the locked `nixpkgs-unstable` input: AI uses it for
+Codex and Copilot, while the workstation uses it for Firefox and VS Code.
 The workstation also installs Python alongside VS Code so extensions and tasks
 can use it outside project-specific development environments.
 Nixvim and nix-index-database module imports live with the home capabilities
@@ -73,8 +73,8 @@ Standalone Ubuntu profiles are kept separately in
 `lib/home-inventory.nix`. `homeConfigurations.gateway` and
 `homeConfigurations.oci` select the common Bash, Git, htop, and SSH baseline,
 the Ubuntu boundary, and the shared Nixvim profile; OCI targets AArch64.
-`homeConfigurations.wsl` adds development tools to that x86_64 baseline.
-`homeConfigurations.syntax` additionally supplies development tools, tmux with
+`homeConfigurations.wsl` adds direnv to that x86_64 baseline.
+`homeConfigurations.syntax` additionally supplies direnv, AI tools, tmux with
 automatic login attachment, and a persistent local SSH agent. Syntax and OCI
 both select Docker shell helpers. MCP servers
 are project-scoped; Grafana MCP configuration and its encrypted credential belong

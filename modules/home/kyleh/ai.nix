@@ -60,12 +60,6 @@ in
       enable = true;
       package = codexPackage;
     };
-    direnv = {
-      enable = true;
-      config.global.hide_env_diff = true;
-      nix-direnv.enable = true;
-      silent = true;
-    };
     github-copilot-cli = {
       enable = true;
       package = latestPkgs.github-copilot-cli;
