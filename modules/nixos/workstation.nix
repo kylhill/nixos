@@ -69,6 +69,7 @@
       rygel.enable = false;
     };
     printing.enable = true;
+    speechd.enable = false;
 
     pipewire = {
       enable = true;

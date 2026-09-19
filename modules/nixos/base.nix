@@ -10,6 +10,11 @@
     supportedLocales = [ "en_US.UTF-8/UTF-8" ];
   };
 
+  documentation = {
+    doc.enable = false;
+    info.enable = false;
+  };
+
   nix = {
     channel.enable = false;
 
