@@ -15,11 +15,16 @@ let
 
   codexPackage =
     if config.targets.genericLinux.enable then
-      pkgs.replaceDependency {
-        drv = latestPkgs.codex;
-        oldDependency = latestPkgs.bubblewrap;
-        newDependency = systemBubblewrap;
-      }
+      pkgs.runCommand latestPkgs.codex.name { } ''
+        cp -a ${latestPkgs.codex} $out
+        chmod -R u+w $out
+        old_bwrap=${latestPkgs.bubblewrap}
+        new_bwrap=${systemBubblewrap}
+        test "''${#old_bwrap}" -eq "''${#new_bwrap}"
+        grep -aFq "$old_bwrap" $out/bin/codex
+        ${pkgs.gnused}/bin/sed -i "s|$old_bwrap|$new_bwrap|g" $out/bin/codex
+        grep -aFq "$new_bwrap" $out/bin/codex
+      ''
     else
       latestPkgs.codex;
 

@@ -16,11 +16,6 @@
   programs = {
     less.enable = true;
 
-    dircolors = {
-      enable = true;
-      extraConfig = builtins.readFile "${pkgs.dircolors-solarized}/256dark.no-bold";
-    };
-
     starship = {
       enable = true;
       enableBashIntegration = true;
@@ -89,6 +84,8 @@
       };
 
       initExtra = ''
+        eval "$(${pkgs.coreutils}/bin/dircolors -b '${pkgs.dircolors-solarized}/256dark.no-bold')"
+
         if [[ -t 0 ]]; then
           ${pkgs.coreutils}/bin/stty -ixon 2>/dev/null || true
         fi
