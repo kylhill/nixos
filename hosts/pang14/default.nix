@@ -32,6 +32,7 @@
         configurationLimit = 5;
         extraInstallCommands = ''
           ${pkgs.gnused}/bin/sed -i 's/^default .*/default @saved/' /boot/loader/loader.conf
+          ${pkgs.gnugrep}/bin/grep -qx 'default @saved' /boot/loader/loader.conf
         '';
         windows.windows = {
           title = "Windows";

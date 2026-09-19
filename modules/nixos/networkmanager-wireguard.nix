@@ -6,6 +6,40 @@
 let
   wg = config.infrastructure.host.network.wireguard;
   unique = values: builtins.length values == builtins.length (lib.unique values);
+  decimal = value: builtins.match "[0-9]+" value != null;
+  decimalBetween =
+    minimum: maximum: value:
+    decimal value && lib.toInt value >= minimum && lib.toInt value <= maximum;
+  validIPv4 =
+    address:
+    let
+      octets = lib.splitString "." address;
+    in
+    builtins.length octets == 4 && builtins.all (decimalBetween 0 255) octets;
+  validIPv4Cidr =
+    address:
+    let
+      parts = lib.splitString "/" address;
+    in
+    builtins.length parts == 2
+    && validIPv4 (builtins.elemAt parts 0)
+    && decimalBetween 0 32 (builtins.elemAt parts 1);
+  validIPv6 =
+    address:
+    !lib.hasInfix "/" address
+    && (builtins.tryEval (builtins.deepSeq (lib.network.ipv6.fromString address) true)).success;
+  validIPv6Cidr =
+    address:
+    lib.hasInfix "/" address
+    && (builtins.tryEval (builtins.deepSeq (lib.network.ipv6.fromString address) true)).success;
+  ipAddressType = lib.types.addCheck lib.types.str (address: validIPv4 address || validIPv6 address);
+  interfaceNameType = lib.types.addCheck lib.types.str (
+    name: builtins.stringLength name <= 15 && builtins.match "[A-Za-z0-9_.-]+" name != null
+  );
+  cidrType = lib.types.addCheck lib.types.str (
+    address: validIPv4Cidr address || validIPv6Cidr address
+  );
+  secretNameType = lib.types.strMatching "[A-Za-z0-9._/-]+";
   wireGuardKeyType = lib.types.strMatching "[A-Za-z0-9+/]{43}=";
   endpointType = lib.types.addCheck lib.types.str (
     endpoint:
@@ -53,10 +87,17 @@ let
       dns = "${profile.dns};";
     };
 
-    ipv6 = {
-      method = "manual";
-      address1 = ipv6Address profile.addresses;
-    };
+    ipv6 =
+      let
+        address = ipv6Address profile.addresses;
+      in
+      if address == null then
+        { method = "disabled"; }
+      else
+        {
+          method = "manual";
+          address1 = address;
+        };
   };
 in
 {
@@ -79,7 +120,7 @@ in
                   description = "Stable NetworkManager connection UUID.";
                 };
                 interfaceName = lib.mkOption {
-                  type = lib.types.str;
+                  type = interfaceNameType;
                   description = "Stable WireGuard interface name.";
                 };
               };
@@ -94,19 +135,19 @@ in
             description = "Public key of the WireGuard peer.";
           };
           privateKeySecretName = lib.mkOption {
-            type = lib.types.str;
+            type = secretNameType;
             description = "sops-nix secret containing the local WireGuard private key.";
           };
           presharedKeySecretName = lib.mkOption {
-            type = lib.types.str;
+            type = secretNameType;
             description = "sops-nix secret containing the WireGuard preshared key.";
           };
           dns = lib.mkOption {
-            type = lib.types.str;
+            type = ipAddressType;
             description = "DNS server used while this profile is active.";
           };
           addresses = lib.mkOption {
-            type = lib.types.listOf lib.types.str;
+            type = lib.types.listOf cidrType;
             description = "Local IPv4 and optional IPv6 interface addresses in CIDR notation.";
           };
         };
@@ -128,13 +169,25 @@ in
         assertion = unique (map (profile: profile.connection.interfaceName) (builtins.attrValues wg));
         message = "NetworkManager WireGuard interface names must be unique.";
       }
+      {
+        assertion = builtins.all (name: builtins.match "[A-Za-z0-9_.-]+" name != null) (
+          builtins.attrNames wg
+        );
+        message = "NetworkManager WireGuard profile names may contain only letters, digits, dots, underscores, and hyphens.";
+      }
     ]
-    ++ lib.mapAttrsToList (_: profile: {
-      assertion =
-        builtins.length (lib.filter (address: !lib.hasInfix ":" address) profile.addresses) == 1
-        && builtins.length (lib.filter (address: lib.hasInfix ":" address) profile.addresses) <= 1;
-      message = "Each WireGuard profile must have exactly one IPv4 address and at most one IPv6 address.";
-    }) wg;
+    ++ lib.concatMap (profile: [
+      {
+        assertion =
+          builtins.length (lib.filter validIPv4Cidr profile.addresses) == 1
+          && builtins.length (lib.filter validIPv6Cidr profile.addresses) <= 1;
+        message = "Each WireGuard profile must have exactly one IPv4 address and at most one IPv6 address.";
+      }
+      {
+        assertion = profile.privateKeySecretName != profile.presharedKeySecretName;
+        message = "A WireGuard profile must use different private-key and preshared-key secrets.";
+      }
+    ]) (builtins.attrValues wg);
 
     sops.secrets = lib.listToAttrs (
       lib.concatMap (profile: [
