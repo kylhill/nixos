@@ -109,25 +109,14 @@
   fonts = {
     packages = [
       # Modern desktop fonts
-      pkgs.adwaita-fonts
       pkgs.nerd-fonts.caskaydia-cove
 
       # Broad Unicode coverage
       pkgs.noto-fonts
-      pkgs.noto-fonts-cjk-sans
-      pkgs.noto-fonts-cjk-serif
-      pkgs.noto-fonts-color-emoji
-
-      # Linux / legacy fallback
-      pkgs.dejavu_fonts
 
       # Microsoft metric-compatible fonts
       pkgs.carlito
       pkgs.caladea
-      pkgs.liberation_ttf
-
-      # Classic document/PostScript compatibility
-      pkgs.gyre-fonts
 
       # Actual Microsoft fonts
       pkgs.corefonts

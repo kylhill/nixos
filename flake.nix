@@ -66,7 +66,10 @@
       mkHost =
         hostName: host:
         nixpkgs.lib.nixosSystem {
-          specialArgs = { inherit inputs; };
+          specialArgs = {
+            inherit inputs;
+            latestPkgs = mkPkgs inputs.nixpkgs-unstable host.system;
+          };
           modules = [
             ./modules/nixos/infrastructure.nix
             (./hosts + "/${hostName}")

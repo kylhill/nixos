@@ -12,12 +12,8 @@
     ../modules/home/kyleh/direnv.nix
     ../modules/home/kyleh/docker-tools.nix
     ../modules/home/kyleh/tmux.nix
-    ../modules/home/kyleh/ubuntu.nix
+    ../modules/home/kyleh/ubuntu-headless.nix
   ];
-
-  targets.genericLinux = {
-    enable = true;
-  };
 
   programs = {
     bash.profileExtra = lib.mkAfter ''
@@ -38,8 +34,6 @@
       set-hook -g client-attached 'set-environment SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/ssh-agent.socket"; set-environment -u SSH_AGENT_PID'
       set-hook -g after-new-session 'set-environment SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/ssh-agent.socket"; set-environment -u SSH_AGENT_PID'
     '';
-
-    nixvim.waylandSupport = false;
   };
 
   services.ssh-agent = {

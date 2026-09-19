@@ -3,17 +3,11 @@
   imports = [
     ../modules/home/kyleh
     ../modules/home/kyleh/direnv.nix
-    ../modules/home/kyleh/ubuntu.nix
+    ../modules/home/kyleh/ubuntu-headless.nix
   ];
-
-  targets.genericLinux = {
-    enable = true;
-  };
 
   home.packages = [
     pkgs.age
     pkgs.sops
   ];
-
-  programs.nixvim.waylandSupport = false;
 }

@@ -1,20 +1,11 @@
 {
   config,
   inputs,
-  pkgs,
+  latestPkgs,
   ...
 }:
 let
   user = config.infrastructure.user;
-  latestPkgs = import inputs.nixpkgs-unstable {
-    system = pkgs.stdenv.hostPlatform.system;
-    config.allowUnfreePredicate =
-      package:
-      builtins.elem (pkgs.lib.getName package) [
-        "github-copilot-cli"
-        "vscode"
-      ];
-  };
 in
 {
   sops.secrets = {
