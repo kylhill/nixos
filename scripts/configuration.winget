@@ -1,0 +1,1338 @@
+# Windows 11 personal workstation configuration
+# Generated 2026-09-21
+#
+# Apply:
+#   winget configure -f .\config.winget --accept-configuration-agreements --disable-interactivity
+# Test:
+#   winget configure test -f .\config.winget
+# Validate:
+#   winget configure validate -f .\config.winget
+#
+# Baseline: Windows 11 Pro, 24H2 or later.
+#
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+metadata:
+  winget:
+    processor:
+      identifier: dscv3
+resources:
+- type: Microsoft.WinGet/Package
+  name: Package7Zip
+  properties:
+    id: 7zip.7zip
+    source: winget
+    useLatest: true
+  metadata:
+    description: Install 7-Zip
+- type: Microsoft.WinGet/Package
+  name: PackageDeluge
+  properties:
+    id: DelugeTeam.Deluge
+    source: winget
+    useLatest: true
+  metadata:
+    description: Install Deluge
+- type: Microsoft.WinGet/Package
+  name: PackageFirefox
+  properties:
+    id: Mozilla.Firefox
+    source: winget
+    useLatest: true
+  metadata:
+    description: Install Mozilla Firefox
+- type: Microsoft.WinGet/Package
+  name: PackageNextcloud
+  properties:
+    id: Nextcloud.NextcloudDesktop
+    source: winget
+    useLatest: true
+  metadata:
+    description: Install Nextcloud Desktop
+- type: Microsoft.WinGet/Package
+  name: PackageVLC
+  properties:
+    id: VideoLAN.VLC
+    source: winget
+    useLatest: true
+  metadata:
+    description: Install VLC media player
+- type: Microsoft.WinGet/Package
+  name: PackageVSCode
+  properties:
+    id: Microsoft.VisualStudioCode
+    source: winget
+    useLatest: true
+  metadata:
+    description: Install Visual Studio Code
+- type: Microsoft.Windows/Registry
+  name: PrivacyDisableAdvertisingId
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo
+    valueName: DisabledByGroupPolicy
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Disable Windows Advertising ID
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: PrivacyDisableInventoryCollector
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat
+    valueName: DisableInventory
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Disable Windows Inventory Collector
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: PrivacyDisableCEIP
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\SQMClient\Windows
+    valueName: CEIPEnable
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Windows CEIP
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: PrivacyDisableInputPersonalization
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization
+    valueName: AllowInputPersonalization
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable online input personalization
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: PrivacyDisableActivityFeed
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\System
+    valueName: EnableActivityFeed
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Windows activity feed
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: PrivacyDisablePublishActivities
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\System
+    valueName: PublishUserActivities
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Do not publish user activities
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: PrivacyDisableUploadActivities
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\System
+    valueName: UploadUserActivities
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Do not upload user activities
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: PrivacyDisableClipboardHistory
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\System
+    valueName: AllowClipboardHistory
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable local clipboard history
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: PrivacyDisableCrossDeviceClipboard
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\System
+    valueName: AllowCrossDeviceClipboard
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable cross-device clipboard synchronization
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: PrivacyDenyAppDiagnosticInfo
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy
+    valueName: LetAppsGetDiagnosticInfo
+    valueData:
+      DWord: 2
+    _exist: true
+  metadata:
+    description: Force-deny app access to diagnostic information
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: PrivacyDisableStepsRecorder
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat
+    valueName: DisableUAR
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Disable Steps Recorder
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: DiagnosticsRequiredOnly
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection
+    valueName: AllowTelemetry
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Use Required diagnostic data; practical minimum on Windows 11 Pro
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: DiagnosticsLimitLogs
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection
+    valueName: LimitDiagnosticLogCollection
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Limit diagnostic log collection
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: DiagnosticsLimitDumps
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection
+    valueName: LimitDumpCollection
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Limit diagnostic dump collection
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: DiagnosticsDisableTailoredExperiences
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent
+    valueName: DisableTailoredExperiencesWithDiagnosticData
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Disable tailored experiences based on diagnostic data
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: DiagnosticsDisableFeedbackPrompts
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection
+    valueName: DoNotShowFeedbackNotifications
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Disable Windows feedback prompts
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: PrivacyDisablePrivacyExperience
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\OOBE
+    valueName: DisablePrivacyExperience
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Do not show privacy setup experience after logon or upgrades
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: PrivacyDisableLinguisticDataCollection
+  properties:
+    keyPath: HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\TextInput
+    valueName: AllowLinguisticDataCollection
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Microsoft collection of inking and typing diagnostic data
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: SettingsDisableOnlineTips
+  properties:
+    keyPath: HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer
+    valueName: AllowOnlineTips
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Prevent Settings from retrieving online tips and help content
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: StartHideRecommendedSection
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer
+    valueName: HideRecommendedSection
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Hide Recommended section in Start; supported on Windows 11 Pro
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: StartDisableIrisRecommendations
+  properties:
+    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+    valueName: Start_IrisRecommendations
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Start recommendation content
+- type: Microsoft.Windows/Registry
+  name: SearchDisableWebResults
+  properties:
+    keyPath: HKCU\SOFTWARE\Policies\Microsoft\Windows\Explorer
+    valueName: DisableSearchBoxSuggestions
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Disable web results and suggestions in Windows Search
+- type: Microsoft.Windows/Registry
+  name: SearchDisableHighlights
+  properties:
+    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings
+    valueName: IsDynamicSearchBoxEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Search Highlights
+- type: Microsoft.Windows/Registry
+  name: SearchDisableCloudSearch
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search
+    valueName: AllowCloudSearch
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable cloud search
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: SearchDisableLocation
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search
+    valueName: AllowSearchToUseLocation
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Do not use location for Search
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: SearchHideTaskbarSearch
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search
+    valueName: ConfigureSearchOnTaskbarMode
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Hide taskbar Search on Windows 11 24H2+
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: WidgetsDisable
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Dsh
+    valueName: AllowNewsAndInterests
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Windows Widgets
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: OOBEDisableFinishSetupPrompt
+  properties:
+    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement
+    valueName: ScoobeSystemSettingEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable 'finish setting up your PC' prompts
+- type: Microsoft.Windows/Registry
+  name: ExplorerDisableSyncProviderTips
+  properties:
+    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+    valueName: ShowSyncProviderNotifications
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Explorer sync-provider tips/promotional notifications
+- type: Microsoft.Windows/Registry
+  name: ExplorerShowFileExtensions
+  properties:
+    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+    valueName: HideFileExt
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Show file extensions
+- type: Microsoft.Windows/Registry
+  name: ExplorerOpenThisPC
+  properties:
+    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+    valueName: LaunchTo
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Open File Explorer to This PC
+- type: Microsoft.Windows/Registry
+  name: ExplorerNoFrequentFolders
+  properties:
+    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer
+    valueName: ShowFrequent
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable frequent folders in Quick Access
+- type: Microsoft.Windows/Registry
+  name: ExplorerNoRecentFiles
+  properties:
+    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer
+    valueName: ShowRecent
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable recent files in Quick Access
+- type: Microsoft.Windows/Registry
+  name: ExplorerNoCloudRecommendations
+  properties:
+    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer
+    valueName: ShowCloudFilesInQuickAccess
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable recommended/cloud files in Quick Access
+- type: Microsoft.Windows/Registry
+  name: DeveloperMode
+  properties:
+    keyPath: HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock
+    valueName: AllowDevelopmentWithoutDevLicense
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Enable Windows Developer Mode
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: LongPaths
+  properties:
+    keyPath: HKLM\SYSTEM\CurrentControlSet\Control\FileSystem
+    valueName: LongPathsEnabled
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Enable Win32 long path support
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: RecallDisableAvailability
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI
+    valueName: AllowRecallEnablement
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Recall availability and remove Recall bits where supported
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: RecallDisableSnapshots
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI
+    valueName: DisableAIDataAnalysis
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Disable saving Recall snapshots
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: WindowsAIDisableClickToDo
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI
+    valueName: DisableClickToDo
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Disable Click to Do where supported
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeTrackingPreventionStrict
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: TrackingPrevention
+    valueData:
+      DWord: 3
+    _exist: true
+  metadata:
+    description: Set Edge tracking prevention to Strict
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisablePaymentQueries
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: PaymentMethodQueryEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Prevent sites from querying saved payment methods
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisablePersonalization
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: PersonalizationReportingEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Edge personalization reporting
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableFeedback
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: UserFeedbackAllowed
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Edge feedback UI
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableCardAutofill
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: AutofillCreditCardEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Edge credit-card autofill
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableAddressAutofill
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: AutofillAddressEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Edge address/form autofill
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableSearchSuggestions
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: SearchSuggestEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Edge search/website suggestions
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableShopping
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: EdgeShoppingAssistantEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Edge shopping assistant
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableSidebar
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: HubsSidebarEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Edge sidebar
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableCloudEditor
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: MicrosoftEditorProofingEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Microsoft Editor cloud-enhanced proofing
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableNavigationWebService
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: ResolveNavigationErrorsUseWebService
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Edge web service for navigation errors
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableAlternateErrorPages
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: AlternateErrorPagesEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Edge similar-site suggestions
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeHideFirstRun
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: HideFirstRunExperience
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Hide Edge first-run experience
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeBlankNewTab
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: NewTabPageLocation
+    valueData:
+      String: about:blank
+    _exist: true
+  metadata:
+    description: Use a blank Edge new-tab page
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: OfficeDisableTelemetry
+  properties:
+    keyPath: HKCU\SOFTWARE\Policies\Microsoft\Office\Common\ClientTelemetry
+    valueName: SendTelemetry
+    valueData:
+      DWord: 3
+    _exist: true
+  metadata:
+    description: Configure Microsoft 365 Apps to send neither required nor optional diagnostic data where supported
+- type: Microsoft.Windows/Registry
+  name: PowerShellTelemetryOptOut
+  properties:
+    keyPath: HKCU\Environment
+    valueName: POWERSHELL_TELEMETRY_OPTOUT
+    valueData:
+      String: '1'
+    _exist: true
+  metadata:
+    description: Opt out of PowerShell telemetry for future processes
+- type: Microsoft.Windows/Registry
+  name: DotNetTelemetryOptOut
+  properties:
+    keyPath: HKCU\Environment
+    valueName: DOTNET_CLI_TELEMETRY_OPTOUT
+    valueData:
+      String: '1'
+    _exist: true
+  metadata:
+    description: Opt out of .NET CLI telemetry for future processes
+- type: Microsoft.Windows/Registry
+  name: DotNetNoLogo
+  properties:
+    keyPath: HKCU\Environment
+    valueName: DOTNET_NOLOGO
+    valueData:
+      String: '1'
+    _exist: true
+  metadata:
+    description: Suppress .NET CLI first-run/welcome output
+- type: Microsoft.Windows/Registry
+  name: WERDisable
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting
+    valueName: Disabled
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Disable Windows Error Reporting entirely
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: DiagnosticsExcludeDeviceName
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection
+    valueName: AllowDeviceNameInDiagnosticData
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Do not include the device name in Windows diagnostic data
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: StartDisableAccountNotifications
+  properties:
+    keyPath: HKCU\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\AccountNotifications
+    valueName: DisableAccountNotifications
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Disable Microsoft/local account notifications in the Start user tile
+- type: Microsoft.Windows/Registry
+  name: GamingDisableGameDVR
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\GameDVR
+    valueName: AllowGameDVR
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Windows Game Recording and Broadcasting / Game DVR
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: NotepadDisableAI
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\WindowsNotepad
+    valueName: DisableAIFeatures
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Disable AI features in Windows Notepad
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableSpotlightRecommendations
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: SpotlightExperiencesAndRecommendationsEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Edge Spotlight experiences, customized recommendations, notifications, and tips
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableBingChatOnNewTab
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: NewTabPageBingChatEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Bing/Copilot chat entry points on the Edge new tab page
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableNewTabContent
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: NewTabPageContentEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Microsoft content on the Edge new tab page
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableAIGeneratedThemes
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: AIGenThemesEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable AI-generated Edge themes
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableBuiltInAIAPIs
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: BuiltInAIAPIsEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Prevent websites from using Edge built-in AI APIs
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableInlineCompose
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: ComposeInlineEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Microsoft 365 Copilot inline writing assistance in Edge for Business
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableCopilotPageContext
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: CopilotPageContext
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Prevent Edge Copilot from accessing page context for applicable Entra profiles
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableEntraCopilotPageContext
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: EdgeEntraCopilotPageContext
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Prevent Edge Copilot from accessing page content, history, and transcripts for applicable Entra profiles
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableDefaultBrowserCampaigns
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: DefaultBrowserSettingsCampaignEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Edge campaigns prompting to make Edge/Bing the defaults
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableDiagnosticData
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: DiagnosticData
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Turn off Edge required and optional diagnostic-data collection
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeHideM365CopilotChatIcon
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: Microsoft365CopilotChatIconEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Hide Microsoft 365 Copilot Chat icon in Edge for Business where applicable
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeHideMicrosoftRewards
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: ShowMicrosoftRewards
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Hide Microsoft Rewards experiences and notifications in Edge
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableRecommendations
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: ShowRecommendationsEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Edge feature recommendations and browser-assistance notifications
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableTabServices
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: TabServicesEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable cloud tab-organization suggestions and associated URL/title uploads
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableTextPrediction
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: TextPredictionEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable cloud-backed Edge text prediction in editable web fields
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableVisualSearch
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: VisualSearchEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable Edge Visual Search
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisableAIHistorySearch
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: EdgeHistoryAISearchEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable AI-enhanced natural-language search in Edge browsing history
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: EdgeDisablePDFDefaultPrompts
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
+    valueName: ShowPDFDefaultRecommendationsEnabled
+    valueData:
+      DWord: 0
+    _exist: true
+  metadata:
+    description: Disable prompts to make Edge the default PDF reader
+    winget:
+      securityContext: elevated
+- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  name: RemoveRecommendedInboxApps
+  properties:
+    getScript: |-
+      $wanted = @(
+        'Microsoft.Copilot',
+        'Clipchamp.Clipchamp',
+        'Microsoft.WindowsFeedbackHub',
+        'Microsoft.MicrosoftOfficeHub',
+        'Microsoft.MicrosoftSolitaireCollection',
+        'Microsoft.BingNews',
+        'Microsoft.BingWeather'
+      )
+      $installed = foreach ($name in $wanted) {
+        if (Get-AppxPackage -AllUsers -Name $name -ErrorAction SilentlyContinue) { $name }
+      }
+      $provisionedNames = @(Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Select-Object -ExpandProperty DisplayName)
+      $provisioned = @($wanted | Where-Object { $_ -in $provisionedNames })
+      return @{ installed = @($installed); provisioned = @($provisioned) }
+    testScript: |-
+      $wanted = @(
+        'Microsoft.Copilot',
+        'Clipchamp.Clipchamp',
+        'Microsoft.WindowsFeedbackHub',
+        'Microsoft.MicrosoftOfficeHub',
+        'Microsoft.MicrosoftSolitaireCollection',
+        'Microsoft.BingNews',
+        'Microsoft.BingWeather'
+      )
+      foreach ($name in $wanted) {
+        if (Get-AppxPackage -AllUsers -Name $name -ErrorAction SilentlyContinue) { return $false }
+      }
+      $provisionedNames = @(Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Select-Object -ExpandProperty DisplayName)
+      foreach ($name in $wanted) {
+        if ($name -in $provisionedNames) { return $false }
+      }
+      return $true
+    setScript: |-
+      $ErrorActionPreference = 'Stop'
+      $wanted = @(
+        'Microsoft.Copilot',
+        'Clipchamp.Clipchamp',
+        'Microsoft.WindowsFeedbackHub',
+        'Microsoft.MicrosoftOfficeHub',
+        'Microsoft.MicrosoftSolitaireCollection',
+        'Microsoft.BingNews',
+        'Microsoft.BingWeather'
+      )
+      foreach ($name in $wanted) {
+        Get-AppxPackage -AllUsers -Name $name -ErrorAction SilentlyContinue | ForEach-Object {
+          Write-Host "Removing installed AppX: $($_.PackageFullName)"
+          Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction Continue
+        }
+      }
+      $provisioned = @(Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue)
+      foreach ($name in $wanted) {
+        $provisioned | Where-Object DisplayName -eq $name | ForEach-Object {
+          Write-Host "Removing provisioned AppX: $($_.PackageName)"
+          Remove-AppxProvisionedPackage -Online -PackageName $_.PackageName -AllUsers -ErrorAction Continue | Out-Null
+        }
+      }
+  metadata:
+    description: Remove a conservative explicit list of unwanted inbox/consumer AppX packages for all users and deprovision them for new users
+    winget:
+      securityContext: elevated
+- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  name: WinGetTelemetrySettings
+  properties:
+    getScript: |-
+      $paths = @(
+        (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\settings.json'),
+        (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Settings\settings.json')
+      )
+      $path = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
+      if (-not $path) { return @{ disabled = $false; path = $null } }
+      try { $s = Get-Content $path -Raw | ConvertFrom-Json } catch { return @{ disabled = $false; path = $path } }
+      return @{ disabled = ($s.telemetry.disable -eq $true); path = $path }
+    testScript: |-
+      $paths = @(
+        (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\settings.json'),
+        (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Settings\settings.json')
+      )
+      $path = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
+      if (-not $path) { return $false }
+      try { $s = Get-Content $path -Raw | ConvertFrom-Json } catch { return $false }
+      return ($s.telemetry.disable -eq $true)
+    setScript: |-
+      $packageDir = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState'
+      $portableDir = Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Settings'
+      if (Test-Path (Split-Path $packageDir -Parent)) { $dir = $packageDir } else { $dir = $portableDir }
+      New-Item -ItemType Directory -Path $dir -Force | Out-Null
+      $path = Join-Path $dir 'settings.json'
+      if (Test-Path $path) {
+        try { $s = Get-Content $path -Raw | ConvertFrom-Json } catch { $s = [pscustomobject]@{} }
+      } else { $s = [pscustomobject]@{} }
+      if (-not $s.PSObject.Properties['telemetry']) { $s | Add-Member -NotePropertyName telemetry -NotePropertyValue ([pscustomobject]@{}) }
+      $s.telemetry | Add-Member -NotePropertyName disable -NotePropertyValue $true -Force
+      if (-not $s.PSObject.Properties['$schema']) { $s | Add-Member -NotePropertyName '$schema' -NotePropertyValue 'https://aka.ms/winget-settings.schema.json' }
+      $s | ConvertTo-Json -Depth 100 | Set-Content -Path $path -Encoding UTF8
+  metadata:
+    description: Disable WinGet telemetry without replacing unrelated WinGet settings
+- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  name: InstallCascadiaCodeNerdFonts
+  properties:
+    getScript: |-
+      $fontsDir = Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Fonts'
+      $wantedFonts = @('CascadiaCodeNF.ttf', 'CascadiaMonoNF.ttf')
+      $regPath = 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
+      $regValues = @((Get-ItemProperty $regPath -EA SilentlyContinue).PSObject.Properties |
+        Where-Object Name -notin 'PSPath','PSParentPath','PSChildName','PSDrive','PSProvider' |
+        Select-Object -ExpandProperty Value)
+      $filesOk = -not ($wantedFonts | Where-Object { -not (Test-Path (Join-Path $fontsDir $_)) })
+      $regOk = -not ($wantedFonts | Where-Object { $fn = $_; -not ($regValues | Where-Object { $_ -like "*\$fn" }) })
+      return @{ filesInstalled = $filesOk; registryEntries = $regOk }
+    testScript: |-
+      $fontsDir = Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Fonts'
+      $wantedFonts = @('CascadiaCodeNF.ttf', 'CascadiaMonoNF.ttf')
+      $regPath = 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
+      $regValues = @((Get-ItemProperty $regPath -EA SilentlyContinue).PSObject.Properties |
+        Where-Object Name -notin 'PSPath','PSParentPath','PSChildName','PSDrive','PSProvider' |
+        Select-Object -ExpandProperty Value)
+      $filesOk = -not ($wantedFonts | Where-Object { -not (Test-Path (Join-Path $fontsDir $_)) })
+      $regOk = -not ($wantedFonts | Where-Object { $fn = $_; -not ($regValues | Where-Object { $_ -like "*\$fn" }) })
+      return ($filesOk -and $regOk)
+    setScript: |-
+      $ErrorActionPreference = 'Stop'
+      $Version = '2407.24'
+      $WantedFonts = @('CascadiaCodeNF.ttf', 'CascadiaMonoNF.ttf')
+      $zipUrl = "https://github.com/microsoft/cascadia-code/releases/download/v$Version/CascadiaCode-$Version.zip"
+      $workDir = Join-Path $env:TEMP "CascadiaCode-$Version"
+      $zipPath = Join-Path $workDir 'CascadiaCode.zip'
+      $fontsDir = Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Fonts'
+      $regPath = 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
+      New-Item -ItemType Directory -Path $workDir -Force | Out-Null
+      New-Item -ItemType Directory -Path $fontsDir -Force | Out-Null
+      $ProgressPreference = 'SilentlyContinue'
+      Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath -UseBasicParsing
+      $expectedHash = 'E67A68EE3386DB63F48B9054BD196EA752BC6A4EBB4DF35ADCE6733DA50C8474'
+      $actualHash = (Get-FileHash $zipPath -Algorithm SHA256).Hash
+      if ($actualHash -ne $expectedHash) {
+        Remove-Item $zipPath -Force
+        throw "Hash mismatch for CascadiaCode-$Version.zip: expected $expectedHash, got $actualHash"
+      }
+      Add-Type -AssemblyName System.IO.Compression.FileSystem
+      Add-Type -AssemblyName System.Drawing
+      $zip = [System.IO.Compression.ZipFile]::OpenRead($zipPath)
+      try {
+        foreach ($name in $WantedFonts) {
+          $entry = $zip.Entries | Where-Object { $_.Name -eq $name } | Select-Object -First 1
+          if (-not $entry) { throw "Font not found in archive: $name" }
+          $dest = Join-Path $fontsDir $name
+          [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $dest, $true)
+          $pfc = New-Object System.Drawing.Text.PrivateFontCollection
+          try {
+            $pfc.AddFontFile($dest)
+            $family = $pfc.Families[0].Name
+          } finally { $pfc.Dispose() }
+          $regName = "$family (TrueType)"
+          New-ItemProperty -Path $regPath -Name $regName -Value $dest -PropertyType String -Force | Out-Null
+        }
+      } finally { $zip.Dispose() }
+      Remove-Item $zipPath -Force
+  metadata:
+    description: Install Microsoft Cascadia Code NF and Cascadia Mono NF 2407.24 for the current user with pinned SHA-256 verification
+- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  name: WindowsTerminalSettings
+  dependsOn:
+  - PackageWindowsTerminal
+  - PackagePowerShell
+  - InstallCascadiaCodeNerdFonts
+  properties:
+    getScript: |-
+      $paths = @(
+        (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json'),
+        (Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal\settings.json')
+      )
+      $path = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
+      if (-not $path) { return @{ path = $null; configured = $false } }
+      return @{ path = $path; configured = $true }
+    testScript: |-
+      $desiredRaw = @'
+      {
+          "$help": "https://aka.ms/terminal-documentation",
+          "$schema": "https://aka.ms/terminal-profiles-schema",
+          "actions": [],
+          "copyOnSelect": true,
+          "defaultProfile": "{26043d3d-43de-425d-8803-ab90eb274751}",
+          "disabledProfileSources": [
+              "Windows.Terminal.Wsl",
+              "Windows.Terminal.Azure",
+              "Windows.Terminal.PowershellCore",
+              "Windows.Terminal.SSH"
+          ],
+          "keybindings": [],
+          "newTabMenu": [
+              {
+                  "type": "remainingProfiles"
+              }
+          ],
+          "profiles": {
+              "defaults": {
+                  "bellStyle": "taskbar",
+                  "colorScheme": "Solarized Dark",
+                  "font": {
+                      "face": "Cascadia Code NF",
+                      "size": 10
+                  },
+                  "padding": "1,0,0,0",
+                  "scrollbarState": "hidden",
+                  "startingDirectory": "%USERPROFILE%"
+              },
+              "list": [
+                  {
+                      "closeOnExit": "always",
+                      "commandline": "%SystemRoot%\\System32\\cmd.exe",
+                      "guid": "{26043d3d-43de-425d-8803-ab90eb274751}",
+                      "hidden": false,
+                      "name": "Command Prompt"
+                  },
+                  {
+                      "closeOnExit": "always",
+                      "commandline": "wsl.exe -d Ubuntu",
+                      "guid": "{c0f87640-6013-5c50-9c5f-d27b1ae0d344}",
+                      "hidden": false,
+                      "name": "Ubuntu",
+                      "startingDirectory": "~"
+                  },
+                  {
+                      "closeOnExit": "always",
+                      "commandline": "pwsh.exe -NoLogo",
+                      "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+                      "hidden": false,
+                      "icon": "ms-appx:///ProfileIcons/pwsh.png",
+                      "name": "PowerShell 7"
+                  },
+                  {
+                      "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+                      "hidden": false,
+                      "name": "Windows PowerShell"
+                  }
+              ]
+          },
+          "schemes": [],
+          "searchWebDefaultQueryUrl": "https://www.google.com/search?q=%22%s%22",
+          "snapToGridOnResize": true,
+          "themes": []
+      }
+      '@
+      $paths = @(
+        (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json'),
+        (Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal\settings.json')
+      )
+      $path = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
+      if (-not $path) { return $false }
+      try {
+        $raw = Get-Content $path -Raw
+        $clean = [regex]::Replace($raw, '/\*[\s\S]*?\*/', '')
+        $clean = [regex]::Replace($clean, '(?m)^\s*//.*$', '')
+        $current = $clean | ConvertFrom-Json | ConvertTo-Json -Depth 100 -Compress
+        $desired = $desiredRaw | ConvertFrom-Json | ConvertTo-Json -Depth 100 -Compress
+        return ($current -eq $desired)
+      } catch { return $false }
+    setScript: |-
+      $ErrorActionPreference = 'Stop'
+      $desiredRaw = @'
+      {
+          "$help": "https://aka.ms/terminal-documentation",
+          "$schema": "https://aka.ms/terminal-profiles-schema",
+          "actions": [],
+          "copyOnSelect": true,
+          "defaultProfile": "{26043d3d-43de-425d-8803-ab90eb274751}",
+          "disabledProfileSources": [
+              "Windows.Terminal.Wsl",
+              "Windows.Terminal.Azure",
+              "Windows.Terminal.PowershellCore",
+              "Windows.Terminal.SSH"
+          ],
+          "keybindings": [],
+          "newTabMenu": [
+              {
+                  "type": "remainingProfiles"
+              }
+          ],
+          "profiles": {
+              "defaults": {
+                  "bellStyle": "taskbar",
+                  "colorScheme": "Solarized Dark",
+                  "font": {
+                      "face": "Cascadia Code NF",
+                      "size": 10
+                  },
+                  "padding": "1,0,0,0",
+                  "scrollbarState": "hidden",
+                  "startingDirectory": "%USERPROFILE%"
+              },
+              "list": [
+                  {
+                      "closeOnExit": "always",
+                      "commandline": "%SystemRoot%\\System32\\cmd.exe",
+                      "guid": "{26043d3d-43de-425d-8803-ab90eb274751}",
+                      "hidden": false,
+                      "name": "Command Prompt"
+                  },
+                  {
+                      "closeOnExit": "always",
+                      "commandline": "wsl.exe -d Ubuntu",
+                      "guid": "{c0f87640-6013-5c50-9c5f-d27b1ae0d344}",
+                      "hidden": false,
+                      "name": "Ubuntu",
+                      "startingDirectory": "~"
+                  },
+                  {
+                      "closeOnExit": "always",
+                      "commandline": "pwsh.exe -NoLogo",
+                      "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+                      "hidden": false,
+                      "icon": "ms-appx:///ProfileIcons/pwsh.png",
+                      "name": "PowerShell 7"
+                  },
+                  {
+                      "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+                      "hidden": false,
+                      "name": "Windows PowerShell"
+                  }
+              ]
+          },
+          "schemes": [],
+          "searchWebDefaultQueryUrl": "https://www.google.com/search?q=%22%s%22",
+          "snapToGridOnResize": true,
+          "themes": []
+      }
+      '@
+      $packagedDir = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState'
+      $portableDir = Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal'
+      if (Test-Path (Split-Path $packagedDir -Parent)) { $dir = $packagedDir } else { $dir = $portableDir }
+      New-Item -ItemType Directory -Path $dir -Force | Out-Null
+      $path = Join-Path $dir 'settings.json'
+      if ((Test-Path $path) -and -not (Test-Path "$path.pre-dsc.bak")) { Copy-Item $path "$path.pre-dsc.bak" -Force }
+      $desiredRaw | Set-Content -Path $path -Encoding UTF8
+  metadata:
+    description: 'Own Windows Terminal settings.json declaratively: local Command Prompt default, explicit Ubuntu and PowerShell 7 profiles, Cascadia Code NF,
+      Solarized Dark, and no duplicate dynamic profiles'
