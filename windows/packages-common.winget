@@ -1,0 +1,39 @@
+# Applications installed on every Windows workstation.
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+metadata:
+  winget:
+    processor:
+      identifier: dscv3
+resources:
+- type: Microsoft.WinGet/Package
+  name: Package7Zip
+  properties:
+    id: 7zip.7zip
+    source: winget
+    useLatest: true
+  metadata:
+    description: Install 7-Zip
+- type: Microsoft.WinGet/Package
+  name: PackageFirefox
+  properties:
+    id: Mozilla.Firefox
+    source: winget
+    useLatest: true
+  metadata:
+    description: Install Mozilla Firefox
+- type: Microsoft.WinGet/Package
+  name: PackageVSCode
+  properties:
+    id: Microsoft.VisualStudioCode
+    source: winget
+    useLatest: true
+  metadata:
+    description: Install Visual Studio Code
+- type: Microsoft.WinGet/Package
+  name: PackageVLC
+  properties:
+    id: VideoLAN.VLC
+    source: winget
+    useLatest: true
+  metadata:
+    description: Install VLC media player

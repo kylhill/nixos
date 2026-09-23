@@ -110,33 +110,52 @@ cd ~/nixos
 
 ### WSL bootstrap
 
-Download `scripts/bootstrap-windows.ps1` from an elevated PowerShell prompt to
-install or update WSL, install the selected Ubuntu distribution, and ensure it
-uses WSL2:
-```bash
-curl.exe -o bootstrap-windows.ps1 https://git.tacomafia.net/kylhill/nixos/raw/branch/main/scripts/bootstrap-windows.ps1
-.\bootstrap-windows.ps1
+From an elevated PowerShell prompt in a checkout of this repository, run:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\windows\bootstrap.ps1
 ```
 
-After the first Ubuntu launch creates the Linux user, clone this
-public repository and run the Linux bootstrap:
+When `-Profile` is omitted, the script prompts for `Home` or `Work`. For an
+unattended or repeatable invocation, select it explicitly:
 
-```bash
-sudo apt-get update
-sudo apt-get install -y git
-git clone https://git.tacomafia.net/kylhill/nixos.git ~/nixos
-~/nixos/scripts/bootstrap-home.sh
+```powershell
+.\windows\bootstrap.ps1 -Profile Home
+.\windows\bootstrap.ps1 -Profile Work
 ```
 
-The Windows script intentionally stops after installing a new distribution;
-restart Windows if requested and rerun it to update WSL and verify or convert
-the distribution to WSL2. The Linux bootstrap requires an x86_64 WSL client
+The top-level script validates and applies the shared native state in
+`windows/configuration.winget`, the applications in
+`windows/packages-common.winget`, and the selected `packages-home.winget` or
+`packages-work.winget`. The Home profile adds Deluge, Nextcloud, and Steam;
+the Work profile adds Google Drive. Package profiles are additive: selecting a
+different profile later does not uninstall packages installed by an earlier
+profile.
+
+The script then sets up Ubuntu WSL2 and runs `scripts/bootstrap-home.sh` inside Ubuntu. On a
+fresh install it stops after installing WSL: reboot if requested, launch Ubuntu
+once to create the `kyleh` Linux user, then rerun the same command. It is safe
+to rerun after a partial install. The Linux bootstrap installs Git inside
+Ubuntu and clones this public repository there; native Windows Git is not
+required. It requires an x86_64 WSL client
 and selects
 `homeConfigurations.wsl`, installs Ubuntu's `nix-bin` and
 `nix-setup-systemd` packages, validates the flake target, and activates the
 Home Manager generation from the repository's locked inputs. If systemd is not
 running, it stops with the required `/etc/wsl.conf` and PowerShell restart
 instructions.
+
+The DSC documents own native Windows packages, policies, fonts, and Terminal
+settings. No full Windows apply has been run from this Linux checkout. Test the
+configuration on one Windows 11 Pro machine before rolling it out to the other
+two. Supported-policy gaps are intentional: Settings Agent and File Explorer
+AI Actions have no verified Pro policy here; neither has an undocumented
+registry workaround. Edge Secure Network, Office surveys/feedback controls,
+taskbar End Task, and some shell/lock-screen promotions are not forced until
+a current supported mechanism is verified for this baseline. Some Edge for
+Business policies only affect applicable work profiles. TVRename remains a
+manual install unless a reliable WinGet package is identified.
 
 After activation, the Linux bootstrap prompts without echo for an optional SOPS
 age secret key. When supplied, it validates the key and uses it to decrypt the

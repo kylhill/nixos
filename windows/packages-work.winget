@@ -1,0 +1,15 @@
+# Applications installed on work Windows workstations.
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+metadata:
+  winget:
+    processor:
+      identifier: dscv3
+resources:
+- type: Microsoft.WinGet/Package
+  name: PackageGoogleDrive
+  properties:
+    id: Google.GoogleDrive
+    source: winget
+    useLatest: true
+  metadata:
+    description: Install Google Drive for desktop

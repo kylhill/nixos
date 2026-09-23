@@ -1,12 +1,14 @@
 # Windows 11 personal workstation configuration
 # Generated 2026-09-21
 #
+# Shared native Windows state. Apply package-common.winget and exactly one
+# package profile separately; windows/bootstrap.ps1 orchestrates all three.
 # Apply:
-#   winget configure -f .\config.winget --accept-configuration-agreements --disable-interactivity
+#   winget configure -f .\configuration.winget --accept-configuration-agreements --disable-interactivity
 # Test:
-#   winget configure test -f .\config.winget
+#   winget configure test -f .\configuration.winget
 # Validate:
-#   winget configure validate -f .\config.winget
+#   winget configure validate -f .\configuration.winget
 #
 # Baseline: Windows 11 Pro, 24H2 or later.
 #
@@ -17,53 +19,23 @@ metadata:
       identifier: dscv3
 resources:
 - type: Microsoft.WinGet/Package
-  name: Package7Zip
+  name: PackageWindowsTerminal
   properties:
-    id: 7zip.7zip
+    id: Microsoft.WindowsTerminal
     source: winget
     useLatest: true
-  metadata:
-    description: Install 7-Zip
 - type: Microsoft.WinGet/Package
-  name: PackageDeluge
+  name: PackagePowerShell
   properties:
-    id: DelugeTeam.Deluge
+    id: Microsoft.PowerShell
     source: winget
     useLatest: true
-  metadata:
-    description: Install Deluge
 - type: Microsoft.WinGet/Package
-  name: PackageFirefox
+  name: PackageCoreutils
   properties:
-    id: Mozilla.Firefox
+    id: Microsoft.Coreutils
     source: winget
     useLatest: true
-  metadata:
-    description: Install Mozilla Firefox
-- type: Microsoft.WinGet/Package
-  name: PackageNextcloud
-  properties:
-    id: Nextcloud.NextcloudDesktop
-    source: winget
-    useLatest: true
-  metadata:
-    description: Install Nextcloud Desktop
-- type: Microsoft.WinGet/Package
-  name: PackageVLC
-  properties:
-    id: VideoLAN.VLC
-    source: winget
-    useLatest: true
-  metadata:
-    description: Install VLC media player
-- type: Microsoft.WinGet/Package
-  name: PackageVSCode
-  properties:
-    id: Microsoft.VisualStudioCode
-    source: winget
-    useLatest: true
-  metadata:
-    description: Install Visual Studio Code
 - type: Microsoft.Windows/Registry
   name: PrivacyDisableAdvertisingId
   properties:
@@ -474,6 +446,18 @@ resources:
     _exist: true
   metadata:
     description: Enable Win32 long path support
+    winget:
+      securityContext: elevated
+- type: Microsoft.Windows/Registry
+  name: SudoForceNewWindow
+  properties:
+    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\Sudo
+    valueName: EnableSudo
+    valueData:
+      DWord: 1
+    _exist: true
+  metadata:
+    description: Limit Windows sudo to force-new-window mode on Windows 11 24H2+
     winget:
       securityContext: elevated
 - type: Microsoft.Windows/Registry
@@ -996,63 +980,51 @@ resources:
       securityContext: elevated
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: RemoveRecommendedInboxApps
+  dependsOn:
+  - PackagePowerShell
   properties:
+    input:
+    - Microsoft.Copilot
+    - Clipchamp.Clipchamp
+    - Microsoft.WindowsFeedbackHub
+    - Microsoft.MicrosoftOfficeHub
+    - Microsoft.MicrosoftSolitaireCollection
+    - Microsoft.BingNews
+    - Microsoft.BingWeather
     getScript: |-
-      $wanted = @(
-        'Microsoft.Copilot',
-        'Clipchamp.Clipchamp',
-        'Microsoft.WindowsFeedbackHub',
-        'Microsoft.MicrosoftOfficeHub',
-        'Microsoft.MicrosoftSolitaireCollection',
-        'Microsoft.BingNews',
-        'Microsoft.BingWeather'
-      )
+      param($wanted)
+      $ErrorActionPreference = 'Stop'
       $installed = foreach ($name in $wanted) {
-        if (Get-AppxPackage -AllUsers -Name $name -ErrorAction SilentlyContinue) { $name }
+        if (Get-AppxPackage -AllUsers -Name $name) { $name }
       }
-      $provisionedNames = @(Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Select-Object -ExpandProperty DisplayName)
+      $provisionedNames = @(Get-AppxProvisionedPackage -Online | Select-Object -ExpandProperty DisplayName)
       $provisioned = @($wanted | Where-Object { $_ -in $provisionedNames })
       return @{ installed = @($installed); provisioned = @($provisioned) }
     testScript: |-
-      $wanted = @(
-        'Microsoft.Copilot',
-        'Clipchamp.Clipchamp',
-        'Microsoft.WindowsFeedbackHub',
-        'Microsoft.MicrosoftOfficeHub',
-        'Microsoft.MicrosoftSolitaireCollection',
-        'Microsoft.BingNews',
-        'Microsoft.BingWeather'
-      )
+      param($wanted)
+      $ErrorActionPreference = 'Stop'
       foreach ($name in $wanted) {
-        if (Get-AppxPackage -AllUsers -Name $name -ErrorAction SilentlyContinue) { return $false }
+        if (Get-AppxPackage -AllUsers -Name $name) { return $false }
       }
-      $provisionedNames = @(Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Select-Object -ExpandProperty DisplayName)
+      $provisionedNames = @(Get-AppxProvisionedPackage -Online | Select-Object -ExpandProperty DisplayName)
       foreach ($name in $wanted) {
         if ($name -in $provisionedNames) { return $false }
       }
       return $true
     setScript: |-
+      param($wanted)
       $ErrorActionPreference = 'Stop'
-      $wanted = @(
-        'Microsoft.Copilot',
-        'Clipchamp.Clipchamp',
-        'Microsoft.WindowsFeedbackHub',
-        'Microsoft.MicrosoftOfficeHub',
-        'Microsoft.MicrosoftSolitaireCollection',
-        'Microsoft.BingNews',
-        'Microsoft.BingWeather'
-      )
       foreach ($name in $wanted) {
-        Get-AppxPackage -AllUsers -Name $name -ErrorAction SilentlyContinue | ForEach-Object {
+        Get-AppxPackage -AllUsers -Name $name | ForEach-Object {
           Write-Host "Removing installed AppX: $($_.PackageFullName)"
-          Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction Continue
+          Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction Stop
         }
       }
-      $provisioned = @(Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue)
+      $provisioned = @(Get-AppxProvisionedPackage -Online)
       foreach ($name in $wanted) {
         $provisioned | Where-Object DisplayName -eq $name | ForEach-Object {
           Write-Host "Removing provisioned AppX: $($_.PackageName)"
-          Remove-AppxProvisionedPackage -Online -PackageName $_.PackageName -AllUsers -ErrorAction Continue | Out-Null
+          Remove-AppxProvisionedPackage -Online -PackageName $_.PackageName -AllUsers -ErrorAction Stop | Out-Null
         }
       }
   metadata:
@@ -1060,47 +1032,20 @@ resources:
     winget:
       securityContext: elevated
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
-  name: WinGetTelemetrySettings
-  properties:
-    getScript: |-
-      $paths = @(
-        (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\settings.json'),
-        (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Settings\settings.json')
-      )
-      $path = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
-      if (-not $path) { return @{ disabled = $false; path = $null } }
-      try { $s = Get-Content $path -Raw | ConvertFrom-Json } catch { return @{ disabled = $false; path = $path } }
-      return @{ disabled = ($s.telemetry.disable -eq $true); path = $path }
-    testScript: |-
-      $paths = @(
-        (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\settings.json'),
-        (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Settings\settings.json')
-      )
-      $path = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
-      if (-not $path) { return $false }
-      try { $s = Get-Content $path -Raw | ConvertFrom-Json } catch { return $false }
-      return ($s.telemetry.disable -eq $true)
-    setScript: |-
-      $packageDir = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState'
-      $portableDir = Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Settings'
-      if (Test-Path (Split-Path $packageDir -Parent)) { $dir = $packageDir } else { $dir = $portableDir }
-      New-Item -ItemType Directory -Path $dir -Force | Out-Null
-      $path = Join-Path $dir 'settings.json'
-      if (Test-Path $path) {
-        try { $s = Get-Content $path -Raw | ConvertFrom-Json } catch { $s = [pscustomobject]@{} }
-      } else { $s = [pscustomobject]@{} }
-      if (-not $s.PSObject.Properties['telemetry']) { $s | Add-Member -NotePropertyName telemetry -NotePropertyValue ([pscustomobject]@{}) }
-      $s.telemetry | Add-Member -NotePropertyName disable -NotePropertyValue $true -Force
-      if (-not $s.PSObject.Properties['$schema']) { $s | Add-Member -NotePropertyName '$schema' -NotePropertyValue 'https://aka.ms/winget-settings.schema.json' }
-      $s | ConvertTo-Json -Depth 100 | Set-Content -Path $path -Encoding UTF8
-  metadata:
-    description: Disable WinGet telemetry without replacing unrelated WinGet settings
-- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: InstallCascadiaCodeNerdFonts
+  dependsOn:
+  - PackagePowerShell
   properties:
+    input:
+      version: '2407.24'
+      sha256: E67A68EE3386DB63F48B9054BD196EA752BC6A4EBB4DF35ADCE6733DA50C8474
+      files:
+      - CascadiaCodeNF.ttf
+      - CascadiaMonoNF.ttf
     getScript: |-
+      param($desired)
       $fontsDir = Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Fonts'
-      $wantedFonts = @('CascadiaCodeNF.ttf', 'CascadiaMonoNF.ttf')
+      $wantedFonts = @($desired.files)
       $regPath = 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
       $regValues = @((Get-ItemProperty $regPath -EA SilentlyContinue).PSObject.Properties |
         Where-Object Name -notin 'PSPath','PSParentPath','PSChildName','PSDrive','PSProvider' |
@@ -1109,8 +1054,9 @@ resources:
       $regOk = -not ($wantedFonts | Where-Object { $fn = $_; -not ($regValues | Where-Object { $_ -like "*\$fn" }) })
       return @{ filesInstalled = $filesOk; registryEntries = $regOk }
     testScript: |-
+      param($desired)
       $fontsDir = Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Fonts'
-      $wantedFonts = @('CascadiaCodeNF.ttf', 'CascadiaMonoNF.ttf')
+      $wantedFonts = @($desired.files)
       $regPath = 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
       $regValues = @((Get-ItemProperty $regPath -EA SilentlyContinue).PSObject.Properties |
         Where-Object Name -notin 'PSPath','PSParentPath','PSChildName','PSDrive','PSProvider' |
@@ -1119,22 +1065,29 @@ resources:
       $regOk = -not ($wantedFonts | Where-Object { $fn = $_; -not ($regValues | Where-Object { $_ -like "*\$fn" }) })
       return ($filesOk -and $regOk)
     setScript: |-
+      param($desired)
       $ErrorActionPreference = 'Stop'
-      $Version = '2407.24'
-      $WantedFonts = @('CascadiaCodeNF.ttf', 'CascadiaMonoNF.ttf')
+      $Version = $desired.version
+      $WantedFonts = @($desired.files)
       $zipUrl = "https://github.com/microsoft/cascadia-code/releases/download/v$Version/CascadiaCode-$Version.zip"
-      $workDir = Join-Path $env:TEMP "CascadiaCode-$Version"
+      $workDir = Join-Path $env:TEMP ("CascadiaCode-" + [guid]::NewGuid().ToString('N'))
       $zipPath = Join-Path $workDir 'CascadiaCode.zip'
       $fontsDir = Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Fonts'
       $regPath = 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
+      $regValues = @((Get-ItemProperty $regPath -ErrorAction SilentlyContinue).PSObject.Properties |
+        Where-Object Name -notin 'PSPath','PSParentPath','PSChildName','PSDrive','PSProvider' |
+        Select-Object -ExpandProperty Value)
+      $filesOk = -not ($WantedFonts | Where-Object { -not (Test-Path (Join-Path $fontsDir $_)) })
+      $regOk = -not ($WantedFonts | Where-Object { $fn = $_; -not ($regValues | Where-Object { $_ -like "*\$fn" }) })
+      if ($filesOk -and $regOk) { return }
       New-Item -ItemType Directory -Path $workDir -Force | Out-Null
+      try {
       New-Item -ItemType Directory -Path $fontsDir -Force | Out-Null
       $ProgressPreference = 'SilentlyContinue'
       Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath -UseBasicParsing
-      $expectedHash = 'E67A68EE3386DB63F48B9054BD196EA752BC6A4EBB4DF35ADCE6733DA50C8474'
+      $expectedHash = $desired.sha256
       $actualHash = (Get-FileHash $zipPath -Algorithm SHA256).Hash
       if ($actualHash -ne $expectedHash) {
-        Remove-Item $zipPath -Force
         throw "Hash mismatch for CascadiaCode-$Version.zip: expected $expectedHash, got $actualHash"
       }
       Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -1155,7 +1108,7 @@ resources:
           New-ItemProperty -Path $regPath -Name $regName -Value $dest -PropertyType String -Force | Out-Null
         }
       } finally { $zip.Dispose() }
-      Remove-Item $zipPath -Force
+      } finally { Remove-Item $workDir -Recurse -Force }
   metadata:
     description: Install Microsoft Cascadia Code NF and Cascadia Mono NF 2407.24 for the current user with pinned SHA-256 verification
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
@@ -1165,7 +1118,75 @@ resources:
   - PackagePowerShell
   - InstallCascadiaCodeNerdFonts
   properties:
+    input: |-
+      {
+          "$help": "https://aka.ms/terminal-documentation",
+          "$schema": "https://aka.ms/terminal-profiles-schema",
+          "actions": [],
+          "copyOnSelect": true,
+          "defaultProfile": "{26043d3d-43de-425d-8803-ab90eb274751}",
+          "disabledProfileSources": [
+              "Windows.Terminal.Wsl",
+              "Windows.Terminal.Azure",
+              "Windows.Terminal.PowershellCore",
+              "Windows.Terminal.SSH"
+          ],
+          "keybindings": [],
+          "newTabMenu": [
+              {
+                  "type": "remainingProfiles"
+              }
+          ],
+          "profiles": {
+              "defaults": {
+                  "bellStyle": "taskbar",
+                  "colorScheme": "Solarized Dark",
+                  "font": {
+                      "face": "Cascadia Code NF",
+                      "size": 10
+                  },
+                  "padding": "1,0,0,0",
+                  "scrollbarState": "hidden",
+                  "startingDirectory": "%USERPROFILE%"
+              },
+              "list": [
+                  {
+                      "closeOnExit": "always",
+                      "commandline": "%SystemRoot%\\System32\\cmd.exe",
+                      "guid": "{26043d3d-43de-425d-8803-ab90eb274751}",
+                      "hidden": false,
+                      "name": "Command Prompt"
+                  },
+                  {
+                      "closeOnExit": "always",
+                      "commandline": "wsl.exe -d Ubuntu",
+                      "guid": "{c0f87640-6013-5c50-9c5f-d27b1ae0d344}",
+                      "hidden": false,
+                      "name": "Ubuntu",
+                      "startingDirectory": "~"
+                  },
+                  {
+                      "closeOnExit": "always",
+                      "commandline": "pwsh.exe -NoLogo",
+                      "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+                      "hidden": false,
+                      "icon": "ms-appx:///ProfileIcons/pwsh.png",
+                      "name": "PowerShell 7"
+                  },
+                  {
+                      "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+                      "hidden": false,
+                      "name": "Windows PowerShell"
+                  }
+              ]
+          },
+          "schemes": [],
+          "searchWebDefaultQueryUrl": "https://www.google.com/search?q=%22%s%22",
+          "snapToGridOnResize": true,
+          "themes": []
+      }
     getScript: |-
+      param($desiredRaw)
       $paths = @(
         (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json'),
         (Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal\settings.json')
@@ -1174,163 +1195,23 @@ resources:
       if (-not $path) { return @{ path = $null; configured = $false } }
       return @{ path = $path; configured = $true }
     testScript: |-
-      $desiredRaw = @'
-      {
-          "$help": "https://aka.ms/terminal-documentation",
-          "$schema": "https://aka.ms/terminal-profiles-schema",
-          "actions": [],
-          "copyOnSelect": true,
-          "defaultProfile": "{26043d3d-43de-425d-8803-ab90eb274751}",
-          "disabledProfileSources": [
-              "Windows.Terminal.Wsl",
-              "Windows.Terminal.Azure",
-              "Windows.Terminal.PowershellCore",
-              "Windows.Terminal.SSH"
-          ],
-          "keybindings": [],
-          "newTabMenu": [
-              {
-                  "type": "remainingProfiles"
-              }
-          ],
-          "profiles": {
-              "defaults": {
-                  "bellStyle": "taskbar",
-                  "colorScheme": "Solarized Dark",
-                  "font": {
-                      "face": "Cascadia Code NF",
-                      "size": 10
-                  },
-                  "padding": "1,0,0,0",
-                  "scrollbarState": "hidden",
-                  "startingDirectory": "%USERPROFILE%"
-              },
-              "list": [
-                  {
-                      "closeOnExit": "always",
-                      "commandline": "%SystemRoot%\\System32\\cmd.exe",
-                      "guid": "{26043d3d-43de-425d-8803-ab90eb274751}",
-                      "hidden": false,
-                      "name": "Command Prompt"
-                  },
-                  {
-                      "closeOnExit": "always",
-                      "commandline": "wsl.exe -d Ubuntu",
-                      "guid": "{c0f87640-6013-5c50-9c5f-d27b1ae0d344}",
-                      "hidden": false,
-                      "name": "Ubuntu",
-                      "startingDirectory": "~"
-                  },
-                  {
-                      "closeOnExit": "always",
-                      "commandline": "pwsh.exe -NoLogo",
-                      "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
-                      "hidden": false,
-                      "icon": "ms-appx:///ProfileIcons/pwsh.png",
-                      "name": "PowerShell 7"
-                  },
-                  {
-                      "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
-                      "hidden": false,
-                      "name": "Windows PowerShell"
-                  }
-              ]
-          },
-          "schemes": [],
-          "searchWebDefaultQueryUrl": "https://www.google.com/search?q=%22%s%22",
-          "snapToGridOnResize": true,
-          "themes": []
-      }
-      '@
+      param($desiredRaw)
       $paths = @(
         (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json'),
         (Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal\settings.json')
       )
       $path = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
       if (-not $path) { return $false }
-      try {
-        $raw = Get-Content $path -Raw
-        $clean = [regex]::Replace($raw, '/\*[\s\S]*?\*/', '')
-        $clean = [regex]::Replace($clean, '(?m)^\s*//.*$', '')
-        $current = $clean | ConvertFrom-Json | ConvertTo-Json -Depth 100 -Compress
-        $desired = $desiredRaw | ConvertFrom-Json | ConvertTo-Json -Depth 100 -Compress
-        return ($current -eq $desired)
-      } catch { return $false }
+      return ((Get-Content $path -Raw).Trim() -ceq $desiredRaw.Trim())
     setScript: |-
+      param($desiredRaw)
       $ErrorActionPreference = 'Stop'
-      $desiredRaw = @'
-      {
-          "$help": "https://aka.ms/terminal-documentation",
-          "$schema": "https://aka.ms/terminal-profiles-schema",
-          "actions": [],
-          "copyOnSelect": true,
-          "defaultProfile": "{26043d3d-43de-425d-8803-ab90eb274751}",
-          "disabledProfileSources": [
-              "Windows.Terminal.Wsl",
-              "Windows.Terminal.Azure",
-              "Windows.Terminal.PowershellCore",
-              "Windows.Terminal.SSH"
-          ],
-          "keybindings": [],
-          "newTabMenu": [
-              {
-                  "type": "remainingProfiles"
-              }
-          ],
-          "profiles": {
-              "defaults": {
-                  "bellStyle": "taskbar",
-                  "colorScheme": "Solarized Dark",
-                  "font": {
-                      "face": "Cascadia Code NF",
-                      "size": 10
-                  },
-                  "padding": "1,0,0,0",
-                  "scrollbarState": "hidden",
-                  "startingDirectory": "%USERPROFILE%"
-              },
-              "list": [
-                  {
-                      "closeOnExit": "always",
-                      "commandline": "%SystemRoot%\\System32\\cmd.exe",
-                      "guid": "{26043d3d-43de-425d-8803-ab90eb274751}",
-                      "hidden": false,
-                      "name": "Command Prompt"
-                  },
-                  {
-                      "closeOnExit": "always",
-                      "commandline": "wsl.exe -d Ubuntu",
-                      "guid": "{c0f87640-6013-5c50-9c5f-d27b1ae0d344}",
-                      "hidden": false,
-                      "name": "Ubuntu",
-                      "startingDirectory": "~"
-                  },
-                  {
-                      "closeOnExit": "always",
-                      "commandline": "pwsh.exe -NoLogo",
-                      "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
-                      "hidden": false,
-                      "icon": "ms-appx:///ProfileIcons/pwsh.png",
-                      "name": "PowerShell 7"
-                  },
-                  {
-                      "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
-                      "hidden": false,
-                      "name": "Windows PowerShell"
-                  }
-              ]
-          },
-          "schemes": [],
-          "searchWebDefaultQueryUrl": "https://www.google.com/search?q=%22%s%22",
-          "snapToGridOnResize": true,
-          "themes": []
-      }
-      '@
       $packagedDir = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState'
       $portableDir = Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal'
       if (Test-Path (Split-Path $packagedDir -Parent)) { $dir = $packagedDir } else { $dir = $portableDir }
       New-Item -ItemType Directory -Path $dir -Force | Out-Null
       $path = Join-Path $dir 'settings.json'
+      if ((Test-Path $path) -and ((Get-Content $path -Raw).Trim() -ceq $desiredRaw.Trim())) { return }
       if ((Test-Path $path) -and -not (Test-Path "$path.pre-dsc.bak")) { Copy-Item $path "$path.pre-dsc.bak" -Force }
       $desiredRaw | Set-Content -Path $path -Encoding UTF8
   metadata:

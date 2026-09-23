@@ -58,7 +58,9 @@ if ($installedDistros -contains $Distro) {
     Write-Host ""
     Write-Host "Initial WSL installation completed."
     Write-Host "Restart Windows if requested, then rerun this script to update and verify the distribution."
-    exit 0
+    # A new distribution needs its first launch/user setup (and often a reboot)
+    # before the Linux bootstrap can run. The top-level bootstrap is rerunnable.
+    exit 10
 }
 
 # Update the runtime before inspecting or converting an existing distribution.
