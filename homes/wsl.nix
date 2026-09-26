@@ -2,7 +2,7 @@
 {
   imports = [
     ../modules/home/kyleh
-    ../modules/home/kyleh/direnv.nix
+    ../modules/home/kyleh/development.nix
     ../modules/home/kyleh/ubuntu-headless.nix
   ];
 

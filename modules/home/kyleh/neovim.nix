@@ -24,9 +24,6 @@ in
   home.sessionVariables.MANPAGER = "nvim +Man! -";
 
   programs = {
-    fd.enable = true;
-    ripgrep.enable = true;
-
     nixvim = {
       enable = true;
       enablePrintInit = false;
