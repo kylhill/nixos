@@ -540,9 +540,15 @@ resources:
           }
         }
         if (-not $matches) {
-          New-Item -Path $entry.path -Force | Out-Null
-          $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
-          New-ItemProperty -LiteralPath $entry.path -Name $entry.name -Value $expected -PropertyType $entry.type -Force | Out-Null
+          try {
+            if (-not (Test-Path -LiteralPath $entry.path)) {
+              New-Item -Path $entry.path -Force -ErrorAction Stop | Out-Null
+            }
+            $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
+            New-ItemProperty -LiteralPath $entry.path -Name $entry.name -Value $expected -PropertyType $entry.type -Force -ErrorAction Stop | Out-Null
+          } catch {
+            throw "Failed to apply registry setting '$($entry.description)' at '$($entry.path)\\$($entry.name)': $($_.Exception.Message)"
+          }
         }
       }
   metadata:
@@ -733,9 +739,15 @@ resources:
           }
         }
         if (-not $matches) {
-          New-Item -Path $entry.path -Force | Out-Null
-          $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
-          New-ItemProperty -LiteralPath $entry.path -Name $entry.name -Value $expected -PropertyType $entry.type -Force | Out-Null
+          try {
+            if (-not (Test-Path -LiteralPath $entry.path)) {
+              New-Item -Path $entry.path -Force -ErrorAction Stop | Out-Null
+            }
+            $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
+            New-ItemProperty -LiteralPath $entry.path -Name $entry.name -Value $expected -PropertyType $entry.type -Force -ErrorAction Stop | Out-Null
+          } catch {
+            throw "Failed to apply registry setting '$($entry.description)' at '$($entry.path)\\$($entry.name)': $($_.Exception.Message)"
+          }
         }
       }
   metadata:
