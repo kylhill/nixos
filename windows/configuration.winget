@@ -34,42 +34,127 @@ resources:
     source: winget
     useLatest: true
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
-  name: StartPinsLayout
+  name: RemoveOptionalWindowsCapabilities
   dependsOn:
   - PackagePowerShell
   properties:
     input:
-      path: "C:\\ProgramData\\DeclarativeWindows\\LayoutModification.json"
-      content: '{"applyOnce":true,"pinnedList":[]}'
+      capabilityPrefixes:
+      - "Microsoft.Wallpapers.Extended~"
+      - "Hello.Face"
+      - "Browser.InternetExplorer~"
+      - "MathRecognizer~"
+      - "Print.Management.Console~"
+      - "App.StepsRecorder~"
+      - "Microsoft.Windows.PowerShell.ISE~"
+      - "Microsoft.Windows.Notepad.System~"
     getScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
-      $current = if (Test-Path -LiteralPath $desired.path) {
-        [IO.File]::ReadAllText($desired.path)
-      } else {
-        $null
-      }
-      return @{ path = $desired.path; current = $current; desired = $desired.content }
+      $installed = Get-WindowsCapability -Online |
+        Where-Object {
+          $capability = $_
+          $capability.State -eq 'Installed' -and @(
+            $desired.capabilityPrefixes | Where-Object { $capability.Name -like "$_*" }
+          ).Count -gt 0
+        } |
+        Select-Object -ExpandProperty Name
+      return @{ installed = @($installed) }
     testScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
-      if (-not (Test-Path -LiteralPath $desired.path)) { return $false }
-      return [IO.File]::ReadAllText($desired.path) -ceq $desired.content
+      $installed = Get-WindowsCapability -Online |
+        Where-Object {
+          $capability = $_
+          $capability.State -eq 'Installed' -and @(
+            $desired.capabilityPrefixes | Where-Object { $capability.Name -like "$_*" }
+          ).Count -gt 0
+        }
+      return @($installed).Count -eq 0
     setScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
-      $directory = Split-Path -Parent $desired.path
-      New-Item -ItemType Directory -Path $directory -Force | Out-Null
-      [IO.File]::WriteAllText($desired.path, $desired.content, [Text.UTF8Encoding]::new($false))
+      $installed = Get-WindowsCapability -Online |
+        Where-Object {
+          $capability = $_
+          $capability.State -eq 'Installed' -and @(
+            $desired.capabilityPrefixes | Where-Object { $capability.Name -like "$_*" }
+          ).Count -gt 0
+        }
+      foreach ($capability in $installed) {
+        try {
+          Remove-WindowsCapability -Online -Name $capability.Name -ErrorAction Stop | Out-Null
+        } catch {
+          throw "Failed to remove optional Windows capability '$($capability.Name)': $($_.Exception.Message)"
+        }
+      }
   metadata:
-    description: Provide a one-time empty Windows 11 Start pin layout so promotional placeholder pins are removed without locking later user customization
+    description: Remove unneeded Windows Features on Demand while tolerating features that are already absent
+    winget:
+      securityContext: elevated
+- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  name: InstallRequiredWindowsCapabilities
+  dependsOn:
+  - RemoveOptionalWindowsCapabilities
+  properties:
+    input:
+      capabilityPrefixes:
+      - "OpenSSH.Client~"
+      - "VBSCRIPT~"
+      - "Media.WindowsMediaPlayer~"
+    getScript: |-
+      param($desired)
+      $ErrorActionPreference = 'Stop'
+      $capabilities = @(Get-WindowsCapability -Online)
+      $status = foreach ($prefix in $desired.capabilityPrefixes) {
+        $matches = @($capabilities | Where-Object { $_.Name -like "$prefix*" })
+        @{
+          prefix = $prefix
+          available = $matches.Count -gt 0
+          installed = @($matches | Where-Object { $_.State -eq 'Installed' }).Count -gt 0
+        }
+      }
+      return @{ capabilities = @($status) }
+    testScript: |-
+      param($desired)
+      $ErrorActionPreference = 'Stop'
+      $capabilities = @(Get-WindowsCapability -Online)
+      foreach ($prefix in $desired.capabilityPrefixes) {
+        $installed = @(
+          $capabilities | Where-Object {
+            $_.Name -like "$prefix*" -and $_.State -eq 'Installed'
+          }
+        )
+        if ($installed.Count -eq 0) { return $false }
+      }
+      return $true
+    setScript: |-
+      param($desired)
+      $ErrorActionPreference = 'Stop'
+      $capabilities = @(Get-WindowsCapability -Online)
+      foreach ($prefix in $desired.capabilityPrefixes) {
+        $matches = @($capabilities | Where-Object { $_.Name -like "$prefix*" })
+        if ($matches.Count -eq 0) {
+          throw "Required optional Windows capability matching '$prefix*' is not available in this Windows image"
+        }
+        if (@($matches | Where-Object { $_.State -eq 'Installed' }).Count -gt 0) {
+          continue
+        }
+        $capability = $matches | Select-Object -First 1
+        try {
+          Add-WindowsCapability -Online -Name $capability.Name -ErrorAction Stop | Out-Null
+        } catch {
+          throw "Failed to install required optional Windows capability '$($capability.Name)': $($_.Exception.Message)"
+        }
+      }
+  metadata:
+    description: Ensure required Windows Features on Demand are installed, failing if the current image does not offer one
     winget:
       securityContext: elevated
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: RegistryMachineSettings
   dependsOn:
   - PackagePowerShell
-  - StartPinsLayout
   properties:
     input:
       values:
@@ -133,6 +218,11 @@ resources:
         type: "DWord"
         value: 1
         description: "Use Required diagnostic data; practical minimum on Windows 11 Pro"
+      - path: "HKLM:\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings"
+        name: "AllowMUUpdateService"
+        type: "DWord"
+        value: 1
+        description: "Receive updates for other Microsoft products through Windows Update"
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection"
         name: "LimitDiagnosticLogCollection"
         type: "DWord"
@@ -168,6 +258,21 @@ resources:
         type: "DWord"
         value: 0
         description: "Prevent Settings from retrieving online tips and help content"
+      - path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer"
+        name: "NoDriveTypeAutoRun"
+        type: "DWord"
+        value: 255
+        description: "Disable AutoPlay on all drive types"
+      - path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer"
+        name: "NoAutorun"
+        type: "DWord"
+        value: 1
+        description: "Disable execution of AutoRun commands"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer"
+        name: "NoAutoplayfornonVolume"
+        type: "DWord"
+        value: 1
+        description: "Disable AutoPlay for non-volume devices such as cameras and phones"
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer"
         name: "HideRecommendedSection"
         type: "DWord"
@@ -178,11 +283,6 @@ resources:
         type: "DWord"
         value: 1
         description: "Hide personalized website recommendations in Start"
-      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer"
-        name: "ConfigureStartPins"
-        type: "String"
-        value: "C:\\ProgramData\\DeclarativeWindows\\LayoutModification.json"
-        description: "Apply the empty Start pin layout once, removing default promotional pins while preserving later user customization"
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search"
         name: "AllowCloudSearch"
         type: "DWord"
@@ -556,17 +656,100 @@ resources:
     winget:
       securityContext: elevated
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  name: StartFolders
+  dependsOn:
+  - PackagePowerShell
+  properties:
+    input:
+      path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Start"
+      name: "VisiblePlaces"
+      folderGuids:
+      - "{52730886-51AA-4243-9F7B-2776584659D4}"
+      - "{148A24BC-D60C-4289-A080-6ED9BBA24882}"
+      - "{E367B32F-89DE-4355-BFCE-61F37B18A937}"
+    getScript: |-
+      param($desired)
+      $ErrorActionPreference = 'Stop'
+      $expected = [byte[]]@($desired.folderGuids | ForEach-Object { ([guid]$_).ToByteArray() })
+      $current = if (Test-Path -LiteralPath $desired.path) {
+        (Get-ItemProperty -LiteralPath $desired.path -Name $desired.name -ErrorAction SilentlyContinue).($desired.name)
+      } else {
+        $null
+      }
+      return @{
+        current = if ($null -eq $current) { $null } else { [Convert]::ToHexString([byte[]]$current) }
+        desired = [Convert]::ToHexString($expected)
+      }
+    testScript: |-
+      param($desired)
+      $ErrorActionPreference = 'Stop'
+      if (-not (Test-Path -LiteralPath $desired.path)) { return $false }
+      $current = (Get-ItemProperty -LiteralPath $desired.path -Name $desired.name -ErrorAction SilentlyContinue).($desired.name)
+      if ($null -eq $current) { return $false }
+      $expected = [byte[]]@($desired.folderGuids | ForEach-Object { ([guid]$_).ToByteArray() })
+      return [Convert]::ToHexString([byte[]]$current) -ceq [Convert]::ToHexString($expected)
+    setScript: |-
+      param($desired)
+      $ErrorActionPreference = 'Stop'
+      if (-not (Test-Path -LiteralPath $desired.path)) {
+        New-Item -Path $desired.path -Force -ErrorAction Stop | Out-Null
+      }
+      $expected = [byte[]]@($desired.folderGuids | ForEach-Object { ([guid]$_).ToByteArray() })
+      New-ItemProperty -LiteralPath $desired.path -Name $desired.name -Value $expected -PropertyType Binary -Force -ErrorAction Stop | Out-Null
+  metadata:
+    description: Show Settings, File Explorer, and Downloads beside the power button in Start
+- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: RegistryUserSettings
   dependsOn:
   - PackagePowerShell
   properties:
     input:
       values:
+      - path: "HKCU:\\Control Panel\\Desktop"
+        name: "WindowArrangementActive"
+        type: "String"
+        value: "1"
+        description: "Keep the Windows Snap feature enabled"
       - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
         name: "Start_IrisRecommendations"
         type: "DWord"
         value: 0
         description: "Disable Start recommendation content"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        name: "Start_TrackDocs"
+        type: "DWord"
+        value: 0
+        description: "Disable recently opened items in Start, Jump Lists, and File Explorer"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        name: "SnapAssist"
+        type: "DWord"
+        value: 0
+        description: "Do not suggest other windows after snapping a window"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        name: "EnableSnapAssistFlyout"
+        type: "DWord"
+        value: 0
+        description: "Do not show Snap layouts when hovering over a window's maximize button"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        name: "EnableSnapBar"
+        type: "DWord"
+        value: 0
+        description: "Do not show Snap layouts when dragging a window to the top of the screen"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        name: "EnableTaskGroups"
+        type: "DWord"
+        value: 0
+        description: "Do not group snapped windows in taskbar previews, Task View, or Alt+Tab"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        name: "DITest"
+        type: "DWord"
+        value: 1
+        description: "Allow snapping while dragging without reaching the screen edge"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        name: "MultiTaskingAltTabFilter"
+        type: "DWord"
+        value: 3
+        description: "Do not show tabs from apps when snapping or pressing Alt+Tab"
       - path: "HKCU:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer"
         name: "DisableSearchBoxSuggestions"
         type: "DWord"
@@ -597,16 +780,6 @@ resources:
         type: "DWord"
         value: 0
         description: "Use dark mode for Windows surfaces"
-      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
-        name: "Wallpaper"
-        type: "String"
-        value: "C:\\Windows\\Web\\Wallpaper\\Windows\\img0.jpg"
-        description: "Use the stock Windows 11 image as the desktop wallpaper instead of Windows Spotlight"
-      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
-        name: "WallpaperStyle"
-        type: "String"
-        value: "10"
-        description: "Fill the desktop with the stock Windows 11 wallpaper while preserving its aspect ratio"
       - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager"
         name: "RotatingLockScreenEnabled"
         type: "DWord"
@@ -617,6 +790,16 @@ resources:
         type: "DWord"
         value: 0
         description: "Hide Windows Spotlight facts and prompts on the lock screen"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager"
+        name: "SubscribedContent-338389Enabled"
+        type: "DWord"
+        value: 0
+        description: "Disable the undocumented 'Get tips and suggestions when using Windows' user preference"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager"
+        name: "SubscribedContent-338393Enabled"
+        type: "DWord"
+        value: 0
+        description: "Disable the undocumented 'Show recommendations and offers in Settings' user preference"
       - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Lock Screen"
         name: "SlideshowEnabled"
         type: "DWord"
@@ -637,6 +820,11 @@ resources:
         type: "DWord"
         value: 0
         description: "Disable 'finish setting up your PC' prompts"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon"
+        name: "RestartApps"
+        type: "DWord"
+        value: 1
+        description: "Automatically save restartable apps and restart them after sign-in"
       - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
         name: "ShowSyncProviderNotifications"
         type: "DWord"
@@ -762,6 +950,8 @@ resources:
     - Clipchamp.Clipchamp
     - Microsoft.WindowsFeedbackHub
     - Microsoft.XboxGamingOverlay
+    - Microsoft.XboxIdentityProvider
+    - Microsoft.PowerAutomateDesktop
     - Microsoft.GetHelp
     - Microsoft.Getstarted
     - Microsoft.MicrosoftOfficeHub
