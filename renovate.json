@@ -20,10 +20,21 @@
   },
   "packageRules": [
     {
+      "description": "Update branch-tracking Nix inputs through lock file maintenance",
       "matchManagers": [
         "nix"
       ],
-      "groupName": "Nix flake dependencies"
+      "enabled": false
+    },
+    {
+      "description": "Enable Nix flake lock file maintenance",
+      "matchManagers": [
+        "nix"
+      ],
+      "matchUpdateTypes": [
+        "lockFileMaintenance"
+      ],
+      "enabled": true
     }
   ],
   "automerge": false,

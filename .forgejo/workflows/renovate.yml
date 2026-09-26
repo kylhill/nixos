@@ -19,10 +19,10 @@ jobs:
     container:
       image: docker.io/renovate/renovate:latest@sha256:03e987bec9fbda0cf39ef63f2d293e821d96525119e1ab3d0ff87d5b3ef3edd9
       volumes:
-        - /opt/renovate-cache:/tmp/renovate/containerbase
+        - /opt/cache:/cache
     env:
       LOG_LEVEL: info
-      RENOVATE_CONTAINERBASE_DIR: /tmp/renovate/containerbase
+      RENOVATE_CONTAINERBASE_DIR: /cache/renovate/containerbase
       RENOVATE_ENDPOINT: https://git.tacomafia.net/api/v1
       RENOVATE_GITHUB_COM_TOKEN: ${{ secrets.RENOVATE_GITHUB_COM_TOKEN }}
       RENOVATE_HOST_RULES: '[{"hostType":"forgejo","matchHost":"https://git.tacomafia.net/","allowInternal":true}]'
