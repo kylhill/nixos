@@ -34,9 +34,42 @@ resources:
     source: winget
     useLatest: true
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  name: StartPinsLayout
+  dependsOn:
+  - PackagePowerShell
+  properties:
+    input:
+      path: "C:\\ProgramData\\DeclarativeWindows\\LayoutModification.json"
+      content: '{"applyOnce":true,"pinnedList":[]}'
+    getScript: |-
+      param($desired)
+      $ErrorActionPreference = 'Stop'
+      $current = if (Test-Path -LiteralPath $desired.path) {
+        [IO.File]::ReadAllText($desired.path)
+      } else {
+        $null
+      }
+      return @{ path = $desired.path; current = $current; desired = $desired.content }
+    testScript: |-
+      param($desired)
+      $ErrorActionPreference = 'Stop'
+      if (-not (Test-Path -LiteralPath $desired.path)) { return $false }
+      return [IO.File]::ReadAllText($desired.path) -ceq $desired.content
+    setScript: |-
+      param($desired)
+      $ErrorActionPreference = 'Stop'
+      $directory = Split-Path -Parent $desired.path
+      New-Item -ItemType Directory -Path $directory -Force | Out-Null
+      [IO.File]::WriteAllText($desired.path, $desired.content, [Text.UTF8Encoding]::new($false))
+  metadata:
+    description: Provide a one-time empty Windows 11 Start pin layout so promotional placeholder pins are removed without locking later user customization
+    winget:
+      securityContext: elevated
+- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: RegistryMachineSettings
   dependsOn:
   - PackagePowerShell
+  - StartPinsLayout
   properties:
     input:
       values:
@@ -140,11 +173,31 @@ resources:
         type: "DWord"
         value: 1
         description: "Hide Recommended section in Start; supported on Windows 11 Pro"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer"
+        name: "HideRecommendedPersonalizedSites"
+        type: "DWord"
+        value: 1
+        description: "Hide personalized website recommendations in Start"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer"
+        name: "ConfigureStartPins"
+        type: "String"
+        value: "C:\\ProgramData\\DeclarativeWindows\\LayoutModification.json"
+        description: "Apply the empty Start pin layout once, removing default promotional pins while preserving later user customization"
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search"
         name: "AllowCloudSearch"
         type: "DWord"
         value: 0
         description: "Disable cloud search"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search"
+        name: "DisableWebSearch"
+        type: "DWord"
+        value: 1
+        description: "Disable web search from Windows Search"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search"
+        name: "ConnectedSearchUseWeb"
+        type: "DWord"
+        value: 0
+        description: "Do not show Bing web results in Windows Search"
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search"
         name: "AllowSearchToUseLocation"
         type: "DWord"
@@ -160,6 +213,16 @@ resources:
         type: "DWord"
         value: 0
         description: "Disable Windows Widgets"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\Terminal Services"
+        name: "fAllowToGetHelp"
+        type: "DWord"
+        value: 0
+        description: "Disable solicited Remote Assistance"
+      - path: "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server"
+        name: "fDenyTSConnections"
+        type: "DWord"
+        value: 1
+        description: "Disable incoming Remote Desktop connections"
       - path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock"
         name: "AllowDevelopmentWithoutDevLicense"
         type: "DWord"
@@ -196,6 +259,61 @@ resources:
         value: 3
         description: "Set Edge tracking prevention to Strict"
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "BrowserSignin"
+        type: "DWord"
+        value: 0
+        description: "Disable account sign-in within Edge"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "NonRemovableProfileEnabled"
+        type: "DWord"
+        value: 0
+        description: "Do not create an automatically signed-in non-removable Edge profile"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "SyncDisabled"
+        type: "DWord"
+        value: 1
+        description: "Disable Edge cloud synchronization"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "WebToBrowserSignInEnabled"
+        type: "DWord"
+        value: 0
+        description: "Prevent Microsoft website sign-in from signing into Edge"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "PasswordManagerEnabled"
+        type: "DWord"
+        value: 0
+        description: "Prevent Edge from saving new passwords"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "BlockThirdPartyCookies"
+        type: "DWord"
+        value: 1
+        description: "Block third-party cookies in regular Edge sessions"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "DefaultCookiesSetting"
+        type: "DWord"
+        value: 4
+        description: "Keep Edge cookies only for the current session"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "SavingBrowserHistoryDisabled"
+        type: "DWord"
+        value: 1
+        description: "Prevent Edge from saving browsing history"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "NetworkPredictionOptions"
+        type: "DWord"
+        value: 2
+        description: "Disable Edge DNS prefetching, preconnection, and page prerendering"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "BackgroundModeEnabled"
+        type: "DWord"
+        value: 0
+        description: "Stop Edge background apps after the last browser window closes"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "StartupBoostEnabled"
+        type: "DWord"
+        value: 0
+        description: "Prevent Edge processes from starting with Windows"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
         name: "PaymentMethodQueryEnabled"
         type: "DWord"
         value: 0
@@ -225,6 +343,11 @@ resources:
         type: "DWord"
         value: 0
         description: "Disable Edge search/website suggestions"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "LocalProvidersEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Edge address-bar suggestions from local history and favorites"
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
         name: "EdgeShoppingAssistantEnabled"
         type: "DWord"
@@ -443,6 +566,16 @@ resources:
         type: "DWord"
         value: 1
         description: "Disable web results and suggestions in Windows Search"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer"
+        name: "NoRecentDocsHistory"
+        type: "DWord"
+        value: 1
+        description: "Do not retain recent-document history or show recent items in Jump Lists"
+      - path: "HKCU:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent"
+        name: "DisableThirdPartySuggestions"
+        type: "DWord"
+        value: 1
+        description: "Disable third-party app and content suggestions in Windows Spotlight experiences"
       - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\SearchSettings"
         name: "IsDynamicSearchBoxEnabled"
         type: "DWord"
@@ -458,6 +591,16 @@ resources:
         type: "DWord"
         value: 0
         description: "Use dark mode for Windows surfaces"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+        name: "Wallpaper"
+        type: "String"
+        value: "C:\\Windows\\Web\\Wallpaper\\Windows\\img0.jpg"
+        description: "Use the stock Windows 11 image as the desktop wallpaper instead of Windows Spotlight"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+        name: "WallpaperStyle"
+        type: "String"
+        value: "10"
+        description: "Fill the desktop with the stock Windows 11 wallpaper while preserving its aspect ratio"
       - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager"
         name: "RotatingLockScreenEnabled"
         type: "DWord"
@@ -606,10 +749,19 @@ resources:
     - Microsoft.Copilot
     - Clipchamp.Clipchamp
     - Microsoft.WindowsFeedbackHub
+    - Microsoft.XboxGamingOverlay
+    - Microsoft.GetHelp
+    - Microsoft.Getstarted
     - Microsoft.MicrosoftOfficeHub
     - Microsoft.MicrosoftSolitaireCollection
     - Microsoft.BingNews
     - Microsoft.BingWeather
+    - Microsoft.Todos
+    - Microsoft.OutlookForWindows
+    - MicrosoftCorporationII.QuickAssist
+    - Microsoft.WindowsSoundRecorder
+    - Microsoft.MicrosoftStickyNotes
+    - MSTeams
     getScript: |-
       param($wanted)
       $ErrorActionPreference = 'Stop'
