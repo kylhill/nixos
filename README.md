@@ -123,9 +123,10 @@ unattended or repeatable invocation, select it explicitly:
 ```powershell
 .\windows\bootstrap.ps1 -Profile Home
 .\windows\bootstrap.ps1 -Profile Work
+.\windows\bootstrap.ps1 -Profile Home -Verify
 ```
 
-The top-level script validates and applies the shared native state in
+The top-level script applies the shared native state in
 `windows/configuration.winget`, the applications in
 `windows/packages-common.winget`, and the selected `packages-home.winget` or
 `packages-work.winget`. The Home profile adds Deluge, Nextcloud, and Steam;
@@ -147,7 +148,11 @@ running, it stops with the required `/etc/wsl.conf` and PowerShell restart
 instructions.
 
 The DSC documents own native Windows packages, policies, fonts, and Terminal
-settings. No full Windows apply has been run from this Linux checkout. Test the
+settings. Registry state is grouped into separate machine-wide and current-user
+script resources to avoid the per-resource startup cost of evaluating every
+value independently; each desired value remains an individually documented
+entry and only mismatches are written. No full Windows apply has been run from
+this Linux checkout. Test the
 configuration on one Windows 11 Pro machine before rolling it out to the other
 two. Supported-policy gaps are intentional: Settings Agent and File Explorer
 AI Actions have no verified Pro policy here; neither has an undocumented

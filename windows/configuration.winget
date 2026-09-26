@@ -7,9 +7,6 @@
 #   winget configure -f .\configuration.winget --accept-configuration-agreements --disable-interactivity
 # Test:
 #   winget configure test -f .\configuration.winget
-# Validate:
-#   winget configure validate -f .\configuration.winget
-#
 # Baseline: Windows 11 Pro, 24H2 or later.
 #
 $schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
@@ -36,948 +33,570 @@ resources:
     id: Microsoft.Coreutils
     source: winget
     useLatest: true
-- type: Microsoft.Windows/Registry
-  name: PrivacyDisableAdvertisingId
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo
-    valueName: DisabledByGroupPolicy
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Disable Windows Advertising ID
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: PrivacyDisableInventoryCollector
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat
-    valueName: DisableInventory
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Disable Windows Inventory Collector
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: PrivacyDisableCEIP
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\SQMClient\Windows
-    valueName: CEIPEnable
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Windows CEIP
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: PrivacyDisableInputPersonalization
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization
-    valueName: AllowInputPersonalization
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable online input personalization
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: PrivacyDisableActivityFeed
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\System
-    valueName: EnableActivityFeed
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Windows activity feed
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: PrivacyDisablePublishActivities
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\System
-    valueName: PublishUserActivities
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Do not publish user activities
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: PrivacyDisableUploadActivities
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\System
-    valueName: UploadUserActivities
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Do not upload user activities
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: PrivacyDisableClipboardHistory
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\System
-    valueName: AllowClipboardHistory
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable local clipboard history
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: PrivacyDisableCrossDeviceClipboard
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\System
-    valueName: AllowCrossDeviceClipboard
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable cross-device clipboard synchronization
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: PrivacyDenyAppDiagnosticInfo
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy
-    valueName: LetAppsGetDiagnosticInfo
-    valueData:
-      DWord: 2
-    _exist: true
-  metadata:
-    description: Force-deny app access to diagnostic information
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: PrivacyDisableStepsRecorder
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat
-    valueName: DisableUAR
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Disable Steps Recorder
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: DiagnosticsRequiredOnly
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection
-    valueName: AllowTelemetry
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Use Required diagnostic data; practical minimum on Windows 11 Pro
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: DiagnosticsLimitLogs
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection
-    valueName: LimitDiagnosticLogCollection
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Limit diagnostic log collection
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: DiagnosticsLimitDumps
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection
-    valueName: LimitDumpCollection
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Limit diagnostic dump collection
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: DiagnosticsDisableTailoredExperiences
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent
-    valueName: DisableTailoredExperiencesWithDiagnosticData
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Disable tailored experiences based on diagnostic data
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: DiagnosticsDisableFeedbackPrompts
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection
-    valueName: DoNotShowFeedbackNotifications
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Disable Windows feedback prompts
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: PrivacyDisablePrivacyExperience
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\OOBE
-    valueName: DisablePrivacyExperience
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Do not show privacy setup experience after logon or upgrades
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: PrivacyDisableLinguisticDataCollection
-  properties:
-    keyPath: HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\TextInput
-    valueName: AllowLinguisticDataCollection
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Microsoft collection of inking and typing diagnostic data
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: SettingsDisableOnlineTips
-  properties:
-    keyPath: HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer
-    valueName: AllowOnlineTips
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Prevent Settings from retrieving online tips and help content
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: StartHideRecommendedSection
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer
-    valueName: HideRecommendedSection
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Hide Recommended section in Start; supported on Windows 11 Pro
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: StartDisableIrisRecommendations
-  properties:
-    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced
-    valueName: Start_IrisRecommendations
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Start recommendation content
-- type: Microsoft.Windows/Registry
-  name: SearchDisableWebResults
-  properties:
-    keyPath: HKCU\SOFTWARE\Policies\Microsoft\Windows\Explorer
-    valueName: DisableSearchBoxSuggestions
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Disable web results and suggestions in Windows Search
-- type: Microsoft.Windows/Registry
-  name: SearchDisableHighlights
-  properties:
-    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings
-    valueName: IsDynamicSearchBoxEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Search Highlights
-- type: Microsoft.Windows/Registry
-  name: SearchDisableCloudSearch
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search
-    valueName: AllowCloudSearch
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable cloud search
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: SearchDisableLocation
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search
-    valueName: AllowSearchToUseLocation
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Do not use location for Search
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: SearchHideTaskbarSearch
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search
-    valueName: ConfigureSearchOnTaskbarMode
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Hide taskbar Search on Windows 11 24H2+
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: WidgetsDisable
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Dsh
-    valueName: AllowNewsAndInterests
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Windows Widgets
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: OOBEDisableFinishSetupPrompt
-  properties:
-    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement
-    valueName: ScoobeSystemSettingEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable 'finish setting up your PC' prompts
-- type: Microsoft.Windows/Registry
-  name: ExplorerDisableSyncProviderTips
-  properties:
-    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced
-    valueName: ShowSyncProviderNotifications
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Explorer sync-provider tips/promotional notifications
-- type: Microsoft.Windows/Registry
-  name: ExplorerShowFileExtensions
-  properties:
-    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced
-    valueName: HideFileExt
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Show file extensions
-- type: Microsoft.Windows/Registry
-  name: ExplorerOpenThisPC
-  properties:
-    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced
-    valueName: LaunchTo
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Open File Explorer to This PC
-- type: Microsoft.Windows/Registry
-  name: ExplorerNoFrequentFolders
-  properties:
-    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer
-    valueName: ShowFrequent
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable frequent folders in Quick Access
-- type: Microsoft.Windows/Registry
-  name: ExplorerNoRecentFiles
-  properties:
-    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer
-    valueName: ShowRecent
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable recent files in Quick Access
-- type: Microsoft.Windows/Registry
-  name: ExplorerNoCloudRecommendations
-  properties:
-    keyPath: HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer
-    valueName: ShowCloudFilesInQuickAccess
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable recommended/cloud files in Quick Access
-- type: Microsoft.Windows/Registry
-  name: DeveloperMode
-  properties:
-    keyPath: HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock
-    valueName: AllowDevelopmentWithoutDevLicense
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Enable Windows Developer Mode
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: LongPaths
-  properties:
-    keyPath: HKLM\SYSTEM\CurrentControlSet\Control\FileSystem
-    valueName: LongPathsEnabled
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Enable Win32 long path support
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: SudoForceNewWindow
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\Sudo
-    valueName: EnableSudo
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Limit Windows sudo to force-new-window mode on Windows 11 24H2+
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: RecallDisableAvailability
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI
-    valueName: AllowRecallEnablement
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Recall availability and remove Recall bits where supported
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: RecallDisableSnapshots
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI
-    valueName: DisableAIDataAnalysis
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Disable saving Recall snapshots
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: WindowsAIDisableClickToDo
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI
-    valueName: DisableClickToDo
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Disable Click to Do where supported
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeTrackingPreventionStrict
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: TrackingPrevention
-    valueData:
-      DWord: 3
-    _exist: true
-  metadata:
-    description: Set Edge tracking prevention to Strict
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisablePaymentQueries
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: PaymentMethodQueryEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Prevent sites from querying saved payment methods
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisablePersonalization
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: PersonalizationReportingEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Edge personalization reporting
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableFeedback
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: UserFeedbackAllowed
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Edge feedback UI
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableCardAutofill
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: AutofillCreditCardEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Edge credit-card autofill
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableAddressAutofill
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: AutofillAddressEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Edge address/form autofill
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableSearchSuggestions
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: SearchSuggestEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Edge search/website suggestions
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableShopping
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: EdgeShoppingAssistantEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Edge shopping assistant
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableSidebar
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: HubsSidebarEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Edge sidebar
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableCloudEditor
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: MicrosoftEditorProofingEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Microsoft Editor cloud-enhanced proofing
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableNavigationWebService
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: ResolveNavigationErrorsUseWebService
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Edge web service for navigation errors
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableAlternateErrorPages
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: AlternateErrorPagesEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Edge similar-site suggestions
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeHideFirstRun
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: HideFirstRunExperience
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Hide Edge first-run experience
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeBlankNewTab
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: NewTabPageLocation
-    valueData:
-      String: about:blank
-    _exist: true
-  metadata:
-    description: Use a blank Edge new-tab page
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: OfficeDisableTelemetry
-  properties:
-    keyPath: HKCU\SOFTWARE\Policies\Microsoft\Office\Common\ClientTelemetry
-    valueName: SendTelemetry
-    valueData:
-      DWord: 3
-    _exist: true
-  metadata:
-    description: Configure Microsoft 365 Apps to send neither required nor optional diagnostic data where supported
-- type: Microsoft.Windows/Registry
-  name: PowerShellTelemetryOptOut
-  properties:
-    keyPath: HKCU\Environment
-    valueName: POWERSHELL_TELEMETRY_OPTOUT
-    valueData:
-      String: '1'
-    _exist: true
-  metadata:
-    description: Opt out of PowerShell telemetry for future processes
-- type: Microsoft.Windows/Registry
-  name: DotNetTelemetryOptOut
-  properties:
-    keyPath: HKCU\Environment
-    valueName: DOTNET_CLI_TELEMETRY_OPTOUT
-    valueData:
-      String: '1'
-    _exist: true
-  metadata:
-    description: Opt out of .NET CLI telemetry for future processes
-- type: Microsoft.Windows/Registry
-  name: DotNetNoLogo
-  properties:
-    keyPath: HKCU\Environment
-    valueName: DOTNET_NOLOGO
-    valueData:
-      String: '1'
-    _exist: true
-  metadata:
-    description: Suppress .NET CLI first-run/welcome output
-- type: Microsoft.Windows/Registry
-  name: WERDisable
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting
-    valueName: Disabled
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Disable Windows Error Reporting entirely
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: DiagnosticsExcludeDeviceName
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection
-    valueName: AllowDeviceNameInDiagnosticData
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Do not include the device name in Windows diagnostic data
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: StartDisableAccountNotifications
-  properties:
-    keyPath: HKCU\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\AccountNotifications
-    valueName: DisableAccountNotifications
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Disable Microsoft/local account notifications in the Start user tile
-- type: Microsoft.Windows/Registry
-  name: GamingDisableGameDVR
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Windows\GameDVR
-    valueName: AllowGameDVR
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Windows Game Recording and Broadcasting / Game DVR
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: NotepadDisableAI
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\WindowsNotepad
-    valueName: DisableAIFeatures
-    valueData:
-      DWord: 1
-    _exist: true
-  metadata:
-    description: Disable AI features in Windows Notepad
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableSpotlightRecommendations
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: SpotlightExperiencesAndRecommendationsEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Edge Spotlight experiences, customized recommendations, notifications, and tips
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableBingChatOnNewTab
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: NewTabPageBingChatEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Bing/Copilot chat entry points on the Edge new tab page
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableNewTabContent
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: NewTabPageContentEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Microsoft content on the Edge new tab page
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableAIGeneratedThemes
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: AIGenThemesEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable AI-generated Edge themes
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableBuiltInAIAPIs
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: BuiltInAIAPIsEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Prevent websites from using Edge built-in AI APIs
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableInlineCompose
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: ComposeInlineEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Microsoft 365 Copilot inline writing assistance in Edge for Business
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableCopilotPageContext
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: CopilotPageContext
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Prevent Edge Copilot from accessing page context for applicable Entra profiles
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableEntraCopilotPageContext
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: EdgeEntraCopilotPageContext
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Prevent Edge Copilot from accessing page content, history, and transcripts for applicable Entra profiles
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableDefaultBrowserCampaigns
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: DefaultBrowserSettingsCampaignEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Edge campaigns prompting to make Edge/Bing the defaults
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableDiagnosticData
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: DiagnosticData
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Turn off Edge required and optional diagnostic-data collection
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeHideM365CopilotChatIcon
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: Microsoft365CopilotChatIconEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Hide Microsoft 365 Copilot Chat icon in Edge for Business where applicable
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeHideMicrosoftRewards
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: ShowMicrosoftRewards
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Hide Microsoft Rewards experiences and notifications in Edge
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableRecommendations
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: ShowRecommendationsEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Edge feature recommendations and browser-assistance notifications
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableTabServices
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: TabServicesEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable cloud tab-organization suggestions and associated URL/title uploads
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableTextPrediction
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: TextPredictionEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable cloud-backed Edge text prediction in editable web fields
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableVisualSearch
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: VisualSearchEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable Edge Visual Search
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisableAIHistorySearch
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: EdgeHistoryAISearchEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable AI-enhanced natural-language search in Edge browsing history
-    winget:
-      securityContext: elevated
-- type: Microsoft.Windows/Registry
-  name: EdgeDisablePDFDefaultPrompts
-  properties:
-    keyPath: HKLM\SOFTWARE\Policies\Microsoft\Edge
-    valueName: ShowPDFDefaultRecommendationsEnabled
-    valueData:
-      DWord: 0
-    _exist: true
-  metadata:
-    description: Disable prompts to make Edge the default PDF reader
-    winget:
-      securityContext: elevated
+- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  name: RegistryMachineSettings
+  dependsOn:
+  - PackagePowerShell
+  properties:
+    input:
+      values:
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AdvertisingInfo"
+        name: "DisabledByGroupPolicy"
+        type: "DWord"
+        value: 1
+        description: "Disable Windows Advertising ID"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppCompat"
+        name: "DisableInventory"
+        type: "DWord"
+        value: 1
+        description: "Disable Windows Inventory Collector"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\SQMClient\\Windows"
+        name: "CEIPEnable"
+        type: "DWord"
+        value: 0
+        description: "Disable Windows CEIP"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\InputPersonalization"
+        name: "AllowInputPersonalization"
+        type: "DWord"
+        value: 0
+        description: "Disable online input personalization"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System"
+        name: "EnableActivityFeed"
+        type: "DWord"
+        value: 0
+        description: "Disable Windows activity feed"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System"
+        name: "PublishUserActivities"
+        type: "DWord"
+        value: 0
+        description: "Do not publish user activities"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System"
+        name: "UploadUserActivities"
+        type: "DWord"
+        value: 0
+        description: "Do not upload user activities"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System"
+        name: "AllowClipboardHistory"
+        type: "DWord"
+        value: 0
+        description: "Disable local clipboard history"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System"
+        name: "AllowCrossDeviceClipboard"
+        type: "DWord"
+        value: 0
+        description: "Disable cross-device clipboard synchronization"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppPrivacy"
+        name: "LetAppsGetDiagnosticInfo"
+        type: "DWord"
+        value: 2
+        description: "Force-deny app access to diagnostic information"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppCompat"
+        name: "DisableUAR"
+        type: "DWord"
+        value: 1
+        description: "Disable Steps Recorder"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection"
+        name: "AllowTelemetry"
+        type: "DWord"
+        value: 1
+        description: "Use Required diagnostic data; practical minimum on Windows 11 Pro"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection"
+        name: "LimitDiagnosticLogCollection"
+        type: "DWord"
+        value: 1
+        description: "Limit diagnostic log collection"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection"
+        name: "LimitDumpCollection"
+        type: "DWord"
+        value: 1
+        description: "Limit diagnostic dump collection"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent"
+        name: "DisableTailoredExperiencesWithDiagnosticData"
+        type: "DWord"
+        value: 1
+        description: "Disable tailored experiences based on diagnostic data"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection"
+        name: "DoNotShowFeedbackNotifications"
+        type: "DWord"
+        value: 1
+        description: "Disable Windows feedback prompts"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\OOBE"
+        name: "DisablePrivacyExperience"
+        type: "DWord"
+        value: 1
+        description: "Do not show privacy setup experience after logon or upgrades"
+      - path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\TextInput"
+        name: "AllowLinguisticDataCollection"
+        type: "DWord"
+        value: 0
+        description: "Disable Microsoft collection of inking and typing diagnostic data"
+      - path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer"
+        name: "AllowOnlineTips"
+        type: "DWord"
+        value: 0
+        description: "Prevent Settings from retrieving online tips and help content"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer"
+        name: "HideRecommendedSection"
+        type: "DWord"
+        value: 1
+        description: "Hide Recommended section in Start; supported on Windows 11 Pro"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search"
+        name: "AllowCloudSearch"
+        type: "DWord"
+        value: 0
+        description: "Disable cloud search"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search"
+        name: "AllowSearchToUseLocation"
+        type: "DWord"
+        value: 0
+        description: "Do not use location for Search"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search"
+        name: "ConfigureSearchOnTaskbarMode"
+        type: "DWord"
+        value: 0
+        description: "Hide taskbar Search on Windows 11 24H2+"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Dsh"
+        name: "AllowNewsAndInterests"
+        type: "DWord"
+        value: 0
+        description: "Disable Windows Widgets"
+      - path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock"
+        name: "AllowDevelopmentWithoutDevLicense"
+        type: "DWord"
+        value: 1
+        description: "Enable Windows Developer Mode"
+      - path: "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem"
+        name: "LongPathsEnabled"
+        type: "DWord"
+        value: 1
+        description: "Enable Win32 long path support"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Sudo"
+        name: "EnableSudo"
+        type: "DWord"
+        value: 1
+        description: "Limit Windows sudo to force-new-window mode on Windows 11 24H2+"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI"
+        name: "AllowRecallEnablement"
+        type: "DWord"
+        value: 0
+        description: "Disable Recall availability and remove Recall bits where supported"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI"
+        name: "DisableAIDataAnalysis"
+        type: "DWord"
+        value: 1
+        description: "Disable saving Recall snapshots"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI"
+        name: "DisableClickToDo"
+        type: "DWord"
+        value: 1
+        description: "Disable Click to Do where supported"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "TrackingPrevention"
+        type: "DWord"
+        value: 3
+        description: "Set Edge tracking prevention to Strict"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "PaymentMethodQueryEnabled"
+        type: "DWord"
+        value: 0
+        description: "Prevent sites from querying saved payment methods"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "PersonalizationReportingEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Edge personalization reporting"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "UserFeedbackAllowed"
+        type: "DWord"
+        value: 0
+        description: "Disable Edge feedback UI"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "AutofillCreditCardEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Edge credit-card autofill"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "AutofillAddressEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Edge address/form autofill"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "SearchSuggestEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Edge search/website suggestions"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "EdgeShoppingAssistantEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Edge shopping assistant"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "HubsSidebarEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Edge sidebar"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "MicrosoftEditorProofingEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Microsoft Editor cloud-enhanced proofing"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "ResolveNavigationErrorsUseWebService"
+        type: "DWord"
+        value: 0
+        description: "Disable Edge web service for navigation errors"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "AlternateErrorPagesEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Edge similar-site suggestions"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "HideFirstRunExperience"
+        type: "DWord"
+        value: 1
+        description: "Hide Edge first-run experience"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "NewTabPageLocation"
+        type: "String"
+        value: "about:blank"
+        description: "Use a blank Edge new-tab page"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting"
+        name: "Disabled"
+        type: "DWord"
+        value: 1
+        description: "Disable Windows Error Reporting entirely"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection"
+        name: "AllowDeviceNameInDiagnosticData"
+        type: "DWord"
+        value: 0
+        description: "Do not include the device name in Windows diagnostic data"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR"
+        name: "AllowGameDVR"
+        type: "DWord"
+        value: 0
+        description: "Disable Windows Game Recording and Broadcasting / Game DVR"
+      - path: "HKLM:\\SOFTWARE\\Policies\\WindowsNotepad"
+        name: "DisableAIFeatures"
+        type: "DWord"
+        value: 1
+        description: "Disable AI features in Windows Notepad"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "SpotlightExperiencesAndRecommendationsEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Edge Spotlight experiences, customized recommendations, notifications, and tips"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "NewTabPageBingChatEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Bing/Copilot chat entry points on the Edge new tab page"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "NewTabPageContentEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Microsoft content on the Edge new tab page"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "AIGenThemesEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable AI-generated Edge themes"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "BuiltInAIAPIsEnabled"
+        type: "DWord"
+        value: 0
+        description: "Prevent websites from using Edge built-in AI APIs"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "ComposeInlineEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Microsoft 365 Copilot inline writing assistance in Edge for Business"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "CopilotPageContext"
+        type: "DWord"
+        value: 0
+        description: "Prevent Edge Copilot from accessing page context for applicable Entra profiles"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "EdgeEntraCopilotPageContext"
+        type: "DWord"
+        value: 0
+        description: "Prevent Edge Copilot from accessing page content, history, and transcripts for applicable Entra profiles"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "DefaultBrowserSettingsCampaignEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Edge campaigns prompting to make Edge/Bing the defaults"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "DiagnosticData"
+        type: "DWord"
+        value: 0
+        description: "Turn off Edge required and optional diagnostic-data collection"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "Microsoft365CopilotChatIconEnabled"
+        type: "DWord"
+        value: 0
+        description: "Hide Microsoft 365 Copilot Chat icon in Edge for Business where applicable"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "ShowMicrosoftRewards"
+        type: "DWord"
+        value: 0
+        description: "Hide Microsoft Rewards experiences and notifications in Edge"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "ShowRecommendationsEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Edge feature recommendations and browser-assistance notifications"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "TabServicesEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable cloud tab-organization suggestions and associated URL/title uploads"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "TextPredictionEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable cloud-backed Edge text prediction in editable web fields"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "VisualSearchEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Edge Visual Search"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "EdgeHistoryAISearchEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable AI-enhanced natural-language search in Edge browsing history"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "ShowPDFDefaultRecommendationsEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable prompts to make Edge the default PDF reader"
+    getScript: |-
+      param($desired)
+      $ErrorActionPreference = 'Stop'
+      $mismatches = foreach ($entry in $desired.values) {
+        $current = $null
+        $matches = $false
+        if (Test-Path -LiteralPath $entry.path) {
+          $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+          $property = $properties.PSObject.Properties[$entry.name]
+          if ($null -ne $property) {
+            $current = $property.Value
+            $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
+            $matches = if ($entry.type -eq 'String') { $current -ceq $expected } else { $current -eq $expected }
+          }
+        }
+        if (-not $matches) {
+          @{ path = $entry.path; name = $entry.name; current = $current; desired = $entry.value }
+        }
+      }
+      return @{ mismatches = @($mismatches) }
+    testScript: |-
+      param($desired)
+      $ErrorActionPreference = 'Stop'
+      foreach ($entry in $desired.values) {
+        if (-not (Test-Path -LiteralPath $entry.path)) { return $false }
+        $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+        $property = $properties.PSObject.Properties[$entry.name]
+        if ($null -eq $property) { return $false }
+        $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
+        $matches = if ($entry.type -eq 'String') { $property.Value -ceq $expected } else { $property.Value -eq $expected }
+        if (-not $matches) { return $false }
+      }
+      return $true
+    setScript: |-
+      param($desired)
+      $ErrorActionPreference = 'Stop'
+      foreach ($entry in $desired.values) {
+        $matches = $false
+        if (Test-Path -LiteralPath $entry.path) {
+          $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+          $property = $properties.PSObject.Properties[$entry.name]
+          if ($null -ne $property) {
+            $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
+            $matches = if ($entry.type -eq 'String') { $property.Value -ceq $expected } else { $property.Value -eq $expected }
+          }
+        }
+        if (-not $matches) {
+          New-Item -Path $entry.path -Force | Out-Null
+          $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
+          New-ItemProperty -LiteralPath $entry.path -Name $entry.name -Value $expected -PropertyType $entry.type -Force | Out-Null
+        }
+      }
+  metadata:
+    description: Apply machine-wide Windows registry policies and preferences in one idempotent batch
+    winget:
+      securityContext: elevated
+- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  name: RegistryUserSettings
+  dependsOn:
+  - PackagePowerShell
+  properties:
+    input:
+      values:
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        name: "Start_IrisRecommendations"
+        type: "DWord"
+        value: 0
+        description: "Disable Start recommendation content"
+      - path: "HKCU:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer"
+        name: "DisableSearchBoxSuggestions"
+        type: "DWord"
+        value: 1
+        description: "Disable web results and suggestions in Windows Search"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\SearchSettings"
+        name: "IsDynamicSearchBoxEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable Search Highlights"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"
+        name: "AppsUseLightTheme"
+        type: "DWord"
+        value: 0
+        description: "Use dark mode for applications"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"
+        name: "SystemUsesLightTheme"
+        type: "DWord"
+        value: 0
+        description: "Use dark mode for Windows surfaces"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager"
+        name: "RotatingLockScreenEnabled"
+        type: "DWord"
+        value: 0
+        description: "Use a static lock-screen picture instead of Windows Spotlight"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager"
+        name: "RotatingLockScreenOverlayEnabled"
+        type: "DWord"
+        value: 0
+        description: "Hide Windows Spotlight facts and prompts on the lock screen"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Lock Screen"
+        name: "SlideshowEnabled"
+        type: "DWord"
+        value: 0
+        description: "Keep the lock screen in static-picture mode"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        name: "TaskbarAl"
+        type: "DWord"
+        value: 0
+        description: "Align Start and taskbar buttons to the left"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        name: "ShowTaskViewButton"
+        type: "DWord"
+        value: 0
+        description: "Hide the Task View button"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\UserProfileEngagement"
+        name: "ScoobeSystemSettingEnabled"
+        type: "DWord"
+        value: 0
+        description: "Disable 'finish setting up your PC' prompts"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        name: "ShowSyncProviderNotifications"
+        type: "DWord"
+        value: 0
+        description: "Disable Explorer sync-provider tips/promotional notifications"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        name: "HideFileExt"
+        type: "DWord"
+        value: 0
+        description: "Show file extensions"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        name: "LaunchTo"
+        type: "DWord"
+        value: 1
+        description: "Open File Explorer to This PC"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer"
+        name: "ShowFrequent"
+        type: "DWord"
+        value: 0
+        description: "Disable frequent folders in Quick Access"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer"
+        name: "ShowRecent"
+        type: "DWord"
+        value: 0
+        description: "Disable recent files in Quick Access"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer"
+        name: "ShowCloudFilesInQuickAccess"
+        type: "DWord"
+        value: 0
+        description: "Disable recommended/cloud files in Quick Access"
+      - path: "HKCU:\\SOFTWARE\\Policies\\Microsoft\\Office\\Common\\ClientTelemetry"
+        name: "SendTelemetry"
+        type: "DWord"
+        value: 3
+        description: "Configure Microsoft 365 Apps to send neither required nor optional diagnostic data where supported"
+      - path: "HKCU:\\Environment"
+        name: "POWERSHELL_TELEMETRY_OPTOUT"
+        type: "String"
+        value: "1"
+        description: "Opt out of PowerShell telemetry for future processes"
+      - path: "HKCU:\\Environment"
+        name: "DOTNET_CLI_TELEMETRY_OPTOUT"
+        type: "String"
+        value: "1"
+        description: "Opt out of .NET CLI telemetry for future processes"
+      - path: "HKCU:\\Environment"
+        name: "DOTNET_NOLOGO"
+        type: "String"
+        value: "1"
+        description: "Suppress .NET CLI first-run/welcome output"
+      - path: "HKCU:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CurrentVersion\\AccountNotifications"
+        name: "DisableAccountNotifications"
+        type: "DWord"
+        value: 1
+        description: "Disable Microsoft/local account notifications in the Start user tile"
+    getScript: |-
+      param($desired)
+      $ErrorActionPreference = 'Stop'
+      $mismatches = foreach ($entry in $desired.values) {
+        $current = $null
+        $matches = $false
+        if (Test-Path -LiteralPath $entry.path) {
+          $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+          $property = $properties.PSObject.Properties[$entry.name]
+          if ($null -ne $property) {
+            $current = $property.Value
+            $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
+            $matches = if ($entry.type -eq 'String') { $current -ceq $expected } else { $current -eq $expected }
+          }
+        }
+        if (-not $matches) {
+          @{ path = $entry.path; name = $entry.name; current = $current; desired = $entry.value }
+        }
+      }
+      return @{ mismatches = @($mismatches) }
+    testScript: |-
+      param($desired)
+      $ErrorActionPreference = 'Stop'
+      foreach ($entry in $desired.values) {
+        if (-not (Test-Path -LiteralPath $entry.path)) { return $false }
+        $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+        $property = $properties.PSObject.Properties[$entry.name]
+        if ($null -eq $property) { return $false }
+        $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
+        $matches = if ($entry.type -eq 'String') { $property.Value -ceq $expected } else { $property.Value -eq $expected }
+        if (-not $matches) { return $false }
+      }
+      return $true
+    setScript: |-
+      param($desired)
+      $ErrorActionPreference = 'Stop'
+      foreach ($entry in $desired.values) {
+        $matches = $false
+        if (Test-Path -LiteralPath $entry.path) {
+          $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+          $property = $properties.PSObject.Properties[$entry.name]
+          if ($null -ne $property) {
+            $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
+            $matches = if ($entry.type -eq 'String') { $property.Value -ceq $expected } else { $property.Value -eq $expected }
+          }
+        }
+        if (-not $matches) {
+          New-Item -Path $entry.path -Force | Out-Null
+          $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
+          New-ItemProperty -LiteralPath $entry.path -Name $entry.name -Value $expected -PropertyType $entry.type -Force | Out-Null
+        }
+      }
+  metadata:
+    description: Apply current-user Windows registry policies and preferences in one idempotent batch
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: RemoveRecommendedInboxApps
   dependsOn:

@@ -2,7 +2,9 @@
 
 param(
     [ValidateSet('Home', 'Work')]
-    [string]$Profile
+    [string]$Profile,
+
+    [switch]$Verify
 )
 
 $ErrorActionPreference = 'Stop'
@@ -44,9 +46,13 @@ foreach ($configuration in $configurationFiles) {
     if (-not (Test-Path $configuration -PathType Leaf)) {
         throw "WinGet configuration is missing: $configuration"
     }
-    Write-Host "Validating $(Split-Path $configuration -Leaf)..."
-    Invoke-WinGet -Arguments @('configure', 'validate', '-f', $configuration)
 }
+
+# `winget configure validate` currently performs a public-catalog provenance
+# audit that rejects native DSC v3 resources such as Microsoft.WinGet/Package,
+# Microsoft.Windows/Registry, and Microsoft.DSC.Transitional/*. Applying the
+# document still performs schema/resource validation; optional post-apply tests
+# verify the resulting desired state when -Verify is supplied.
 foreach ($configuration in $configurationFiles) {
     Write-Host "Applying $(Split-Path $configuration -Leaf)..."
     Invoke-WinGet -Arguments @('configure', '-f', $configuration,
@@ -68,18 +74,28 @@ if (-not (Test-Path $linuxBootstrap)) {
 
 # Run the checked-out Linux bootstrap from its WSL-mounted path. It installs
 # Linux Git and clones the repository inside Ubuntu; no native Git is required.
-$wslPath = (& wsl.exe -d Ubuntu -- wslpath -a -u $linuxBootstrap).Trim()
-if ($LASTEXITCODE -ne 0 -or -not $wslPath) {
-    throw 'Ubuntu is not ready. Launch it once to create the Linux user, then rerun this bootstrap.'
+$wslPathOutput = @(& wsl.exe -d Ubuntu --exec wslpath -a -u $linuxBootstrap 2>&1)
+$wslPathExitCode = $LASTEXITCODE
+if ($wslPathExitCode -ne 0 -or $wslPathOutput.Count -eq 0) {
+    $details = if ($wslPathOutput.Count -gt 0) {
+        ": $($wslPathOutput -join [Environment]::NewLine)"
+    } else {
+        ''
+    }
+    throw "Could not convert the Linux bootstrap path with wslpath (exit code $wslPathExitCode)$details"
 }
+$wslPath = $wslPathOutput[0].ToString().Trim()
+if (-not $wslPath) { throw 'wslpath returned an empty Linux bootstrap path.' }
 Write-Host 'Bootstrapping Nix and Home Manager inside Ubuntu...'
-& wsl.exe -d Ubuntu -- bash $wslPath
+& wsl.exe -d Ubuntu --exec bash -- $wslPath
 if ($LASTEXITCODE -ne 0) {
     throw "Linux bootstrap failed with exit code $LASTEXITCODE. Correct the reported issue and rerun this script."
 }
 
-foreach ($configuration in $configurationFiles) {
-    Write-Host "Testing $(Split-Path $configuration -Leaf)..."
-    Invoke-WinGet -Arguments @('configure', 'test', '-f', $configuration)
+if ($Verify) {
+    foreach ($configuration in $configurationFiles) {
+        Write-Host "Testing $(Split-Path $configuration -Leaf)..."
+        Invoke-WinGet -Arguments @('configure', 'test', '-f', $configuration)
+    }
 }
 Write-Host 'Windows and WSL bootstrap complete. No reboot was performed automatically.'
