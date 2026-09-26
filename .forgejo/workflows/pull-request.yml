@@ -6,6 +6,10 @@ name: Pull request validation
     branches:
       - main
 
+concurrency:
+  group: nixos-pr-${{ forgejo.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   flake-check:
     if: forgejo.event.pull_request.head.repo.full_name == forgejo.repository
