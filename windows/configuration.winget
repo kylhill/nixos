@@ -677,8 +677,8 @@ resources:
         $null
       }
       return @{
-        current = if ($null -eq $current) { $null } else { [Convert]::ToHexString([byte[]]$current) }
-        desired = [Convert]::ToHexString($expected)
+        current = if ($null -eq $current) { $null } else { [BitConverter]::ToString([byte[]]$current) }
+        desired = [BitConverter]::ToString($expected)
       }
     testScript: |-
       param($desired)
@@ -687,7 +687,7 @@ resources:
       $current = (Get-ItemProperty -LiteralPath $desired.path -Name $desired.name -ErrorAction SilentlyContinue).($desired.name)
       if ($null -eq $current) { return $false }
       $expected = [byte[]]@($desired.folderGuids | ForEach-Object { ([guid]$_).ToByteArray() })
-      return [Convert]::ToHexString([byte[]]$current) -ceq [Convert]::ToHexString($expected)
+      return [BitConverter]::ToString([byte[]]$current) -ceq [BitConverter]::ToString($expected)
     setScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
