@@ -14,10 +14,10 @@ jobs:
     container:
       image: docker.io/library/node:lts-bookworm-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6
       volumes:
-        - /opt/cache:/cache
+        - /opt/cache/nix:/nix
+        - /opt/cache/xdg:/root/.cache
     env:
       DEBIAN_FRONTEND: noninteractive
-      XDG_CACHE_HOME: /cache/flake-check/xdg
     steps:
       - name: Install job prerequisites
         run: |
@@ -37,3 +37,10 @@ jobs:
 
       - name: Validate repository
         run: ./test.sh --ci
+
+      - name: Collect old Nix store paths
+        if: always()
+        run: |
+          if command -v nix-collect-garbage >/dev/null; then
+            nix-collect-garbage --delete-older-than 14d
+          fi
