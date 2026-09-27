@@ -13,6 +13,9 @@
     };
   };
 
+  xdg.dataFile."bash-completion/completions/systemctl".source =
+    "${pkgs.systemd}/share/bash-completion/completions/systemctl";
+
   programs = {
     less.enable = true;
 
