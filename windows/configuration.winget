@@ -28,7 +28,7 @@ resources:
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: OpenSSHAgentService
   dependsOn:
-  - InstallRequiredWindowsCapabilities
+  - WindowsCapabilities
   properties:
     getScript: |-
       $service = Get-Service -Name ssh-agent -ErrorAction Stop
@@ -45,10 +45,10 @@ resources:
     winget:
       securityContext: elevated
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
-  name: RemoveOptionalWindowsCapabilities
+  name: WindowsCapabilities
   properties:
     input:
-      capabilityPrefixes:
+      removePrefixes:
       - "Microsoft.Wallpapers.Extended~"
       - "Hello.Face"
       - "Browser.InternetExplorer~"
@@ -57,55 +57,7 @@ resources:
       - "App.StepsRecorder~"
       - "Microsoft.Windows.PowerShell.ISE~"
       - "Microsoft.Windows.Notepad.System~"
-    getScript: |-
-      param($desired)
-      $ErrorActionPreference = 'Stop'
-      $installed = Get-WindowsCapability -Online |
-        Where-Object {
-          $capability = $_
-          $capability.State -eq 'Installed' -and @(
-            $desired.capabilityPrefixes | Where-Object { $capability.Name -like "$_*" }
-          ).Count -gt 0
-        } |
-        Select-Object -ExpandProperty Name
-      return @{ installed = @($installed) }
-    testScript: |-
-      param($desired)
-      $ErrorActionPreference = 'Stop'
-      $installed = Get-WindowsCapability -Online |
-        Where-Object {
-          $capability = $_
-          $capability.State -eq 'Installed' -and @(
-            $desired.capabilityPrefixes | Where-Object { $capability.Name -like "$_*" }
-          ).Count -gt 0
-        }
-      return @($installed).Count -eq 0
-    setScript: |-
-      param($desired)
-      $ErrorActionPreference = 'Stop'
-      $installed = Get-WindowsCapability -Online |
-        Where-Object {
-          $capability = $_
-          $capability.State -eq 'Installed' -and @(
-            $desired.capabilityPrefixes | Where-Object { $capability.Name -like "$_*" }
-          ).Count -gt 0
-        }
-      foreach ($capability in $installed) {
-        try {
-          Remove-WindowsCapability -Online -Name $capability.Name -ErrorAction Stop | Out-Null
-        } catch {
-          throw "Failed to remove optional Windows capability '$($capability.Name)': $($_.Exception.Message)"
-        }
-      }
-  metadata:
-    description: Remove unneeded Windows Features on Demand while tolerating features that are already absent
-    winget:
-      securityContext: elevated
-- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
-  name: InstallRequiredWindowsCapabilities
-  properties:
-    input:
-      capabilityPrefixes:
+      installPrefixes:
       - "OpenSSH.Client~"
       - "VBSCRIPT~"
       - "Media.WindowsMediaPlayer~"
@@ -113,7 +65,13 @@ resources:
       param($desired)
       $ErrorActionPreference = 'Stop'
       $capabilities = @(Get-WindowsCapability -Online)
-      $status = foreach ($prefix in $desired.capabilityPrefixes) {
+      $installedToRemove = @($capabilities | Where-Object {
+        $capability = $_
+        $capability.State -eq 'Installed' -and @(
+          $desired.removePrefixes | Where-Object { $capability.Name -like "$_*" }
+        ).Count -gt 0
+      } | Select-Object -ExpandProperty Name)
+      $required = foreach ($prefix in $desired.installPrefixes) {
         $matches = @($capabilities | Where-Object { $_.Name -like "$prefix*" })
         @{
           prefix = $prefix
@@ -121,32 +79,32 @@ resources:
           installed = @($matches | Where-Object { $_.State -eq 'Installed' }).Count -gt 0
         }
       }
-      return @{ capabilities = @($status) }
+      return @{ installedToRemove = $installedToRemove; required = @($required) }
     testScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
       $capabilities = @(Get-WindowsCapability -Online)
-      foreach ($prefix in $desired.capabilityPrefixes) {
-        $installed = @(
-          $capabilities | Where-Object {
-            $_.Name -like "$prefix*" -and $_.State -eq 'Installed'
-          }
-        )
-        if ($installed.Count -eq 0) { return $false }
+      foreach ($prefix in $desired.installPrefixes) {
+        if (@($capabilities | Where-Object {
+          $_.Name -like "$prefix*" -and $_.State -eq 'Installed'
+        }).Count -eq 0) { return $false }
+      }
+      foreach ($prefix in $desired.removePrefixes) {
+        if (@($capabilities | Where-Object {
+          $_.Name -like "$prefix*" -and $_.State -eq 'Installed'
+        }).Count -gt 0) { return $false }
       }
       return $true
     setScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
       $capabilities = @(Get-WindowsCapability -Online)
-      foreach ($prefix in $desired.capabilityPrefixes) {
+      foreach ($prefix in $desired.installPrefixes) {
         $matches = @($capabilities | Where-Object { $_.Name -like "$prefix*" })
         if ($matches.Count -eq 0) {
           throw "Required optional Windows capability matching '$prefix*' is not available in this Windows image"
         }
-        if (@($matches | Where-Object { $_.State -eq 'Installed' }).Count -gt 0) {
-          continue
-        }
+        if (@($matches | Where-Object { $_.State -eq 'Installed' }).Count -gt 0) { continue }
         $capability = $matches | Select-Object -First 1
         try {
           Add-WindowsCapability -Online -Name $capability.Name -ErrorAction Stop | Out-Null
@@ -154,14 +112,31 @@ resources:
           throw "Failed to install required optional Windows capability '$($capability.Name)': $($_.Exception.Message)"
         }
       }
+      $installedToRemove = @($capabilities | Where-Object {
+        $capability = $_
+        $capability.State -eq 'Installed' -and @(
+          $desired.removePrefixes | Where-Object { $capability.Name -like "$_*" }
+        ).Count -gt 0
+      })
+      foreach ($capability in $installedToRemove) {
+        try {
+          Remove-WindowsCapability -Online -Name $capability.Name -ErrorAction Stop | Out-Null
+        } catch {
+          throw "Failed to remove optional Windows capability '$($capability.Name)': $($_.Exception.Message)"
+        }
+      }
   metadata:
-    description: Ensure required Windows Features on Demand are installed, failing if the current image does not offer one
+    description: Install required and remove unneeded Windows Features on Demand in one batch
     winget:
       securityContext: elevated
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: RegistryMachineSettings
   properties:
     input:
+      absentValues:
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer"
+        name: "HideRecommendedSection"
+        description: "Let Start show the Recommended section"
       values:
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AdvertisingInfo"
         name: "DisabledByGroupPolicy"
@@ -605,7 +580,12 @@ resources:
           @{ path = $entry.path; name = $entry.name; current = $current; desired = $entry.value }
         }
       }
-      return @{ mismatches = @($mismatches) }
+      $absentValues = foreach ($entry in $desired.absentValues) {
+        if (Get-ItemProperty -LiteralPath $entry.path -Name $entry.name -ErrorAction SilentlyContinue) {
+          @{ path = $entry.path; name = $entry.name }
+        }
+      }
+      return @{ mismatches = @($mismatches); presentValues = @($absentValues) }
     testScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
@@ -635,6 +615,9 @@ resources:
           $property.Value -eq $expected
         }
         if (-not $matches) { return $false }
+      }
+      foreach ($entry in $desired.absentValues) {
+        if (Get-ItemProperty -LiteralPath $entry.path -Name $entry.name -ErrorAction SilentlyContinue) { return $false }
       }
       return $true
     setScript: |-
@@ -688,44 +671,27 @@ resources:
           }
         }
       }
+      foreach ($entry in $desired.absentValues) {
+        if (Get-ItemProperty -LiteralPath $entry.path -Name $entry.name -ErrorAction SilentlyContinue) {
+          try {
+            Remove-ItemProperty -LiteralPath $entry.path -Name $entry.name -ErrorAction Stop
+          } catch {
+            throw "Failed to remove registry setting '$($entry.description)' at '$($entry.path)\\$($entry.name)': $($_.Exception.Message)"
+          }
+        }
+      }
   metadata:
     description: Apply machine-wide Windows registry policies and preferences in one idempotent batch
     winget:
       securityContext: elevated
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
-  name: RemoveMachineStartRecentPolicy
-  properties:
-    getScript: |-
-      $path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer'
-      return @{ present = [bool](Get-ItemProperty -LiteralPath $path -Name HideRecommendedSection -ErrorAction SilentlyContinue) }
-    testScript: |-
-      $path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer'
-      return -not [bool](Get-ItemProperty -LiteralPath $path -Name HideRecommendedSection -ErrorAction SilentlyContinue)
-    setScript: |-
-      $path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer'
-      Remove-ItemProperty -LiteralPath $path -Name HideRecommendedSection -ErrorAction SilentlyContinue
-  metadata:
-    description: Remove the machine policy that hides the Start Recommended section
-    winget:
-      securityContext: elevated
-- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
-  name: RemoveUserRecentDocsPolicy
-  properties:
-    getScript: |-
-      $path = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
-      return @{ present = [bool](Get-ItemProperty -LiteralPath $path -Name NoRecentDocsHistory -ErrorAction SilentlyContinue) }
-    testScript: |-
-      $path = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
-      return -not [bool](Get-ItemProperty -LiteralPath $path -Name NoRecentDocsHistory -ErrorAction SilentlyContinue)
-    setScript: |-
-      $path = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
-      Remove-ItemProperty -LiteralPath $path -Name NoRecentDocsHistory -ErrorAction SilentlyContinue
-  metadata:
-    description: Let the Start recent-files preference control the Settings toggle
-- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: RegistryUserSettings
   properties:
     input:
+      absentValues:
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer"
+        name: "NoRecentDocsHistory"
+        description: "Let the Start recent-files preference control the Settings toggle"
       values:
       - path: "HKCU:\\Console\\%%Startup"
         name: "DelegationTerminal"
@@ -974,7 +940,12 @@ resources:
           @{ path = $entry.path; name = $entry.name; current = $current; desired = $entry.value }
         }
       }
-      return @{ mismatches = @($mismatches) }
+      $absentValues = foreach ($entry in $desired.absentValues) {
+        if (Get-ItemProperty -LiteralPath $entry.path -Name $entry.name -ErrorAction SilentlyContinue) {
+          @{ path = $entry.path; name = $entry.name }
+        }
+      }
+      return @{ mismatches = @($mismatches); presentValues = @($absentValues) }
     testScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
@@ -1011,6 +982,9 @@ resources:
           $property.Value -eq $expected
         }
         if (-not $matches) { return $false }
+      }
+      foreach ($entry in $desired.absentValues) {
+        if (Get-ItemProperty -LiteralPath $entry.path -Name $entry.name -ErrorAction SilentlyContinue) { return $false }
       }
       return $true
     setScript: |-
@@ -1073,6 +1047,15 @@ resources:
           }
         }
       }
+      foreach ($entry in $desired.absentValues) {
+        if (Get-ItemProperty -LiteralPath $entry.path -Name $entry.name -ErrorAction SilentlyContinue) {
+          try {
+            Remove-ItemProperty -LiteralPath $entry.path -Name $entry.name -ErrorAction Stop
+          } catch {
+            throw "Failed to remove registry setting '$($entry.description)' at '$($entry.path)\$($entry.name)': $($_.Exception.Message)"
+          }
+        }
+      }
   metadata:
     description: Apply current-user Windows registry policies and preferences in one idempotent batch
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
@@ -1109,7 +1092,14 @@ resources:
       finally { $schemes.Dispose() }
       Get-ChildItem -LiteralPath 'HKCU:\AppEvents\Schemes\Apps' -Recurse |
         Where-Object { $_.PSChildName -ieq '.Current' } |
-        ForEach-Object { $_.SetValue('', '', [Microsoft.Win32.RegistryValueKind]::String) }
+        ForEach-Object {
+          $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey(
+            $_.Name.Substring('HKEY_CURRENT_USER\'.Length), $true
+          )
+          if ($null -eq $key) { throw "Cannot open sound scheme key for writing: $($_.Name)" }
+          try { $key.SetValue('', '', [Microsoft.Win32.RegistryValueKind]::String) }
+          finally { $key.Dispose() }
+        }
 
       New-Item -Path $markerPath -Force | Out-Null
       New-ItemProperty -LiteralPath $markerPath -Name PersonalizationDefaultsVersion -Value 1 -PropertyType DWord -Force | Out-Null
