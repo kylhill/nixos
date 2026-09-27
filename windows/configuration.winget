@@ -16,21 +16,9 @@ metadata:
       identifier: dscv3
 resources:
 - type: Microsoft.WinGet/Package
-  name: PackageWindowsTerminal
-  properties:
-    id: Microsoft.WindowsTerminal
-    source: winget
-    useLatest: true
-- type: Microsoft.WinGet/Package
   name: PackagePowerShell
   properties:
     id: Microsoft.PowerShell
-    source: winget
-    useLatest: true
-- type: Microsoft.WinGet/Package
-  name: PackageCoreutils
-  properties:
-    id: Microsoft.Coreutils
     source: winget
     useLatest: true
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
@@ -307,22 +295,17 @@ resources:
         name: "ConfigureSearchOnTaskbarMode"
         type: "DWord"
         value: 0
-        description: "Hide taskbar Search on Windows 11 24H2+"
+        description: "Hide the Search box and icon from the taskbar on Windows 11 24H2+"
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Dsh"
         name: "AllowNewsAndInterests"
         type: "DWord"
         value: 0
-        description: "Disable Windows Widgets"
+        description: "Disable the Windows Widgets feature, including taskbar content"
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\Terminal Services"
         name: "fAllowToGetHelp"
         type: "DWord"
         value: 0
         description: "Disable solicited Remote Assistance"
-      - path: "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server"
-        name: "fDenyTSConnections"
-        type: "DWord"
-        value: 1
-        description: "Disable incoming Remote Desktop connections"
       - path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock"
         name: "AllowDevelopmentWithoutDevLicense"
         type: "DWord"
@@ -337,7 +320,7 @@ resources:
         name: "EnableSudo"
         type: "DWord"
         value: 1
-        description: "Limit Windows sudo to force-new-window mode on Windows 11 24H2+"
+        description: "Enable Windows sudo feature"
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI"
         name: "AllowRecallEnablement"
         type: "DWord"
@@ -604,8 +587,20 @@ resources:
           $property = $properties.PSObject.Properties[$entry.name]
           if ($null -ne $property) {
             $current = $property.Value
-            $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
-            $matches = if ($entry.type -eq 'String') { $current -ceq $expected } else { $current -eq $expected }
+            $expected = if ($entry.type -eq 'DWord') {
+              [int]$entry.value
+            } elseif ($entry.type -eq 'GuidList') {
+              [byte[]]@($entry.value | ForEach-Object { ([guid]$_).ToByteArray() })
+            } else {
+              [string]$entry.value
+            }
+            $matches = if ($entry.type -eq 'String') {
+              $current -ceq $expected
+            } elseif ($entry.type -eq 'GuidList') {
+              [BitConverter]::ToString([byte[]]$current) -ceq [BitConverter]::ToString([byte[]]$expected)
+            } else {
+              $current -eq $expected
+            }
           }
         }
         if (-not $matches) {
@@ -621,8 +616,20 @@ resources:
         $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
         $property = $properties.PSObject.Properties[$entry.name]
         if ($null -eq $property) { return $false }
-        $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
-        $matches = if ($entry.type -eq 'String') { $property.Value -ceq $expected } else { $property.Value -eq $expected }
+        $expected = if ($entry.type -eq 'DWord') {
+          [int]$entry.value
+        } elseif ($entry.type -eq 'GuidList') {
+          [byte[]]@($entry.value | ForEach-Object { ([guid]$_).ToByteArray() })
+        } else {
+          [string]$entry.value
+        }
+        $matches = if ($entry.type -eq 'String') {
+          $property.Value -ceq $expected
+        } elseif ($entry.type -eq 'GuidList') {
+          [BitConverter]::ToString([byte[]]$property.Value) -ceq [BitConverter]::ToString([byte[]]$expected)
+        } else {
+          $property.Value -eq $expected
+        }
         if (-not $matches) { return $false }
       }
       return $true
@@ -635,8 +642,20 @@ resources:
           $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
           $property = $properties.PSObject.Properties[$entry.name]
           if ($null -ne $property) {
-            $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
-            $matches = if ($entry.type -eq 'String') { $property.Value -ceq $expected } else { $property.Value -eq $expected }
+            $expected = if ($entry.type -eq 'DWord') {
+              [int]$entry.value
+            } elseif ($entry.type -eq 'GuidList') {
+              [byte[]]@($entry.value | ForEach-Object { ([guid]$_).ToByteArray() })
+            } else {
+              [string]$entry.value
+            }
+            $matches = if ($entry.type -eq 'String') {
+              $property.Value -ceq $expected
+            } elseif ($entry.type -eq 'GuidList') {
+              [BitConverter]::ToString([byte[]]$property.Value) -ceq [BitConverter]::ToString([byte[]]$expected)
+            } else {
+              $property.Value -eq $expected
+            }
           }
         }
         if (-not $matches) {
@@ -644,8 +663,15 @@ resources:
             if (-not (Test-Path -LiteralPath $entry.path)) {
               New-Item -Path $entry.path -Force -ErrorAction Stop | Out-Null
             }
-            $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
-            New-ItemProperty -LiteralPath $entry.path -Name $entry.name -Value $expected -PropertyType $entry.type -Force -ErrorAction Stop | Out-Null
+            $expected = if ($entry.type -eq 'DWord') {
+              [int]$entry.value
+            } elseif ($entry.type -eq 'GuidList') {
+              [byte[]]@($entry.value | ForEach-Object { ([guid]$_).ToByteArray() })
+            } else {
+              [string]$entry.value
+            }
+            $propertyType = if ($entry.type -eq 'GuidList') { 'Binary' } else { $entry.type }
+            New-ItemProperty -LiteralPath $entry.path -Name $entry.name -Value $expected -PropertyType $propertyType -Force -ErrorAction Stop | Out-Null
           } catch {
             throw "Failed to apply registry setting '$($entry.description)' at '$($entry.path)\\$($entry.name)': $($_.Exception.Message)"
           }
@@ -656,55 +682,20 @@ resources:
     winget:
       securityContext: elevated
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
-  name: StartFolders
-  dependsOn:
-  - PackagePowerShell
-  properties:
-    input:
-      path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Start"
-      name: "VisiblePlaces"
-      folderGuids:
-      - "{52730886-51AA-4243-9F7B-2776584659D4}"
-      - "{148A24BC-D60C-4289-A080-6ED9BBA24882}"
-      - "{E367B32F-89DE-4355-BFCE-61F37B18A937}"
-    getScript: |-
-      param($desired)
-      $ErrorActionPreference = 'Stop'
-      $expected = [byte[]]@($desired.folderGuids | ForEach-Object { ([guid]$_).ToByteArray() })
-      $current = if (Test-Path -LiteralPath $desired.path) {
-        (Get-ItemProperty -LiteralPath $desired.path -Name $desired.name -ErrorAction SilentlyContinue).($desired.name)
-      } else {
-        $null
-      }
-      return @{
-        current = if ($null -eq $current) { $null } else { [BitConverter]::ToString([byte[]]$current) }
-        desired = [BitConverter]::ToString($expected)
-      }
-    testScript: |-
-      param($desired)
-      $ErrorActionPreference = 'Stop'
-      if (-not (Test-Path -LiteralPath $desired.path)) { return $false }
-      $current = (Get-ItemProperty -LiteralPath $desired.path -Name $desired.name -ErrorAction SilentlyContinue).($desired.name)
-      if ($null -eq $current) { return $false }
-      $expected = [byte[]]@($desired.folderGuids | ForEach-Object { ([guid]$_).ToByteArray() })
-      return [BitConverter]::ToString([byte[]]$current) -ceq [BitConverter]::ToString($expected)
-    setScript: |-
-      param($desired)
-      $ErrorActionPreference = 'Stop'
-      if (-not (Test-Path -LiteralPath $desired.path)) {
-        New-Item -Path $desired.path -Force -ErrorAction Stop | Out-Null
-      }
-      $expected = [byte[]]@($desired.folderGuids | ForEach-Object { ([guid]$_).ToByteArray() })
-      New-ItemProperty -LiteralPath $desired.path -Name $desired.name -Value $expected -PropertyType Binary -Force -ErrorAction Stop | Out-Null
-  metadata:
-    description: Show Settings, File Explorer, and Downloads beside the power button in Start
-- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: RegistryUserSettings
   dependsOn:
   - PackagePowerShell
   properties:
     input:
       values:
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Start"
+        name: "VisiblePlaces"
+        type: "GuidList"
+        value:
+        - "{52730886-51AA-4243-9F7B-2776584659D4}"
+        - "{148A24BC-D60C-4289-A080-6ED9BBA24882}"
+        - "{E367B32F-89DE-4355-BFCE-61F37B18A937}"
+        description: "Show Settings, File Explorer, and Downloads beside the power button in Start"
       - path: "HKCU:\\Control Panel\\Desktop"
         name: "WindowArrangementActive"
         type: "String"
@@ -755,6 +746,11 @@ resources:
         type: "DWord"
         value: 1
         description: "Disable web results and suggestions in Windows Search"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search"
+        name: "SearchboxTaskbarMode"
+        type: "DWord"
+        value: 0
+        description: "Hide the Search box and icon from the taskbar for the current user"
       - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer"
         name: "NoRecentDocsHistory"
         type: "DWord"
@@ -810,6 +806,11 @@ resources:
         type: "DWord"
         value: 0
         description: "Align Start and taskbar buttons to the left"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        name: "TaskbarDa"
+        type: "DWord"
+        value: 0
+        description: "Hide the Widgets button from the taskbar"
       - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
         name: "ShowTaskViewButton"
         type: "DWord"
@@ -891,8 +892,20 @@ resources:
           $property = $properties.PSObject.Properties[$entry.name]
           if ($null -ne $property) {
             $current = $property.Value
-            $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
-            $matches = if ($entry.type -eq 'String') { $current -ceq $expected } else { $current -eq $expected }
+            $expected = if ($entry.type -eq 'DWord') {
+              [int]$entry.value
+            } elseif ($entry.type -eq 'GuidList') {
+              [byte[]]@($entry.value | ForEach-Object { ([guid]$_).ToByteArray() })
+            } else {
+              [string]$entry.value
+            }
+            $matches = if ($entry.type -eq 'String') {
+              $current -ceq $expected
+            } elseif ($entry.type -eq 'GuidList') {
+              [BitConverter]::ToString([byte[]]$current) -ceq [BitConverter]::ToString([byte[]]$expected)
+            } else {
+              $current -eq $expected
+            }
           }
         }
         if (-not $matches) {
@@ -908,8 +921,20 @@ resources:
         $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
         $property = $properties.PSObject.Properties[$entry.name]
         if ($null -eq $property) { return $false }
-        $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
-        $matches = if ($entry.type -eq 'String') { $property.Value -ceq $expected } else { $property.Value -eq $expected }
+        $expected = if ($entry.type -eq 'DWord') {
+          [int]$entry.value
+        } elseif ($entry.type -eq 'GuidList') {
+          [byte[]]@($entry.value | ForEach-Object { ([guid]$_).ToByteArray() })
+        } else {
+          [string]$entry.value
+        }
+        $matches = if ($entry.type -eq 'String') {
+          $property.Value -ceq $expected
+        } elseif ($entry.type -eq 'GuidList') {
+          [BitConverter]::ToString([byte[]]$property.Value) -ceq [BitConverter]::ToString([byte[]]$expected)
+        } else {
+          $property.Value -eq $expected
+        }
         if (-not $matches) { return $false }
       }
       return $true
@@ -922,8 +947,20 @@ resources:
           $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
           $property = $properties.PSObject.Properties[$entry.name]
           if ($null -ne $property) {
-            $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
-            $matches = if ($entry.type -eq 'String') { $property.Value -ceq $expected } else { $property.Value -eq $expected }
+            $expected = if ($entry.type -eq 'DWord') {
+              [int]$entry.value
+            } elseif ($entry.type -eq 'GuidList') {
+              [byte[]]@($entry.value | ForEach-Object { ([guid]$_).ToByteArray() })
+            } else {
+              [string]$entry.value
+            }
+            $matches = if ($entry.type -eq 'String') {
+              $property.Value -ceq $expected
+            } elseif ($entry.type -eq 'GuidList') {
+              [BitConverter]::ToString([byte[]]$property.Value) -ceq [BitConverter]::ToString([byte[]]$expected)
+            } else {
+              $property.Value -eq $expected
+            }
           }
         }
         if (-not $matches) {
@@ -931,8 +968,15 @@ resources:
             if (-not (Test-Path -LiteralPath $entry.path)) {
               New-Item -Path $entry.path -Force -ErrorAction Stop | Out-Null
             }
-            $expected = if ($entry.type -eq 'DWord') { [int]$entry.value } else { [string]$entry.value }
-            New-ItemProperty -LiteralPath $entry.path -Name $entry.name -Value $expected -PropertyType $entry.type -Force -ErrorAction Stop | Out-Null
+            $expected = if ($entry.type -eq 'DWord') {
+              [int]$entry.value
+            } elseif ($entry.type -eq 'GuidList') {
+              [byte[]]@($entry.value | ForEach-Object { ([guid]$_).ToByteArray() })
+            } else {
+              [string]$entry.value
+            }
+            $propertyType = if ($entry.type -eq 'GuidList') { 'Binary' } else { $entry.type }
+            New-ItemProperty -LiteralPath $entry.path -Name $entry.name -Value $expected -PropertyType $propertyType -Force -ErrorAction Stop | Out-Null
           } catch {
             throw "Failed to apply registry setting '$($entry.description)' at '$($entry.path)\\$($entry.name)': $($_.Exception.Message)"
           }
