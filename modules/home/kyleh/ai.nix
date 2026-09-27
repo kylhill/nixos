@@ -1,6 +1,5 @@
 {
   config,
-  latestPkgs,
   pkgs,
   ...
 }:
@@ -10,15 +9,15 @@ let
       exec /usr/bin/bwrap "$@"
     '').overrideAttrs
       {
-        name = latestPkgs.bubblewrap.name;
+        name = pkgs.bubblewrap.name;
       };
 
   codexPackage =
     if config.targets.genericLinux.enable then
-      pkgs.runCommand latestPkgs.codex.name { } ''
-        cp -a ${latestPkgs.codex} $out
+      pkgs.runCommand pkgs.codex.name { } ''
+        cp -a ${pkgs.codex} $out
         chmod -R u+w $out
-        old_bwrap=${latestPkgs.bubblewrap}
+        old_bwrap=${pkgs.bubblewrap}
         new_bwrap=${systemBubblewrap}
         test "''${#old_bwrap}" -eq "''${#new_bwrap}"
         grep -aFq "$old_bwrap" $out/bin/codex
@@ -26,7 +25,7 @@ let
         grep -aFq "$new_bwrap" $out/bin/codex
       ''
     else
-      latestPkgs.codex;
+      pkgs.codex;
 
   mcpGrafana = pkgs.writeShellApplication {
     name = "mcp-grafana";
@@ -70,7 +69,7 @@ in
     };
     github-copilot-cli = {
       enable = true;
-      package = latestPkgs.github-copilot-cli;
+      package = pkgs.github-copilot-cli;
     };
   };
 }

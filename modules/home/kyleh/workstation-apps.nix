@@ -1,4 +1,4 @@
-{ latestPkgs, pkgs, ... }:
+{ pkgs, ... }:
 {
   home = {
     packages = [
@@ -31,7 +31,7 @@
 
     vscode = {
       enable = true;
-      package = latestPkgs.vscode;
+      package = pkgs.vscode;
     };
   };
 

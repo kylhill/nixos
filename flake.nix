@@ -24,14 +24,17 @@
       url = "github:NixOS/nixos-hardware";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
     nix-index-database = {
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
     nixvim = {
-      url = "github:nix-community/nixvim/nixos-26.05";
-      inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:nix-community/nixvim";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+
     solarized-nvim = {
       url = "github:maxmx03/solarized.nvim";
       flake = false;
@@ -68,7 +71,6 @@
         nixpkgs.lib.nixosSystem {
           specialArgs = {
             inherit inputs;
-            latestPkgs = mkPkgs inputs.nixpkgs-unstable host.system;
           };
           modules = [
             ./modules/nixos/infrastructure.nix
@@ -88,10 +90,9 @@
       mkHome =
         homeName: home:
         inputs.home-manager.lib.homeManagerConfiguration {
-          pkgs = mkPkgs inputs.nixpkgs home.system;
+          pkgs = mkPkgs inputs.nixpkgs-unstable home.system;
           extraSpecialArgs = {
             inherit inputs;
-            latestPkgs = mkPkgs inputs.nixpkgs-unstable home.system;
             homeIdentity = {
               inherit (inventory.user) fullName email;
             };

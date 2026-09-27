@@ -8,6 +8,7 @@ _: {
   ];
 
   home = {
+    enableNixpkgsReleaseCheck = false;
     preferXdgDirectories = true;
   };
 

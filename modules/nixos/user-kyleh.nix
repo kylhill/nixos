@@ -1,10 +1,11 @@
 {
   config,
   inputs,
-  latestPkgs,
+  lib,
   ...
 }:
 let
+  homeManagerLib = import "${inputs.home-manager}/modules/lib/stdlib-extended.nix" inputs.nixpkgs-unstable.lib;
   user = config.infrastructure.user;
 in
 {
@@ -43,18 +44,26 @@ in
 
   home-manager = {
     extraSpecialArgs = {
-      inherit inputs latestPkgs;
+      inherit inputs;
+      lib = homeManagerLib;
       homeIdentity = {
         inherit (config.infrastructure.user) fullName email;
       };
       networkHosts = config.infrastructure.network.hosts;
     };
-    useGlobalPkgs = true;
+    useGlobalPkgs = false;
     users.${config.infrastructure.user.name} = {
+      _module.args.pkgsPath = inputs.nixpkgs-unstable;
       imports = [
         ../home/kyleh
         ../home/kyleh/nix-index.nix
       ];
+      nixpkgs.config.allowUnfreePredicate =
+        package:
+        builtins.elem (lib.getName package) [
+          "github-copilot-cli"
+          "vscode"
+        ];
     };
   };
 }
