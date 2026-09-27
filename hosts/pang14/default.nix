@@ -30,6 +30,7 @@
       systemd-boot = {
         enable = true;
         configurationLimit = 5;
+        editor = false;
         extraInstallCommands = ''
           ${pkgs.gnused}/bin/sed -i 's/^default .*/default @saved/' /boot/loader/loader.conf
           ${pkgs.gnugrep}/bin/grep -qx 'default @saved' /boot/loader/loader.conf
