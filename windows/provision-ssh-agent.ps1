@@ -43,7 +43,14 @@ try {
 
     $env:SOPS_AGE_KEY = $ageKey
     $ageKey = $null
-    & $sops decrypt --extract '["ssh"]["private-key"]' --output $privateKey $SecretFile 2>$null
+    # Windows PowerShell 5.1 strips unescaped quotes from native arguments.
+    # PowerShell 7's standard argument passing preserves them as-is.
+    $extractPath = '["ssh"]["private-key"]'
+    if ($PSVersionTable.PSVersion.Major -lt 7 -or
+        $PSNativeCommandArgumentPassing -eq 'Legacy') {
+        $extractPath = '[\"ssh\"][\"private-key\"]'
+    }
+    & $sops decrypt --extract $extractPath --output $privateKey $SecretFile 2>$null
     if ($LASTEXITCODE -ne 0) { throw 'Could not decrypt the SSH key with the supplied age identity.' }
     Remove-Item Env:SOPS_AGE_KEY -ErrorAction SilentlyContinue
 
