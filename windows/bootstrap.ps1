@@ -4,10 +4,20 @@ param(
     [ValidateSet('Home', 'Work')]
     [string]$Profile,
 
-    [switch]$Verify
+    [switch]$Verify,
+
+    [ValidateSet('All', 'Configuration', 'Packages')]
+    [string]$VerifyScope = 'All',
+
+    [switch]$VerifyOnly,
+
+    [switch]$WindowsOnly
 )
 
 $ErrorActionPreference = 'Stop'
+if ($VerifyOnly -and -not $Verify) {
+    throw '-VerifyOnly requires -Verify.'
+}
 $wslBootstrap = Join-Path $PSScriptRoot 'bootstrap-wsl.ps1'
 $linuxBootstrap = Join-Path (Split-Path $PSScriptRoot -Parent) 'scripts\bootstrap-home.sh'
 
@@ -53,10 +63,35 @@ foreach ($configuration in $configurationFiles) {
 # Microsoft.Windows/Registry, and Microsoft.DSC.Transitional/*. Applying the
 # document still performs schema/resource validation; optional post-apply tests
 # verify the resulting desired state when -Verify is supplied.
-foreach ($configuration in $configurationFiles) {
-    Write-Host "Applying $(Split-Path $configuration -Leaf)..."
-    Invoke-WinGet -Arguments @('configure', '-f', $configuration,
-        '--accept-configuration-agreements', '--disable-interactivity')
+if (-not $VerifyOnly) {
+    foreach ($configuration in $configurationFiles) {
+        Write-Host "Applying $(Split-Path $configuration -Leaf)..."
+        $timer = [Diagnostics.Stopwatch]::StartNew()
+        Invoke-WinGet -Arguments @('configure', '-f', $configuration,
+            '--accept-configuration-agreements', '--disable-interactivity')
+        $timer.Stop()
+        Write-Host "Applied $(Split-Path $configuration -Leaf) in $($timer.Elapsed)."
+    }
+}
+
+if ($Verify) {
+    $filesToVerify = switch ($VerifyScope) {
+        'Configuration' { @($configurationFiles[0]) }
+        'Packages' { @($configurationFiles[1..2]) }
+        default { $configurationFiles }
+    }
+    foreach ($configuration in $filesToVerify) {
+        Write-Host "Testing $(Split-Path $configuration -Leaf)..."
+        $timer = [Diagnostics.Stopwatch]::StartNew()
+        Invoke-WinGet -Arguments @('configure', 'test', '-f', $configuration)
+        $timer.Stop()
+        Write-Host "Tested $(Split-Path $configuration -Leaf) in $($timer.Elapsed)."
+    }
+}
+
+if ($WindowsOnly -or $VerifyOnly) {
+    Write-Host 'Windows configuration complete. No reboot was performed automatically.'
+    exit 0
 }
 
 & $wslBootstrap
@@ -92,10 +127,4 @@ if ($LASTEXITCODE -ne 0) {
     throw "Linux bootstrap failed with exit code $LASTEXITCODE. Correct the reported issue and rerun this script."
 }
 
-if ($Verify) {
-    foreach ($configuration in $configurationFiles) {
-        Write-Host "Testing $(Split-Path $configuration -Leaf)..."
-        Invoke-WinGet -Arguments @('configure', 'test', '-f', $configuration)
-    }
-}
 Write-Host 'Windows and WSL bootstrap complete. No reboot was performed automatically.'

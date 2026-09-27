@@ -130,6 +130,8 @@ unattended or repeatable invocation, select it explicitly:
 .\windows\bootstrap.ps1 -Profile Home
 .\windows\bootstrap.ps1 -Profile Work
 .\windows\bootstrap.ps1 -Profile Home -Verify
+.\windows\bootstrap.ps1 -Profile Home -WindowsOnly -Verify -VerifyScope Configuration
+.\windows\bootstrap.ps1 -Profile Home -VerifyOnly -Verify -VerifyScope Configuration
 ```
 
 The top-level script applies the shared native state in
@@ -139,6 +141,12 @@ The top-level script applies the shared native state in
 the Work profile adds Google Drive. Package profiles are additive: selecting a
 different profile later does not uninstall packages installed by an earlier
 profile.
+
+`-VerifyScope` selects `Configuration`, `Packages`, or `All` (the default) when
+`-Verify` is used. Verification runs after Windows configuration and before WSL
+setup. `-WindowsOnly` skips WSL setup; `-VerifyOnly` tests without applying
+configuration and also skips WSL. The script reports elapsed apply and test time
+per manifest so repeat runs can be compared before changing DSC resource types.
 
 The script then sets up Ubuntu WSL2 and runs `scripts/bootstrap-home.sh` inside Ubuntu. On a
 fresh install it stops after installing WSL: reboot if requested, launch Ubuntu
