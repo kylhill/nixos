@@ -502,6 +502,11 @@ resources:
         value: 0
         description: "Disable Microsoft content on the Edge new tab page"
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
+        name: "NewTabPageQuickLinksEnabled"
+        type: "DWord"
+        value: 0
+        description: "Hide Edge new-tab quick links, including sponsored links"
+      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
         name: "AIGenThemesEnabled"
         type: "DWord"
         value: 0
@@ -801,6 +806,16 @@ resources:
         type: "DWord"
         value: 0
         description: "Keep the lock screen in static-picture mode"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Lock Screen"
+        name: "DetailedStatusApp"
+        type: "String"
+        value: ""
+        description: "Set lock screen status to None"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        name: "Start_TrackProgs"
+        type: "DWord"
+        value: 0
+        description: "Do not track app launches to improve Start and search results"
       - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
         name: "TaskbarAl"
         type: "DWord"
