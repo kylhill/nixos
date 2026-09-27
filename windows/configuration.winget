@@ -817,11 +817,6 @@ resources:
         value: 0
         description: "Align Start and taskbar buttons to the left"
       - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
-        name: "TaskbarDa"
-        type: "DWord"
-        value: 0
-        description: "Hide the Widgets button from the taskbar"
-      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
         name: "ShowTaskViewButton"
         type: "DWord"
         value: 0
