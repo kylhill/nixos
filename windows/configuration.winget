@@ -272,6 +272,7 @@ resources:
         name: "AllowNewsAndInterests"
         type: "DWord"
         value: 0
+        bestEffort: true
         description: "Disable the Windows Widgets feature, including taskbar content"
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\Terminal Services"
         name: "fAllowToGetHelp"
@@ -667,7 +668,12 @@ resources:
             New-ItemProperty -LiteralPath $entry.path -Name $entry.name -Value $expected -PropertyType $propertyType -Force -ErrorAction Stop | Out-Null
             [void]$propertiesByPath.Remove($entry.path)
           } catch {
-            throw "Failed to apply registry setting '$($entry.description)' at '$($entry.path)\\$($entry.name)': $($_.Exception.Message)"
+            $message = "Failed to apply registry setting '$($entry.description)' at '$($entry.path)\\$($entry.name)': $($_.Exception.Message)"
+            if ($entry.bestEffort) {
+              Write-Warning $message
+            } else {
+              throw $message
+            }
           }
         }
       }
