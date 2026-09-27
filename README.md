@@ -116,6 +116,18 @@ cd ~/nixos
 
 ### WSL bootstrap
 
+To update all upgradeable installed WinGet packages, the WSL runtime, and Ubuntu
+packages later, run this from an elevated PowerShell prompt:
+
+```powershell
+.\windows\update.ps1
+```
+
+The update runs without prompts and reports failures from each step. It upgrades
+Ubuntu packages with `apt-get full-upgrade`; it does not change the Ubuntu release
+or activate a new Home Manager generation. Use `-Distro NAME` if the installed
+Ubuntu distribution has a different WSL name.
+
 From an elevated PowerShell prompt in a checkout of this repository, run:
 
 ```powershell
