@@ -17,7 +17,7 @@ jobs:
     runs-on: oci-deps
     timeout-minutes: 60
     container:
-      image: docker.io/renovate/renovate:latest@sha256:e262ed52b23dd8c545c80faf5b1ad5c95a07b3f198888de8d7b8928f45c307c7
+      image: docker.io/renovate/renovate:latest@sha256:81f57864f6e70b1d44ae24406473b84fe1ab831ada96ea483bb72c51aacb6000
       volumes:
         - /opt/cache/renovate:/tmp/renovate/cache
     env:
