@@ -4,26 +4,20 @@
   ...
 }:
 let
-  systemBubblewrap =
-    (pkgs.writeShellScriptBin "bwrap" ''
-      exec /usr/bin/bwrap "$@"
-    '').overrideAttrs
-      {
-        name = pkgs.bubblewrap.name;
-      };
+  systemBubblewrap = pkgs.writeShellScriptBin "bwrap" ''
+    exec /usr/bin/bwrap "$@"
+  '';
 
   codexPackage =
     if config.targets.genericLinux.enable then
-      pkgs.runCommand pkgs.codex.name { } ''
-        cp -a ${pkgs.codex} $out
-        chmod -R u+w $out
-        old_bwrap=${pkgs.bubblewrap}
-        new_bwrap=${systemBubblewrap}
-        test "''${#old_bwrap}" -eq "''${#new_bwrap}"
-        grep -aFq "$old_bwrap" $out/bin/codex
-        ${pkgs.gnused}/bin/sed -i "s|$old_bwrap|$new_bwrap|g" $out/bin/codex
-        grep -aFq "$new_bwrap" $out/bin/codex
-      ''
+      # Bypass nixpkgs' PATH wrapper so Ubuntu's bwrap takes precedence.
+      pkgs.writeShellApplication {
+        name = "codex";
+        runtimeInputs = [ systemBubblewrap ];
+        text = ''
+          exec ${pkgs.codex}/bin/.codex-wrapped "$@"
+        '';
+      }
     else
       pkgs.codex;
 
