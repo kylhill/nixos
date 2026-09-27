@@ -52,7 +52,10 @@ let
   };
 in
 {
-  home.file.".config/codex/packages/standalone/current/codex".source = "${codexPackage}/bin/codex";
+  home.file.".config/codex/packages/standalone/current/codex" = {
+    source = "${codexPackage}/bin/codex";
+    force = true;
+  };
 
   home.packages = [
     mcpGrafana
