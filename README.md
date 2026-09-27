@@ -23,6 +23,10 @@ On `pang14`, Home Manager and Nixvim replace Dotbot, lazy.nvim, and Mason.
 - `secrets/` contains only sops-encrypted values; `.sops.yaml` declares the age
   recipient policy. Private age identities remain outside the repository.
 
+The `pang14` laptop intentionally uses an unencrypted ZFS pool and an
+unencrypted swap partition. Data-at-rest encryption is not part of this host's
+storage policy.
+
 Contributor and coding-agent constraints live in [AGENTS.md](AGENTS.md). That
 file intentionally does not duplicate the operator procedures below.
 
@@ -51,9 +55,10 @@ Home Manager's XDG MIME integration; native NixOS homes retain it.
 tools, fd, and ripgrep.
 `workstation.nix` adds graphical applications, GNOME preferences, and Bash VTE
 integration.
-The AI and workstation profiles also accept `latestPkgs`, an explicitly
-configured package set from the locked `nixpkgs-unstable` input: AI uses it for
-Codex and Copilot, while the workstation uses it for Firefox and VS Code.
+Standalone and integrated Home Manager use the locked `nixpkgs-unstable`
+package set, while the NixOS system uses the locked `nixpkgs` input. The AI
+profile uses the home package set for Codex and Copilot; the workstation uses
+it for Firefox and VS Code.
 The workstation also installs Python alongside VS Code so extensions and tasks
 can use it outside project-specific development environments.
 Nixvim and nix-index-database module imports live with the home capabilities
