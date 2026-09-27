@@ -894,6 +894,13 @@ resources:
     getScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
+      function ConvertTo-GuidBytes($guids) {
+        $bytes = New-Object byte[] ($guids.Count * 16)
+        for ($i = 0; $i -lt $guids.Count; $i++) {
+          ([guid]$guids[$i]).ToByteArray().CopyTo($bytes, $i * 16)
+        }
+        Write-Output -NoEnumerate $bytes
+      }
       $propertiesByPath = @{}
       $mismatches = foreach ($entry in $desired.values) {
         $current = $null
@@ -911,7 +918,7 @@ resources:
             $expected = if ($entry.type -eq 'DWord') {
               [int]$entry.value
             } elseif ($entry.type -eq 'GuidList') {
-              [byte[]]@($entry.value | ForEach-Object { ([guid]$_).ToByteArray() })
+              ConvertTo-GuidBytes $entry.value
             } else {
               [string]$entry.value
             }
@@ -932,6 +939,13 @@ resources:
     testScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
+      function ConvertTo-GuidBytes($guids) {
+        $bytes = New-Object byte[] ($guids.Count * 16)
+        for ($i = 0; $i -lt $guids.Count; $i++) {
+          ([guid]$guids[$i]).ToByteArray().CopyTo($bytes, $i * 16)
+        }
+        Write-Output -NoEnumerate $bytes
+      }
       $propertiesByPath = @{}
       foreach ($entry in $desired.values) {
         if (-not $propertiesByPath.ContainsKey($entry.path)) {
@@ -946,7 +960,7 @@ resources:
         $expected = if ($entry.type -eq 'DWord') {
           [int]$entry.value
         } elseif ($entry.type -eq 'GuidList') {
-          [byte[]]@($entry.value | ForEach-Object { ([guid]$_).ToByteArray() })
+          ConvertTo-GuidBytes $entry.value
         } else {
           [string]$entry.value
         }
@@ -963,6 +977,13 @@ resources:
     setScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
+      function ConvertTo-GuidBytes($guids) {
+        $bytes = New-Object byte[] ($guids.Count * 16)
+        for ($i = 0; $i -lt $guids.Count; $i++) {
+          ([guid]$guids[$i]).ToByteArray().CopyTo($bytes, $i * 16)
+        }
+        Write-Output -NoEnumerate $bytes
+      }
       $propertiesByPath = @{}
       foreach ($entry in $desired.values) {
         $matches = $false
@@ -978,7 +999,7 @@ resources:
             $expected = if ($entry.type -eq 'DWord') {
               [int]$entry.value
             } elseif ($entry.type -eq 'GuidList') {
-              [byte[]]@($entry.value | ForEach-Object { ([guid]$_).ToByteArray() })
+              ConvertTo-GuidBytes $entry.value
             } else {
               [string]$entry.value
             }
@@ -993,13 +1014,14 @@ resources:
         }
         if (-not $matches) {
           try {
+            Write-Host "Applying registry setting '$($entry.description)' at '$($entry.path)\$($entry.name)'"
             if (-not (Test-Path -LiteralPath $entry.path)) {
               New-Item -Path $entry.path -Force -ErrorAction Stop | Out-Null
             }
             $expected = if ($entry.type -eq 'DWord') {
               [int]$entry.value
             } elseif ($entry.type -eq 'GuidList') {
-              [byte[]]@($entry.value | ForEach-Object { ([guid]$_).ToByteArray() })
+              ConvertTo-GuidBytes $entry.value
             } else {
               [string]$entry.value
             }
@@ -1007,6 +1029,7 @@ resources:
             New-ItemProperty -LiteralPath $entry.path -Name $entry.name -Value $expected -PropertyType $propertyType -Force -ErrorAction Stop | Out-Null
             [void]$propertiesByPath.Remove($entry.path)
           } catch {
+            Write-Host "Registry setting failed: $($entry.path)\$($entry.name): $($_.Exception.Message)"
             throw "Failed to apply registry setting '$($entry.description)' at '$($entry.path)\\$($entry.name)': $($_.Exception.Message)"
           }
         }
