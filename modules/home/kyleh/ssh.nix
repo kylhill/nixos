@@ -2,6 +2,7 @@
   config,
   lib,
   networkHosts,
+  wslAgent,
   ...
 }:
 let
@@ -51,19 +52,23 @@ in
       };
 
       "github.com" = {
+        User = "git";
+      }
+      // lib.optionalAttrs (!wslAgent) {
         IdentityFile = identityFile;
         IdentitiesOnly = true;
-        User = "git";
       };
 
       ${hosts.git.fqdn} = {
-        IdentityFile = identityFile;
-        IdentitiesOnly = true;
         KbdInteractiveAuthentication = false;
         PasswordAuthentication = false;
         Port = hosts.git.port;
         StrictHostKeyChecking = "accept-new";
         User = "git";
+      }
+      // lib.optionalAttrs (!wslAgent) {
+        IdentityFile = identityFile;
+        IdentitiesOnly = true;
       };
 
       "*" = {
@@ -73,7 +78,7 @@ in
         ControlPersist = "10m";
         ForwardAgent = false;
         HashKnownHosts = true;
-        IdentityFile = identityFile;
+        IdentityFile = if wslAgent then "none" else identityFile;
         ServerAliveCountMax = 3;
         ServerAliveInterval = 60;
         User = config.home.username;

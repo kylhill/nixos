@@ -20,6 +20,30 @@ resources:
   properties:
     id: Microsoft.PowerShell
     source: winget
+- type: Microsoft.WinGet/Package
+  name: PackageSops
+  properties:
+    id: SecretsOPerationS.SOPS
+    source: winget
+- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  name: OpenSSHAgentService
+  dependsOn:
+  - InstallRequiredWindowsCapabilities
+  properties:
+    getScript: |-
+      $service = Get-Service -Name ssh-agent -ErrorAction Stop
+      return @{ status = "$($service.Status)"; startupType = "$($service.StartType)" }
+    testScript: |-
+      $service = Get-Service -Name ssh-agent -ErrorAction Stop
+      return ($service.Status -eq 'Running' -and $service.StartType -eq 'Automatic')
+    setScript: |-
+      $ErrorActionPreference = 'Stop'
+      Set-Service -Name ssh-agent -StartupType Automatic
+      Start-Service -Name ssh-agent
+  metadata:
+    description: Start the Windows OpenSSH authentication agent automatically
+    winget:
+      securityContext: elevated
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: RemoveOptionalWindowsCapabilities
   properties:
@@ -239,26 +263,6 @@ resources:
         type: "DWord"
         value: 0
         description: "Prevent Settings from retrieving online tips and help content"
-      - path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer"
-        name: "NoDriveTypeAutoRun"
-        type: "DWord"
-        value: 255
-        description: "Disable AutoPlay on all drive types"
-      - path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer"
-        name: "NoAutorun"
-        type: "DWord"
-        value: 1
-        description: "Disable execution of AutoRun commands"
-      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer"
-        name: "NoAutoplayfornonVolume"
-        type: "DWord"
-        value: 1
-        description: "Disable AutoPlay for non-volume devices such as cameras and phones"
-      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer"
-        name: "HideRecommendedSection"
-        type: "DWord"
-        value: 1
-        description: "Hide Recommended section in Start; supported on Windows 11 Pro"
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer"
         name: "HideRecommendedPersonalizedSites"
         type: "DWord"
@@ -313,7 +317,12 @@ resources:
         name: "EnableSudo"
         type: "DWord"
         value: 1
-        description: "Enable Windows sudo feature"
+        description: "Allow Windows sudo in force-new-window mode"
+      - path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Sudo"
+        name: "Enabled"
+        type: "DWord"
+        value: 1
+        description: "Enable Windows sudo in force-new-window mode"
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI"
         name: "AllowRecallEnablement"
         type: "DWord"
@@ -684,10 +693,50 @@ resources:
     winget:
       securityContext: elevated
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  name: RemoveMachineStartRecentPolicy
+  properties:
+    getScript: |-
+      $path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer'
+      return @{ present = [bool](Get-ItemProperty -LiteralPath $path -Name HideRecommendedSection -ErrorAction SilentlyContinue) }
+    testScript: |-
+      $path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer'
+      return -not [bool](Get-ItemProperty -LiteralPath $path -Name HideRecommendedSection -ErrorAction SilentlyContinue)
+    setScript: |-
+      $path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer'
+      Remove-ItemProperty -LiteralPath $path -Name HideRecommendedSection -ErrorAction SilentlyContinue
+  metadata:
+    description: Remove the machine policy that hides the Start Recommended section
+    winget:
+      securityContext: elevated
+- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  name: RemoveUserRecentDocsPolicy
+  properties:
+    getScript: |-
+      $path = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+      return @{ present = [bool](Get-ItemProperty -LiteralPath $path -Name NoRecentDocsHistory -ErrorAction SilentlyContinue) }
+    testScript: |-
+      $path = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+      return -not [bool](Get-ItemProperty -LiteralPath $path -Name NoRecentDocsHistory -ErrorAction SilentlyContinue)
+    setScript: |-
+      $path = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+      Remove-ItemProperty -LiteralPath $path -Name NoRecentDocsHistory -ErrorAction SilentlyContinue
+  metadata:
+    description: Let the Start recent-files preference control the Settings toggle
+- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: RegistryUserSettings
   properties:
     input:
       values:
+      - path: "HKCU:\\Console\\%%Startup"
+        name: "DelegationTerminal"
+        type: "String"
+        value: "{E12CFF52-A866-4C77-9A90-F570A7AA2C6B}"
+        description: "Use Windows Terminal as the default terminal application"
+      - path: "HKCU:\\Console\\%%Startup"
+        name: "DelegationConsole"
+        type: "String"
+        value: "{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}"
+        description: "Use Windows Terminal as the default console host"
       - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Start"
         name: "VisiblePlaces"
         type: "GuidList"
@@ -696,11 +745,21 @@ resources:
         - "{148A24BC-D60C-4289-A080-6ED9BBA24882}"
         - "{E367B32F-89DE-4355-BFCE-61F37B18A937}"
         description: "Show Settings, File Explorer, and Downloads beside the power button in Start"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Start"
+        name: "ShowRecentList"
+        type: "DWord"
+        value: 0
+        description: "Turn off recently installed apps in Start personalization"
       - path: "HKCU:\\Control Panel\\Desktop"
         name: "WindowArrangementActive"
         type: "String"
         value: "1"
         description: "Keep the Windows Snap feature enabled"
+      - path: "HKCU:\\SOFTWARE\\Microsoft\\Lighting"
+        name: "AmbientLightingEnabled"
+        type: "DWord"
+        value: 0
+        description: "Turn off Use Dynamic Lighting on my devices"
       - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
         name: "Start_IrisRecommendations"
         type: "DWord"
@@ -751,11 +810,6 @@ resources:
         type: "DWord"
         value: 0
         description: "Hide the Search box and icon from the taskbar for the current user"
-      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer"
-        name: "NoRecentDocsHistory"
-        type: "DWord"
-        value: 1
-        description: "Do not retain recent-document history or show recent items in Jump Lists"
       - path: "HKCU:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent"
         name: "DisableThirdPartySuggestions"
         type: "DWord"
@@ -766,16 +820,6 @@ resources:
         type: "DWord"
         value: 0
         description: "Disable Search Highlights"
-      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"
-        name: "AppsUseLightTheme"
-        type: "DWord"
-        value: 0
-        description: "Use dark mode for applications"
-      - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"
-        name: "SystemUsesLightTheme"
-        type: "DWord"
-        value: 0
-        description: "Use dark mode for Windows surfaces"
       - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager"
         name: "RotatingLockScreenEnabled"
         type: "DWord"
@@ -795,7 +839,7 @@ resources:
         name: "SubscribedContent-338393Enabled"
         type: "DWord"
         value: 0
-        description: "Disable the undocumented 'Show recommendations and offers in Settings' user preference"
+        description: "Turn off Recommendations and offers in Settings"
       - path: "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Lock Screen"
         name: "SlideshowEnabled"
         type: "DWord"
@@ -1032,6 +1076,46 @@ resources:
   metadata:
     description: Apply current-user Windows registry policies and preferences in one idempotent batch
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  name: PersonalizationDefaults
+  dependsOn:
+  - RegistryUserSettings
+  properties:
+    getScript: |-
+      $marker = Get-ItemProperty -LiteralPath 'HKCU:\SOFTWARE\kyleh\Nixos' -Name PersonalizationDefaultsVersion -ErrorAction SilentlyContinue
+      return @{ initialized = ($null -ne $marker -and $marker.PersonalizationDefaultsVersion -eq 1) }
+    testScript: |-
+      $marker = Get-ItemProperty -LiteralPath 'HKCU:\SOFTWARE\kyleh\Nixos' -Name PersonalizationDefaultsVersion -ErrorAction SilentlyContinue
+      return ($null -ne $marker -and $marker.PersonalizationDefaultsVersion -eq 1)
+    setScript: |-
+      $ErrorActionPreference = 'Stop'
+      $markerPath = 'HKCU:\SOFTWARE\kyleh\Nixos'
+      $marker = Get-ItemProperty -LiteralPath $markerPath -Name PersonalizationDefaultsVersion -ErrorAction SilentlyContinue
+      if ($null -ne $marker -and $marker.PersonalizationDefaultsVersion -eq 1) { return }
+
+      $darkTheme = Join-Path $env:WINDIR 'Resources\Themes\dark.theme'
+      if (-not (Test-Path -LiteralPath $darkTheme -PathType Leaf)) {
+        throw "The Windows (dark) theme is unavailable: $darkTheme"
+      }
+      $themePath = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes'
+      $personalizePath = Join-Path $themePath 'Personalize'
+      New-Item -Path $personalizePath -Force | Out-Null
+      New-ItemProperty -LiteralPath $themePath -Name CurrentTheme -Value $darkTheme -PropertyType String -Force | Out-Null
+      New-ItemProperty -LiteralPath $personalizePath -Name AppsUseLightTheme -Value 0 -PropertyType DWord -Force | Out-Null
+      New-ItemProperty -LiteralPath $personalizePath -Name SystemUsesLightTheme -Value 0 -PropertyType DWord -Force | Out-Null
+
+      $schemes = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey('AppEvents\Schemes', $true)
+      if ($null -eq $schemes) { throw 'The current user has no Windows sound schemes registry key.' }
+      try { $schemes.SetValue('', '.None', [Microsoft.Win32.RegistryValueKind]::String) }
+      finally { $schemes.Dispose() }
+      Get-ChildItem -LiteralPath 'HKCU:\AppEvents\Schemes\Apps' -Recurse |
+        Where-Object { $_.PSChildName -ieq '.Current' } |
+        ForEach-Object { $_.SetValue('', '', [Microsoft.Win32.RegistryValueKind]::String) }
+
+      New-Item -Path $markerPath -Force | Out-Null
+      New-ItemProperty -LiteralPath $markerPath -Name PersonalizationDefaultsVersion -Value 1 -PropertyType DWord -Force | Out-Null
+  metadata:
+    description: Set Windows dark theme and No Sounds once, leaving later user changes untouched
+- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: RemoveRecommendedInboxApps
   properties:
     input:
@@ -1045,6 +1129,7 @@ resources:
     - Microsoft.Getstarted
     - Microsoft.MicrosoftOfficeHub
     - Microsoft.MicrosoftSolitaireCollection
+    - Microsoft.BingSearch
     - Microsoft.BingNews
     - Microsoft.BingWeather
     - Microsoft.Todos
@@ -1178,6 +1263,7 @@ resources:
       {
           "$help": "https://aka.ms/terminal-documentation",
           "$schema": "https://aka.ms/terminal-profiles-schema",
+          "actions": [],
           "copyOnSelect": true,
           "defaultProfile": "{26043d3d-43de-425d-8803-ab90eb274751}",
           "disabledProfileSources": [
@@ -1185,6 +1271,12 @@ resources:
               "Windows.Terminal.Azure",
               "Windows.Terminal.PowershellCore",
               "Windows.Terminal.SSH"
+          ],
+          "keybindings": [],
+          "newTabMenu": [
+              {
+                  "type": "remainingProfiles"
+              }
           ],
           "profiles": {
               "defaults": {
@@ -1230,8 +1322,10 @@ resources:
                   }
               ]
           },
+          "schemes": [],
           "searchWebDefaultQueryUrl": "https://www.google.com/search?q=%22%s%22",
-          "snapToGridOnResize": true
+          "snapToGridOnResize": true,
+          "themes": []
       }
     getScript: |-
       param($desiredRaw)
@@ -1245,90 +1339,40 @@ resources:
     testScript: |-
       param($desiredRaw)
       $ErrorActionPreference = 'Stop'
-      function Merge-Settings($current, $desired) {
-        foreach ($key in $desired.Keys) {
-          if ($key -ne 'profiles') {
-            $current[$key] = $desired[$key]
-            continue
-          }
-          if (-not $current.Contains('profiles') -or $null -eq $current.profiles) {
-            $current.profiles = [ordered]@{}
-          }
-          if (-not $current.profiles.Contains('defaults') -or $null -eq $current.profiles.defaults) {
-            $current.profiles.defaults = [ordered]@{}
-          }
-          foreach ($defaultKey in $desired.profiles.defaults.Keys) {
-            $current.profiles.defaults[$defaultKey] = $desired.profiles.defaults[$defaultKey]
-          }
-          $profiles = @($current.profiles.list | Where-Object { $null -ne $_ })
-          foreach ($wanted in $desired.profiles.list) {
-            $existing = $profiles | Where-Object { $_.guid -eq $wanted.guid } | Select-Object -First 1
-            if ($null -eq $existing) {
-              $profiles += $wanted
-            } else {
-              foreach ($profileKey in $wanted.Keys) { $existing[$profileKey] = $wanted[$profileKey] }
-            }
-          }
-          $current.profiles.list = @($profiles)
-        }
-        return $current
-      }
       $paths = @(
         (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json'),
         (Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal\settings.json')
       )
       $path = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
       if (-not $path) { return $false }
-      $current = Get-Content $path -Raw | ConvertFrom-Json -AsHashtable
-      $desired = $desiredRaw | ConvertFrom-Json -AsHashtable
-      $before = $current | ConvertTo-Json -Depth 100 -Compress
-      $merged = Merge-Settings $current $desired
-      return (($merged | ConvertTo-Json -Depth 100 -Compress) -ceq $before)
+      try {
+        $current = Get-Content $path -Raw | ConvertFrom-Json -AsHashtable
+        $desired = $desiredRaw | ConvertFrom-Json -AsHashtable
+        return (($current | ConvertTo-Json -Depth 100 -Compress) -ceq
+          ($desired | ConvertTo-Json -Depth 100 -Compress))
+      } catch {
+        return $false
+      }
     setScript: |-
       param($desiredRaw)
       $ErrorActionPreference = 'Stop'
-      function Merge-Settings($current, $desired) {
-        foreach ($key in $desired.Keys) {
-          if ($key -ne 'profiles') {
-            $current[$key] = $desired[$key]
-            continue
-          }
-          if (-not $current.Contains('profiles') -or $null -eq $current.profiles) {
-            $current.profiles = [ordered]@{}
-          }
-          if (-not $current.profiles.Contains('defaults') -or $null -eq $current.profiles.defaults) {
-            $current.profiles.defaults = [ordered]@{}
-          }
-          foreach ($defaultKey in $desired.profiles.defaults.Keys) {
-            $current.profiles.defaults[$defaultKey] = $desired.profiles.defaults[$defaultKey]
-          }
-          $profiles = @($current.profiles.list | Where-Object { $null -ne $_ })
-          foreach ($wanted in $desired.profiles.list) {
-            $existing = $profiles | Where-Object { $_.guid -eq $wanted.guid } | Select-Object -First 1
-            if ($null -eq $existing) {
-              $profiles += $wanted
-            } else {
-              foreach ($profileKey in $wanted.Keys) { $existing[$profileKey] = $wanted[$profileKey] }
-            }
-          }
-          $current.profiles.list = @($profiles)
-        }
-        return $current
-      }
       $packagedDir = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState'
       $portableDir = Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal'
       if (Test-Path (Split-Path $packagedDir -Parent)) { $dir = $packagedDir } else { $dir = $portableDir }
       New-Item -ItemType Directory -Path $dir -Force | Out-Null
       $path = Join-Path $dir 'settings.json'
-      $current = if (Test-Path $path) {
-        Get-Content $path -Raw | ConvertFrom-Json -AsHashtable
-      } else { [ordered]@{} }
       $desired = $desiredRaw | ConvertFrom-Json -AsHashtable
-      $before = $current | ConvertTo-Json -Depth 100 -Compress
-      $merged = Merge-Settings $current $desired
-      if (($merged | ConvertTo-Json -Depth 100 -Compress) -ceq $before) { return }
+      if (Test-Path $path) {
+        try {
+          $current = Get-Content $path -Raw | ConvertFrom-Json -AsHashtable
+          if (($current | ConvertTo-Json -Depth 100 -Compress) -ceq
+            ($desired | ConvertTo-Json -Depth 100 -Compress)) { return }
+        } catch {
+          # Replace malformed settings after preserving the original file below.
+        }
+      }
       if ((Test-Path $path) -and -not (Test-Path "$path.pre-dsc.bak")) { Copy-Item $path "$path.pre-dsc.bak" -Force }
-      $merged | ConvertTo-Json -Depth 100 | Set-Content -Path $path -Encoding UTF8
+      $desired | ConvertTo-Json -Depth 100 | Set-Content -Path $path -Encoding UTF8
   metadata:
-    description: 'Merge declared Windows Terminal settings and profiles while preserving other settings: local Command Prompt default, explicit Ubuntu and PowerShell 7 profiles, Cascadia Code NF,
+    description: 'Replace Windows Terminal settings and profiles with the declared configuration: local Command Prompt default, explicit Ubuntu and PowerShell 7 profiles, Cascadia Code NF,
       Solarized Dark, and no duplicate dynamic profiles'

@@ -30,6 +30,7 @@ if ($UpdateWsl -and ($WindowsOnly -or $VerifyOnly)) {
     throw '-UpdateWsl requires WSL bootstrap; remove -WindowsOnly or -VerifyOnly.'
 }
 $wslBootstrap = Join-Path $PSScriptRoot 'bootstrap-wsl.ps1'
+$sshProvision = Join-Path $PSScriptRoot 'provision-ssh-agent.ps1'
 $linuxBootstrap = Join-Path (Split-Path $PSScriptRoot -Parent) 'scripts\bootstrap-home.sh'
 
 if (-not $PSBoundParameters.ContainsKey('Profile') -and
@@ -103,7 +104,14 @@ if ($Verify) {
     }
 }
 
-if ($WindowsOnly -or $VerifyOnly) {
+if ($VerifyOnly) {
+    Write-Host 'Windows configuration complete. No reboot was performed automatically.'
+    exit 0
+}
+
+& $sshProvision
+
+if ($WindowsOnly) {
     Write-Host 'Windows configuration complete. No reboot was performed automatically.'
     exit 0
 }

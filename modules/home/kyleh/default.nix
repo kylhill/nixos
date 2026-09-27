@@ -1,4 +1,5 @@
-_: {
+{ lib, ... }: {
+  _module.args.wslAgent = lib.mkDefault false;
   imports = [
     ./bash.nix
     ./git.nix

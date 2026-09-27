@@ -167,9 +167,9 @@ per manifest so repeat runs can be compared before changing DSC resource types.
 `-WindowsOnly` or `-VerifyOnly`. When called by the top-level bootstrap,
 `bootstrap-wsl.ps1` leaves Linux setup instructions to the top-level script;
 running it directly still prints its standalone next steps.
-Windows Terminal merges the declared settings and profiles into `settings.json`,
-preserving unrelated settings and profiles. Its first edit keeps a
-`settings.json.pre-dsc.bak` copy of the prior file.
+Windows Terminal replaces `settings.json` with the declared settings and
+profiles, removing existing entries outside this repository's configuration.
+Its first edit keeps a `settings.json.pre-dsc.bak` copy of the prior file.
 
 The script then sets up Ubuntu WSL2 and runs `scripts/bootstrap-home.sh` inside Ubuntu. On a
 fresh install it stops after installing WSL: reboot if requested, launch Ubuntu
@@ -188,7 +188,9 @@ The DSC documents own native Windows packages, policies, fonts, and Terminal
 settings. Registry state is grouped into separate machine-wide and current-user
 script resources to avoid the per-resource startup cost of evaluating every
 value independently; each desired value remains an individually documented
-entry and only mismatches are written. No full Windows apply has been run from
+entry and only mismatches are written. The Windows (dark) theme and No Sounds
+scheme are initialized once per user; later changes in Windows Settings are not
+reset by another configuration run. No full Windows apply has been run from
 this Linux checkout. Test the
 configuration on one Windows 11 Pro machine before rolling it out to the other
 two. Supported-policy gaps are intentional: Settings Agent and File Explorer
@@ -199,12 +201,15 @@ a current supported mechanism is verified for this baseline. Some Edge for
 Business policies only affect applicable work profiles. TVRename remains a
 manual install unless a reliable WinGet package is identified.
 
-After activation, the Linux bootstrap prompts without echo for an optional SOPS
-age secret key. When supplied, it validates the key and uses it to decrypt the
-shared SSH identity to `~/.ssh/id_ed25519` (mode `0600`) and
-`~/.ssh/id_ed25519.pub` (mode `0644`). The age key exists only in a protected
-temporary directory and is discarded after provisioning. Leaving the prompt
-blank skips provisioning and completes the bootstrap.
+Windows bootstrap prompts without echo for an optional SOPS age secret key. It
+decrypts the shared SSH identity in a restricted temporary Windows directory,
+adds it to the automatically started OpenSSH agent, then removes the temporary
+private key. Leaving the prompt blank skips loading the key. The WSL home starts
+`wsl2-ssh-agent` as a user service and exposes its socket through `SSH_AUTH_SOCK`;
+WSL does not receive a private key file. Check `ssh-add -l` in PowerShell and a
+new WSL shell after bootstrap. If an older bootstrap created
+`~/.ssh/id_ed25519` in WSL, remove that legacy file after confirming the Windows
+agent contains the key.
 
 On WSL, `./apply.sh switch` always selects the generic `wsl` home rather than
 the Windows-derived hostname. Update locked inputs separately with
@@ -244,10 +249,9 @@ without starting an agent, reading keys, or activating services.
 
 `secrets/home.yaml` contains the shared encrypted SSH private/public key pair.
 Syntax and pang14 provision it declaratively at `~/.ssh/id_ed25519` (mode `0600`)
-and `~/.ssh/id_ed25519.pub` (mode `0644`). The WSL bootstrap provisions the same
-pair only when the operator supplies its optional SOPS age key. OCI and gateway
-do not provision either file. Shared SSH client configuration and trusted-host
-forwarding remain unchanged.
+and `~/.ssh/id_ed25519.pub` (mode `0644`). Windows bootstrap loads the key into
+the Windows OpenSSH agent; WSL uses that agent through a socket bridge. OCI and
+gateway do not provision either file. Trusted-host forwarding remains unchanged.
 
 `secrets/syntax.yaml` contains the encrypted Ubiquiti key pair and has only the
 operator age recipient. Syntax alone provisions `~/.ssh/ubnt-20220508` (mode
@@ -256,10 +260,10 @@ do not. The existing network-device SSH configuration continues to use that path
 
 Syntax uses Home Manager's `sops-nix` user service at login and activation.
 Its existing operator age identity must be installed separately at
-`~/.config/sops/age/keys.txt` with mode `0600`. The WSL bootstrap uses an
-operator-supplied identity only for the duration of SSH key provisioning and
-does not retain it. Pang14 keeps system-level provisioning, using its existing
-`/var/lib/sops-nix/key.txt` identity and user-owned secret files. Both recipients
+`~/.config/sops/age/keys.txt` with mode `0600`. Windows bootstrap prompts for an
+operator age identity and discards it after loading the agent. Pang14 keeps
+system-level provisioning, using its existing `/var/lib/sops-nix/key.txt`
+identity and user-owned secret files. Both recipients
 are declared in `.sops.yaml`; private age identities stay outside the repository
 and are not bootstrapped from the SSH key being provisioned.
 
