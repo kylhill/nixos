@@ -202,6 +202,9 @@ Business policies only affect applicable work profiles. TVRename remains a
 manual install unless a reliable WinGet package is identified.
 
 Windows bootstrap prompts without echo for an optional SOPS age secret key. It
+installs the Windows OpenSSH client config from `windows/ssh-config` at
+`%USERPROFILE%\.ssh\config`, creates `config.d` for drop-ins, and saves an existing
+config once as `config.pre-bootstrap.bak` before replacing it. It then
 decrypts the shared SSH identity in a restricted temporary Windows directory,
 adds it to the automatically started OpenSSH agent, then removes the temporary
 private key. Leaving the prompt blank skips loading the key. The WSL home starts

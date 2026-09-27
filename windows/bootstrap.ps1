@@ -31,6 +31,7 @@ if ($UpdateWsl -and ($WindowsOnly -or $VerifyOnly)) {
 }
 $wslBootstrap = Join-Path $PSScriptRoot 'bootstrap-wsl.ps1'
 $sshProvision = Join-Path $PSScriptRoot 'provision-ssh-agent.ps1'
+$sshConfigProvision = Join-Path $PSScriptRoot 'provision-ssh-config.ps1'
 $linuxBootstrap = Join-Path (Split-Path $PSScriptRoot -Parent) 'scripts\bootstrap-home.sh'
 
 if (-not $PSBoundParameters.ContainsKey('Profile') -and
@@ -109,6 +110,7 @@ if ($VerifyOnly) {
     exit 0
 }
 
+& $sshConfigProvision
 & $sshProvision
 
 if ($WindowsOnly) {
