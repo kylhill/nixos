@@ -10,6 +10,5 @@ resources:
   properties:
     id: Google.GoogleDrive
     source: winget
-    useLatest: true
   metadata:
     description: Install Google Drive for desktop

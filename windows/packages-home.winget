@@ -10,7 +10,6 @@ resources:
   properties:
     id: DelugeTeam.Deluge
     source: winget
-    useLatest: true
   metadata:
     description: Install Deluge
 - type: Microsoft.WinGet/Package
@@ -18,7 +17,6 @@ resources:
   properties:
     id: Nextcloud.NextcloudDesktop
     source: winget
-    useLatest: true
   metadata:
     description: Install Nextcloud Desktop
 - type: Microsoft.WinGet/Package
@@ -26,6 +24,5 @@ resources:
   properties:
     id: Valve.Steam
     source: winget
-    useLatest: true
   metadata:
     description: Install Steam
