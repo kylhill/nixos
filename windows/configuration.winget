@@ -20,11 +20,8 @@ resources:
   properties:
     id: Microsoft.PowerShell
     source: winget
-    useLatest: true
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: RemoveOptionalWindowsCapabilities
-  dependsOn:
-  - PackagePowerShell
   properties:
     input:
       capabilityPrefixes:
@@ -82,8 +79,6 @@ resources:
       securityContext: elevated
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: InstallRequiredWindowsCapabilities
-  dependsOn:
-  - RemoveOptionalWindowsCapabilities
   properties:
     input:
       capabilityPrefixes:
@@ -141,8 +136,6 @@ resources:
       securityContext: elevated
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: RegistryMachineSettings
-  dependsOn:
-  - PackagePowerShell
   properties:
     input:
       values:
@@ -492,21 +485,6 @@ resources:
         value: 0
         description: "Disable Edge Spotlight experiences, customized recommendations, notifications, and tips"
       - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
-        name: "NewTabPageBingChatEnabled"
-        type: "DWord"
-        value: 0
-        description: "Disable Bing/Copilot chat entry points on the Edge new tab page"
-      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
-        name: "NewTabPageContentEnabled"
-        type: "DWord"
-        value: 0
-        description: "Disable Microsoft content on the Edge new tab page"
-      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
-        name: "NewTabPageQuickLinksEnabled"
-        type: "DWord"
-        value: 0
-        description: "Hide Edge new-tab quick links, including sponsored links"
-      - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge"
         name: "AIGenThemesEnabled"
         type: "DWord"
         value: 0
@@ -584,11 +562,17 @@ resources:
     getScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
+      $propertiesByPath = @{}
       $mismatches = foreach ($entry in $desired.values) {
         $current = $null
         $matches = $false
-        if (Test-Path -LiteralPath $entry.path) {
-          $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+        if (-not $propertiesByPath.ContainsKey($entry.path)) {
+          $propertiesByPath[$entry.path] = if (Test-Path -LiteralPath $entry.path) {
+            Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+          } else { $null }
+        }
+        $properties = $propertiesByPath[$entry.path]
+        if ($null -ne $properties) {
           $property = $properties.PSObject.Properties[$entry.name]
           if ($null -ne $property) {
             $current = $property.Value
@@ -616,9 +600,15 @@ resources:
     testScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
+      $propertiesByPath = @{}
       foreach ($entry in $desired.values) {
-        if (-not (Test-Path -LiteralPath $entry.path)) { return $false }
-        $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+        if (-not $propertiesByPath.ContainsKey($entry.path)) {
+          $propertiesByPath[$entry.path] = if (Test-Path -LiteralPath $entry.path) {
+            Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+          } else { $null }
+        }
+        $properties = $propertiesByPath[$entry.path]
+        if ($null -eq $properties) { return $false }
         $property = $properties.PSObject.Properties[$entry.name]
         if ($null -eq $property) { return $false }
         $expected = if ($entry.type -eq 'DWord') {
@@ -641,10 +631,16 @@ resources:
     setScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
+      $propertiesByPath = @{}
       foreach ($entry in $desired.values) {
         $matches = $false
-        if (Test-Path -LiteralPath $entry.path) {
-          $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+        if (-not $propertiesByPath.ContainsKey($entry.path)) {
+          $propertiesByPath[$entry.path] = if (Test-Path -LiteralPath $entry.path) {
+            Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+          } else { $null }
+        }
+        $properties = $propertiesByPath[$entry.path]
+        if ($null -ne $properties) {
           $property = $properties.PSObject.Properties[$entry.name]
           if ($null -ne $property) {
             $expected = if ($entry.type -eq 'DWord') {
@@ -677,6 +673,7 @@ resources:
             }
             $propertyType = if ($entry.type -eq 'GuidList') { 'Binary' } else { $entry.type }
             New-ItemProperty -LiteralPath $entry.path -Name $entry.name -Value $expected -PropertyType $propertyType -Force -ErrorAction Stop | Out-Null
+            [void]$propertiesByPath.Remove($entry.path)
           } catch {
             throw "Failed to apply registry setting '$($entry.description)' at '$($entry.path)\\$($entry.name)': $($_.Exception.Message)"
           }
@@ -688,8 +685,6 @@ resources:
       securityContext: elevated
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: RegistryUserSettings
-  dependsOn:
-  - PackagePowerShell
   properties:
     input:
       values:
@@ -899,11 +894,17 @@ resources:
     getScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
+      $propertiesByPath = @{}
       $mismatches = foreach ($entry in $desired.values) {
         $current = $null
         $matches = $false
-        if (Test-Path -LiteralPath $entry.path) {
-          $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+        if (-not $propertiesByPath.ContainsKey($entry.path)) {
+          $propertiesByPath[$entry.path] = if (Test-Path -LiteralPath $entry.path) {
+            Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+          } else { $null }
+        }
+        $properties = $propertiesByPath[$entry.path]
+        if ($null -ne $properties) {
           $property = $properties.PSObject.Properties[$entry.name]
           if ($null -ne $property) {
             $current = $property.Value
@@ -931,9 +932,15 @@ resources:
     testScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
+      $propertiesByPath = @{}
       foreach ($entry in $desired.values) {
-        if (-not (Test-Path -LiteralPath $entry.path)) { return $false }
-        $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+        if (-not $propertiesByPath.ContainsKey($entry.path)) {
+          $propertiesByPath[$entry.path] = if (Test-Path -LiteralPath $entry.path) {
+            Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+          } else { $null }
+        }
+        $properties = $propertiesByPath[$entry.path]
+        if ($null -eq $properties) { return $false }
         $property = $properties.PSObject.Properties[$entry.name]
         if ($null -eq $property) { return $false }
         $expected = if ($entry.type -eq 'DWord') {
@@ -956,10 +963,16 @@ resources:
     setScript: |-
       param($desired)
       $ErrorActionPreference = 'Stop'
+      $propertiesByPath = @{}
       foreach ($entry in $desired.values) {
         $matches = $false
-        if (Test-Path -LiteralPath $entry.path) {
-          $properties = Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+        if (-not $propertiesByPath.ContainsKey($entry.path)) {
+          $propertiesByPath[$entry.path] = if (Test-Path -LiteralPath $entry.path) {
+            Get-ItemProperty -LiteralPath $entry.path -ErrorAction Stop
+          } else { $null }
+        }
+        $properties = $propertiesByPath[$entry.path]
+        if ($null -ne $properties) {
           $property = $properties.PSObject.Properties[$entry.name]
           if ($null -ne $property) {
             $expected = if ($entry.type -eq 'DWord') {
@@ -992,6 +1005,7 @@ resources:
             }
             $propertyType = if ($entry.type -eq 'GuidList') { 'Binary' } else { $entry.type }
             New-ItemProperty -LiteralPath $entry.path -Name $entry.name -Value $expected -PropertyType $propertyType -Force -ErrorAction Stop | Out-Null
+            [void]$propertiesByPath.Remove($entry.path)
           } catch {
             throw "Failed to apply registry setting '$($entry.description)' at '$($entry.path)\\$($entry.name)': $($_.Exception.Message)"
           }
@@ -1001,8 +1015,6 @@ resources:
     description: Apply current-user Windows registry policies and preferences in one idempotent batch
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: RemoveRecommendedInboxApps
-  dependsOn:
-  - PackagePowerShell
   properties:
     input:
     - Microsoft.Copilot
@@ -1026,18 +1038,16 @@ resources:
     getScript: |-
       param($wanted)
       $ErrorActionPreference = 'Stop'
-      $installed = foreach ($name in $wanted) {
-        if (Get-AppxPackage -AllUsers -Name $name) { $name }
-      }
+      $installedNames = @(Get-AppxPackage -AllUsers | Select-Object -ExpandProperty Name)
+      $installed = @($wanted | Where-Object { $_ -in $installedNames })
       $provisionedNames = @(Get-AppxProvisionedPackage -Online | Select-Object -ExpandProperty DisplayName)
       $provisioned = @($wanted | Where-Object { $_ -in $provisionedNames })
       return @{ installed = @($installed); provisioned = @($provisioned) }
     testScript: |-
       param($wanted)
       $ErrorActionPreference = 'Stop'
-      foreach ($name in $wanted) {
-        if (Get-AppxPackage -AllUsers -Name $name) { return $false }
-      }
+      $installedNames = @(Get-AppxPackage -AllUsers | Select-Object -ExpandProperty Name)
+      if (@($wanted | Where-Object { $_ -in $installedNames }).Count -gt 0) { return $false }
       $provisionedNames = @(Get-AppxProvisionedPackage -Online | Select-Object -ExpandProperty DisplayName)
       foreach ($name in $wanted) {
         if ($name -in $provisionedNames) { return $false }
@@ -1046,11 +1056,10 @@ resources:
     setScript: |-
       param($wanted)
       $ErrorActionPreference = 'Stop'
-      foreach ($name in $wanted) {
-        Get-AppxPackage -AllUsers -Name $name | ForEach-Object {
-          Write-Host "Removing installed AppX: $($_.PackageFullName)"
-          Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction Stop
-        }
+      $installed = @(Get-AppxPackage -AllUsers | Where-Object { $_.Name -in $wanted })
+      foreach ($package in $installed) {
+        Write-Host "Removing installed AppX: $($package.PackageFullName)"
+        Remove-AppxPackage -Package $package.PackageFullName -AllUsers -ErrorAction Stop
       }
       $provisioned = @(Get-AppxProvisionedPackage -Online)
       foreach ($name in $wanted) {
@@ -1065,8 +1074,6 @@ resources:
       securityContext: elevated
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: InstallCascadiaCodeNerdFonts
-  dependsOn:
-  - PackagePowerShell
   properties:
     input:
       version: '2407.24'
@@ -1143,18 +1150,16 @@ resources:
       } finally { Remove-Item $workDir -Recurse -Force }
   metadata:
     description: Install Microsoft Cascadia Code NF and Cascadia Mono NF 2407.24 for the current user with pinned SHA-256 verification
-- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+- type: Microsoft.DSC.Transitional/PowerShellScript
   name: WindowsTerminalSettings
   dependsOn:
-  - PackageWindowsTerminal
-  - PackagePowerShell
   - InstallCascadiaCodeNerdFonts
+  - PackagePowerShell
   properties:
     input: |-
       {
           "$help": "https://aka.ms/terminal-documentation",
           "$schema": "https://aka.ms/terminal-profiles-schema",
-          "actions": [],
           "copyOnSelect": true,
           "defaultProfile": "{26043d3d-43de-425d-8803-ab90eb274751}",
           "disabledProfileSources": [
@@ -1162,12 +1167,6 @@ resources:
               "Windows.Terminal.Azure",
               "Windows.Terminal.PowershellCore",
               "Windows.Terminal.SSH"
-          ],
-          "keybindings": [],
-          "newTabMenu": [
-              {
-                  "type": "remainingProfiles"
-              }
           ],
           "profiles": {
               "defaults": {
@@ -1213,10 +1212,8 @@ resources:
                   }
               ]
           },
-          "schemes": [],
           "searchWebDefaultQueryUrl": "https://www.google.com/search?q=%22%s%22",
-          "snapToGridOnResize": true,
-          "themes": []
+          "snapToGridOnResize": true
       }
     getScript: |-
       param($desiredRaw)
@@ -1229,24 +1226,91 @@ resources:
       return @{ path = $path; configured = $true }
     testScript: |-
       param($desiredRaw)
+      $ErrorActionPreference = 'Stop'
+      function Merge-Settings($current, $desired) {
+        foreach ($key in $desired.Keys) {
+          if ($key -ne 'profiles') {
+            $current[$key] = $desired[$key]
+            continue
+          }
+          if (-not $current.Contains('profiles') -or $null -eq $current.profiles) {
+            $current.profiles = [ordered]@{}
+          }
+          if (-not $current.profiles.Contains('defaults') -or $null -eq $current.profiles.defaults) {
+            $current.profiles.defaults = [ordered]@{}
+          }
+          foreach ($defaultKey in $desired.profiles.defaults.Keys) {
+            $current.profiles.defaults[$defaultKey] = $desired.profiles.defaults[$defaultKey]
+          }
+          $profiles = @($current.profiles.list | Where-Object { $null -ne $_ })
+          foreach ($wanted in $desired.profiles.list) {
+            $existing = $profiles | Where-Object { $_.guid -eq $wanted.guid } | Select-Object -First 1
+            if ($null -eq $existing) {
+              $profiles += $wanted
+            } else {
+              foreach ($profileKey in $wanted.Keys) { $existing[$profileKey] = $wanted[$profileKey] }
+            }
+          }
+          $current.profiles.list = @($profiles)
+        }
+        return $current
+      }
       $paths = @(
         (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json'),
         (Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal\settings.json')
       )
       $path = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
       if (-not $path) { return $false }
-      return ((Get-Content $path -Raw).Trim() -ceq $desiredRaw.Trim())
+      $current = Get-Content $path -Raw | ConvertFrom-Json -AsHashtable
+      $desired = $desiredRaw | ConvertFrom-Json -AsHashtable
+      $before = $current | ConvertTo-Json -Depth 100 -Compress
+      $merged = Merge-Settings $current $desired
+      return (($merged | ConvertTo-Json -Depth 100 -Compress) -ceq $before)
     setScript: |-
       param($desiredRaw)
       $ErrorActionPreference = 'Stop'
+      function Merge-Settings($current, $desired) {
+        foreach ($key in $desired.Keys) {
+          if ($key -ne 'profiles') {
+            $current[$key] = $desired[$key]
+            continue
+          }
+          if (-not $current.Contains('profiles') -or $null -eq $current.profiles) {
+            $current.profiles = [ordered]@{}
+          }
+          if (-not $current.profiles.Contains('defaults') -or $null -eq $current.profiles.defaults) {
+            $current.profiles.defaults = [ordered]@{}
+          }
+          foreach ($defaultKey in $desired.profiles.defaults.Keys) {
+            $current.profiles.defaults[$defaultKey] = $desired.profiles.defaults[$defaultKey]
+          }
+          $profiles = @($current.profiles.list | Where-Object { $null -ne $_ })
+          foreach ($wanted in $desired.profiles.list) {
+            $existing = $profiles | Where-Object { $_.guid -eq $wanted.guid } | Select-Object -First 1
+            if ($null -eq $existing) {
+              $profiles += $wanted
+            } else {
+              foreach ($profileKey in $wanted.Keys) { $existing[$profileKey] = $wanted[$profileKey] }
+            }
+          }
+          $current.profiles.list = @($profiles)
+        }
+        return $current
+      }
       $packagedDir = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState'
       $portableDir = Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal'
       if (Test-Path (Split-Path $packagedDir -Parent)) { $dir = $packagedDir } else { $dir = $portableDir }
       New-Item -ItemType Directory -Path $dir -Force | Out-Null
       $path = Join-Path $dir 'settings.json'
-      if ((Test-Path $path) -and ((Get-Content $path -Raw).Trim() -ceq $desiredRaw.Trim())) { return }
+      $current = if (Test-Path $path) {
+        Get-Content $path -Raw | ConvertFrom-Json -AsHashtable
+      } else { [ordered]@{} }
+      $desired = $desiredRaw | ConvertFrom-Json -AsHashtable
+      $before = $current | ConvertTo-Json -Depth 100 -Compress
+      $merged = Merge-Settings $current $desired
+      if (($merged | ConvertTo-Json -Depth 100 -Compress) -ceq $before) { return }
       if ((Test-Path $path) -and -not (Test-Path "$path.pre-dsc.bak")) { Copy-Item $path "$path.pre-dsc.bak" -Force }
-      $desiredRaw | Set-Content -Path $path -Encoding UTF8
+      $merged | ConvertTo-Json -Depth 100 | Set-Content -Path $path -Encoding UTF8
   metadata:
-    description: 'Own Windows Terminal settings.json declaratively: local Command Prompt default, explicit Ubuntu and PowerShell 7 profiles, Cascadia Code NF,
+    description: 'Merge declared Windows Terminal settings and profiles while preserving other settings: local Command Prompt default, explicit Ubuntu and PowerShell 7 profiles, Cascadia Code NF,
       Solarized Dark, and no duplicate dynamic profiles'

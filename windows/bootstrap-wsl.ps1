@@ -1,7 +1,9 @@
 #Requires -RunAsAdministrator
 
 param(
-    [string]$Distro = "Ubuntu"
+    [string]$Distro = "Ubuntu",
+    [switch]$Update,
+    [switch]$QuietInstructions
 )
 
 $ErrorActionPreference = "Stop"
@@ -25,6 +27,19 @@ function Invoke-Wsl {
     }
 
     return $output
+}
+
+function Show-StandaloneInstructions {
+    Write-Host ""
+    Write-Host "If Windows requests a restart, reboot now."
+    Write-Host "Launch $Distro with: wsl -d $Distro"
+    Write-Host 'On the first launch, create your Linux user.'
+    Write-Host 'Ensure /etc/wsl.conf enables systemd; bootstrap-home.sh prints exact instructions if needed.'
+    Write-Host "Then run these commands inside ${Distro}:"
+    Write-Host '    sudo apt-get update'
+    Write-Host '    sudo apt-get dist-upgrade'
+    Write-Host '    git clone https://git.tacomafia.net/kylhill/nixos.git ~/nixos'
+    Write-Host '    ~/nixos/scripts/bootstrap-home.sh'
 }
 
 Write-Host "Configuring WSL..."
@@ -57,14 +72,15 @@ if ($installedDistros -contains $Distro) {
 
     Write-Host ""
     Write-Host "Initial WSL installation completed."
-    Write-Host "Restart Windows if requested, then rerun this script to update and verify the distribution."
+    if (-not $QuietInstructions) {
+        Write-Host "Restart Windows if requested, launch $Distro to create your Linux user, then rerun this script."
+    }
     # A new distribution needs its first launch/user setup (and often a reboot)
     # before the Linux bootstrap can run. The top-level bootstrap is rerunnable.
     exit 10
 }
 
-# Update the runtime before inspecting or converting an existing distribution.
-Invoke-Wsl -Arguments @("--update")
+if ($Update) { Invoke-Wsl -Arguments @("--update") }
 
 # Prefer WSL2 for all future distributions.
 Invoke-Wsl -Arguments @("--set-default-version", "2")
@@ -94,20 +110,5 @@ if ($distroVersion -eq 1) {
     Write-Host "$Distro is already using WSL2."
 }
 
-Write-Host ""
 Write-Host "Windows-side WSL setup complete."
-Write-Host ""
-Write-Host "If Windows requests a restart, reboot now."
-Write-Host ""
-Write-Host "Then launch $Distro with:"
-Write-Host ""
-Write-Host "    wsl -d $Distro"
-Write-Host ""
-Write-Host "On the first launch, create your Linux user."
-Write-Host "Ensure /etc/wsl.conf enables systemd; bootstrap-home.sh prints exact instructions if needed."
-Write-Host "Then run these commands inside ${Distro}:"
-Write-Host ""
-Write-Host "    sudo apt-get update"
-Write-Host "    sudo apt-get dist-upgrade"
-Write-Host "    git clone https://git.tacomafia.net/kylhill/nixos.git ~/nixos"
-Write-Host "    ~/nixos/scripts/bootstrap-home.sh"
+if (-not $QuietInstructions) { Show-StandaloneInstructions }

@@ -11,17 +11,29 @@ param(
 
     [switch]$VerifyOnly,
 
-    [switch]$WindowsOnly
+    [switch]$WindowsOnly,
+
+    [switch]$UpdateWsl
 )
 
 $ErrorActionPreference = 'Stop'
 if ($VerifyOnly -and -not $Verify) {
     throw '-VerifyOnly requires -Verify.'
 }
+if ($PSBoundParameters.ContainsKey('VerifyScope') -and -not $Verify) {
+    throw '-VerifyScope requires -Verify.'
+}
+if ($VerifyOnly -and $WindowsOnly) {
+    throw '-WindowsOnly has no effect with -VerifyOnly.'
+}
+if ($UpdateWsl -and ($WindowsOnly -or $VerifyOnly)) {
+    throw '-UpdateWsl requires WSL bootstrap; remove -WindowsOnly or -VerifyOnly.'
+}
 $wslBootstrap = Join-Path $PSScriptRoot 'bootstrap-wsl.ps1'
 $linuxBootstrap = Join-Path (Split-Path $PSScriptRoot -Parent) 'scripts\bootstrap-home.sh'
 
-if (-not $PSBoundParameters.ContainsKey('Profile')) {
+if (-not $PSBoundParameters.ContainsKey('Profile') -and
+    (-not $VerifyOnly -or $VerifyScope -ne 'Configuration')) {
     do {
         $selection = (Read-Host 'Select an application profile (Home or Work)').Trim()
         $Profile = switch -Regex ($selection) {
@@ -32,11 +44,18 @@ if (-not $PSBoundParameters.ContainsKey('Profile')) {
     } until ($Profile)
 }
 
-$configurationFiles = @(
-    (Join-Path $PSScriptRoot 'configuration.winget')
-    (Join-Path $PSScriptRoot 'packages-common.winget')
+$nativeConfiguration = Join-Path $PSScriptRoot 'configuration.winget'
+$packageFiles = if ($Profile) { @(
+    (Join-Path $PSScriptRoot 'packages-common.winget'),
     (Join-Path $PSScriptRoot "packages-$($Profile.ToLowerInvariant()).winget")
-)
+) } else { @() }
+$configurationFiles = @($nativeConfiguration) + $packageFiles
+$filesToVerify = switch ($VerifyScope) {
+    'Configuration' { @($nativeConfiguration) }
+    'Packages' { $packageFiles }
+    default { $configurationFiles }
+}
+$filesToCheck = if ($VerifyOnly) { $filesToVerify } else { $configurationFiles }
 
 if (-not (Get-Command winget.exe -ErrorAction SilentlyContinue)) {
     throw 'WinGet is required. Install or update App Installer from Microsoft Store, then rerun this script.'
@@ -50,9 +69,9 @@ function Invoke-WinGet {
     }
 }
 
-Invoke-WinGet -Arguments @('configure', '--enable')
-Write-Host "Using application profile: $Profile"
-foreach ($configuration in $configurationFiles) {
+if (-not $VerifyOnly) { Invoke-WinGet -Arguments @('configure', '--enable') }
+if ($Profile) { Write-Host "Using application profile: $Profile" }
+foreach ($configuration in $filesToCheck) {
     if (-not (Test-Path $configuration -PathType Leaf)) {
         throw "WinGet configuration is missing: $configuration"
     }
@@ -75,11 +94,6 @@ if (-not $VerifyOnly) {
 }
 
 if ($Verify) {
-    $filesToVerify = switch ($VerifyScope) {
-        'Configuration' { @($configurationFiles[0]) }
-        'Packages' { @($configurationFiles[1..2]) }
-        default { $configurationFiles }
-    }
     foreach ($configuration in $filesToVerify) {
         Write-Host "Testing $(Split-Path $configuration -Leaf)..."
         $timer = [Diagnostics.Stopwatch]::StartNew()
@@ -94,7 +108,7 @@ if ($WindowsOnly -or $VerifyOnly) {
     exit 0
 }
 
-& $wslBootstrap
+& $wslBootstrap -Update:$UpdateWsl -QuietInstructions
 if ($LASTEXITCODE -eq 10) {
     Write-Host 'WSL was just installed. Reboot if requested, launch Ubuntu to create the Linux user, then rerun this bootstrap.'
     exit 0

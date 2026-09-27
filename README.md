@@ -132,6 +132,7 @@ unattended or repeatable invocation, select it explicitly:
 .\windows\bootstrap.ps1 -Profile Home -Verify
 .\windows\bootstrap.ps1 -Profile Home -WindowsOnly -Verify -VerifyScope Configuration
 .\windows\bootstrap.ps1 -Profile Home -VerifyOnly -Verify -VerifyScope Configuration
+.\windows\bootstrap.ps1 -Profile Home -UpdateWsl
 ```
 
 The top-level script applies the shared native state in
@@ -145,8 +146,18 @@ profile.
 `-VerifyScope` selects `Configuration`, `Packages`, or `All` (the default) when
 `-Verify` is used. Verification runs after Windows configuration and before WSL
 setup. `-WindowsOnly` skips WSL setup; `-VerifyOnly` tests without applying
-configuration and also skips WSL. The script reports elapsed apply and test time
+configuration, enabling WinGet configuration, or running WSL. A configuration-only
+test with `-VerifyOnly -VerifyScope Configuration` does not require `-Profile`.
+Pass `-UpdateWsl` when you want to update the WSL runtime; bootstrap otherwise
+leaves its version alone. The script reports elapsed apply and test time
 per manifest so repeat runs can be compared before changing DSC resource types.
+`-VerifyScope` requires `-Verify`, and `-UpdateWsl` cannot be combined with
+`-WindowsOnly` or `-VerifyOnly`. When called by the top-level bootstrap,
+`bootstrap-wsl.ps1` leaves Linux setup instructions to the top-level script;
+running it directly still prints its standalone next steps.
+Windows Terminal merges the declared settings and profiles into `settings.json`,
+preserving unrelated settings and profiles. Its first edit keeps a
+`settings.json.pre-dsc.bak` copy of the prior file.
 
 The script then sets up Ubuntu WSL2 and runs `scripts/bootstrap-home.sh` inside Ubuntu. On a
 fresh install it stops after installing WSL: reboot if requested, launch Ubuntu
