@@ -9,6 +9,7 @@ homes=()
 integrated_hosts=()
 integrated_users=()
 dev_systems=()
+option_ref=
 usage() {
     echo 'usage: ./test.sh [--sandbox] [--path] SCOPE ...'
     echo '  An explicit scope is required; --lint, --full and --ci are exclusive.'
@@ -19,12 +20,17 @@ usage() {
     echo '  --integrated-home HOST USER'
     echo '                  lint and evaluate only an integrated home activation derivation'
     echo '  --dev SYSTEM    lint and evaluate all development shells for a system; repeatable'
+    echo '  --option-home NAME OPTION'
+    echo '                  evaluate one non-secret standalone home config option, without lint'
+    echo '  --option-integrated-home HOST USER OPTION'
+    echo '                  evaluate one non-secret integrated home config option, without lint'
     echo '  --home, --integrated-home and --dev are repeatable and combinable.'
     echo '  --sandbox       direct PATH linters and evaluation including untracked files'
     echo '  --path          include untracked files outside sandbox mode'
 }
 die() { echo "$*" >&2; exit 2; }
 safe_attr() { [[ $1 =~ ^[a-zA-Z_][a-zA-Z0-9_-]*$ ]]; }
+safe_option() { [[ $1 =~ ^[a-zA-Z_][a-zA-Z0-9_-]*(\.[a-zA-Z_][a-zA-Z0-9_-]*)*$ ]]; }
 while (($#)); do
     case "$1" in
         --sandbox) sandbox=true ;;
@@ -52,17 +58,39 @@ while (($#)); do
             integrated_users+=("$3")
             shift 2
             ;;
+        --option-home)
+            if [[ $# -lt 3 ]] || ! safe_attr "$2" || ! safe_option "$3"; then
+                die '--option-home requires NAME and a dotted OPTION path.'
+            fi
+            [[ -z $mode ]] || die 'An option check cannot be combined with another scope.'
+            mode=option
+            option_ref="homeConfigurations.$2.config.$3"
+            shift 2
+            ;;
+        --option-integrated-home)
+            if [[ $# -lt 4 ]] || ! safe_attr "$2" || ! safe_attr "$3" || ! safe_option "$4"; then
+                die '--option-integrated-home requires HOST, USER and a dotted OPTION path.'
+            fi
+            [[ -z $mode ]] || die 'An option check cannot be combined with another scope.'
+            mode=option
+            option_ref="nixosConfigurations.$2.config.home-manager.users.$3.$4"
+            shift 3
+            ;;
         --help|-h) usage; exit 0 ;;
         *) die "Unknown argument: $1" ;;
     esac
     shift
 done
-[[ -n $mode ]] || die 'An explicit scope is required: --lint, --full, --ci, --home NAME, --integrated-home HOST USER or --dev SYSTEM. See --help.'
+[[ -n $mode ]] || die 'An explicit scope is required. See --help.'
 export NIX_CONFIG="${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flakes'
 cd "$repo_dir"
 nix_cmd=(nix)
 if "$sandbox"; then
     flake_ref=path:.
+fi
+
+if [[ $mode == option ]]; then
+    exec "${nix_cmd[@]}" eval "$flake_ref#$option_ref" --json --no-update-lock-file
 fi
 
 failed=0

@@ -65,6 +65,25 @@ run_case 2 --path
 reject_checks
 run_case 2 --sandbox --path
 reject_checks
+run_case 0 --sandbox --option-home syntax programs.git.enable
+require_call 'path:.#homeConfigurations.syntax.config.programs.git.enable --json --no-update-lock-file'
+reject_call 'nixfmt'
+reject_call 'activationPackage'
+run_case 0 --sandbox --option-integrated-home pang14 kyleh programs.git.enable
+require_call 'path:.#nixosConfigurations.pang14.config.home-manager.users.kyleh.programs.git.enable --json --no-update-lock-file'
+reject_call 'nixfmt'
+reject_call 'activationPackage'
+run_case 0 --path --option-home syntax programs.git.enable
+require_call 'path:.#homeConfigurations.syntax.config.programs.git.enable'
+run_case 1 --sandbox --option-home missing programs.git.enable
+for invalid in '' '.programs.git' 'programs..git' 'programs.git."enable"' 'programs.git/enable'; do
+    run_case 2 --sandbox --option-home syntax "$invalid"
+    reject_checks
+done
+run_case 2 --sandbox --option-home syntax programs.git.enable --lint
+reject_checks
+run_case 2 --sandbox --option-integrated-home pang14 kyleh programs.git.enable --home gateway
+reject_checks
 run_case 0 --sandbox --lint
 reject_call 'flake check'
 reject_call 'homeConfigurations'

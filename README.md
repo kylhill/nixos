@@ -309,18 +309,25 @@ includes untracked files while omitting `--sandbox` runs linter check derivation
 | `--home NAME` | Source checks and the selected standalone home activation `drvPath` |
 | `--integrated-home HOST USER` | Source checks and only `nixosConfigurations.HOST.config.home-manager.users.USER.home.activationPackage.drvPath`, not the system toplevel |
 | `--dev SYSTEM` | Source checks and all development shell `drvPath`s for the selected architecture |
+| `--option-home NAME OPTION` | One non-secret standalone home `config.OPTION` value, without source checks |
+| `--option-integrated-home HOST USER OPTION` | One non-secret integrated home `OPTION` value, without source checks |
 | `--full` | Explicit opt-in: source checks, all-system flake evaluation without builds, and every standalone home activation `drvPath` |
 | `--ci` | Full validation plus the current architecture's small runner and apply fixture checks; no system or Home Manager closure build |
 
 `--home`, `--integrated-home` and `--dev` can be repeated and combined;
 `--lint`, `--full` and `--ci` are exclusive of other scopes. Names must start with a
 letter or underscore and contain only letters, digits, underscores or hyphens.
+Option scopes are exclusive, accept dotted option paths with those same attribute
+characters, and print JSON. Use them only for non-secret values: evaluation output
+is visible in the terminal and logs.
 Standalone home and development scopes do not evaluate NixOS configurations;
 integrated scopes evaluate only the selected home within NixOS. The runner collects independent failures within
 a stage and skips output evaluation when source checks fail. No scope builds or
 activates a system or Home Manager closure.
 
 ```bash
+./test.sh --sandbox --option-home syntax programs.git.enable
+./test.sh --sandbox --option-integrated-home pang14 kyleh programs.git.enable
 ./test.sh --sandbox --lint
 ./test.sh --sandbox --home gateway --home oci
 ./test.sh --sandbox --home gateway --integrated-home pang14 kyleh
@@ -360,7 +367,10 @@ Selected home activation evaluations remain runner scopes, not native checks
 that would build home/system closures.
 
 For focused evaluation, select the changed non-secret option or activation
-derivation directly. An integrated Home Manager check can stay narrow:
+derivation directly. Use an option scope during iteration, then run one or more
+affected activation scopes at completion. For options with quoted or unusual
+attribute keys, use a direct quoted Nix installable. An integrated Home Manager
+check can stay narrow:
 
 ```bash
 nix eval path:.#homeConfigurations.syntax.activationPackage.drvPath
