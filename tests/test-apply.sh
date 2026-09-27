@@ -44,6 +44,16 @@ run_case gateway build 0
 run_case windows-host switch 0 Ubuntu
 [[ $calls == "home-manager switch --flake path:$fixture_dir/repo#wsl" ]]
 
+run_case pang14 switch 0 Ubuntu
+[[ $calls == "home-manager switch --flake path:$fixture_dir/repo#wsl" ]]
+
+run_case pang14 build 0 Ubuntu
+[[ $calls == "home-manager build --flake path:$fixture_dir/repo#wsl" ]]
+
+run_case pang14 test 2 Ubuntu
+[[ -z $calls ]]
+grep -q 'test is only available for the pang14 NixOS configuration' "$fixture_dir/output"
+
 run_case pang14 test 0
 [[ $calls == *"nixos-rebuild test --flake $fixture_dir/repo#pang14" ]]
 [[ $calls != *home-manager* ]]

@@ -23,7 +23,7 @@ export NIX_CONFIG="${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flake
 
 cd "$repo_dir"
 
-if [[ $host_name == pang14 ]]; then
+if [[ $host_name == pang14 && $home_name != wsl ]]; then
     # Passing NIX_CONFIG explicitly makes the script work during bootstrap as
     # well as after this configuration has enabled flakes globally.
     exec sudo env NIX_CONFIG="$NIX_CONFIG" \

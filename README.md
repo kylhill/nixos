@@ -495,10 +495,11 @@ Upstream references: [nix-tree](https://github.com/utdemir/nix-tree),
 
 ### 2. Build on `pang14` without activating
 
-`apply.sh` detects the short hostname. On `pang14` it runs the selected
-`nixos-rebuild` action for the NixOS configuration. On every other host it runs
-the matching standalone `homeConfigurations.<hostname>` action; those hosts
-support `build` and `switch`, but not the NixOS-only `boot` and `test` actions.
+`apply.sh` detects the short hostname and WSL. On the `pang14` NixOS host it
+runs the selected `nixos-rebuild` action. On WSL it selects the standalone
+`homeConfigurations.wsl` home even when the hostname is `pang14`. Other hosts
+select the standalone home matching their hostname. Standalone homes support
+`build` and `switch`, but not the NixOS-only `boot` and `test` actions.
 
 Run the remaining stages on `pang14`, where the system closure is expected to
 be cached. A build catches package, module, and activation-script failures but
