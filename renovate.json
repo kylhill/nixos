@@ -35,6 +35,36 @@
         "lockFileMaintenance"
       ],
       "enabled": true
+    },
+    {
+      "matchDatasources": [
+        "docker"
+      ],
+      "commitMessageTopic": "container {{depName}}"
+    },
+    {
+      "matchManagers": [
+        "nix"
+      ],
+      "commitMessageTopic": "Nix flake input {{depName}}"
+    },
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchDepTypes": [
+        "action"
+      ],
+      "commitMessageTopic": "CI action {{depName}}"
+    },
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchDepTypes": [
+        "workflow"
+      ],
+      "commitMessageTopic": "CI workflow {{depName}}"
     }
   ]
 }
