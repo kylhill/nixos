@@ -2,8 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:best-practices",
-    "docker:pinDigests",
-    "group:all"
+    "group:allDigest"
   ],
   "enabledManagers": [
     "github-actions",
