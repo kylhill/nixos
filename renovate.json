@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended",
+    "config:best-practices",
     "docker:pinDigests",
     "group:all"
   ],
@@ -37,8 +37,5 @@
       ],
       "enabled": true
     }
-  ],
-  "automerge": false,
-  "dependencyDashboard": false,
-  "prConcurrentLimit": 2
+  ]
 }
