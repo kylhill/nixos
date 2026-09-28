@@ -1115,7 +1115,6 @@ resources:
   name: RemoveRecommendedInboxApps
   properties:
     input:
-    - Microsoft.Copilot
     - Clipchamp.Clipchamp
     - Microsoft.WindowsFeedbackHub
     - Microsoft.XboxGamingOverlay
