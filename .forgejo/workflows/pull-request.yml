@@ -39,12 +39,31 @@ jobs:
         with:
           enable_kvm: false
 
+      - name: Retain development environment
+        run: |
+          cache_roots=/nix/var/nix/gcroots/ci
+          mkdir -p "$cache_roots"
+          cache_key="$(sha256sum flake.lock flake.nix | sha256sum | cut -d ' ' -f 1)"
+          system="$(nix eval --impure --raw --expr builtins.currentSystem)"
+          cache_root="$cache_roots/nixos-$cache_key"
+          nix build ".#devShells.$system.default" --out-link "$cache_root"
+          touch -h "$cache_root"
+
       - name: Validate repository
         run: ./test.sh --ci
 
-      - name: Collect old Nix store paths
+      - name: Maintain Nix cache
         if: always()
         run: |
-          if command -v nix-collect-garbage >/dev/null; then
-            nix-collect-garbage --delete-older-than 14d
+          if ! command -v nix-store >/dev/null; then
+            exit 0
+          fi
+          cache_roots=/nix/var/nix/gcroots/ci
+          mkdir -p "$cache_roots"
+          # Expire inactive environments; GC runs weekly, not after every job.
+          find "$cache_roots" -maxdepth 1 -type l -mtime +14 -delete
+          marker=/nix/var/nix/ci-last-gc
+          if [[ ! -e "$marker" ]] || [[ -n "$(find "$marker" -mtime +6 -print)" ]]; then
+            nix-store --gc
+            touch "$marker"
           fi

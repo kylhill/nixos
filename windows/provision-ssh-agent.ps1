@@ -18,8 +18,9 @@ if (-not $sops) { throw 'sops.exe is unavailable. Open a new PowerShell session 
 if (-not (Test-Path $SecretFile -PathType Leaf)) { throw "Encrypted SSH secret is missing: $SecretFile" }
 
 $service = Get-Service -Name ssh-agent -ErrorAction Stop
-if ($service.StartType -ne 'Automatic') { Set-Service -Name ssh-agent -StartupType Automatic }
-if ($service.Status -ne 'Running') { Start-Service -Name ssh-agent }
+if ($service.StartType -ne 'Automatic' -or $service.Status -ne 'Running') {
+    throw 'The SSH agent must be running with Automatic startup. Apply windows/configuration.winget first.'
+}
 
 $secureKey = Read-Host 'SOPS age secret key for the Windows SSH agent (blank to skip)' -AsSecureString
 $pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureKey)

@@ -1,9 +1,7 @@
 #Requires -RunAsAdministrator
 
 param(
-    [string]$Distro = "Ubuntu",
-    [switch]$Update,
-    [switch]$QuietInstructions
+    [string]$Distro = "Ubuntu"
 )
 
 $ErrorActionPreference = "Stop"
@@ -29,17 +27,9 @@ function Invoke-Wsl {
     return $output
 }
 
-function Show-StandaloneInstructions {
-    Write-Host ""
-    Write-Host "If Windows requests a restart, reboot now."
-    Write-Host "Launch $Distro with: wsl -d $Distro"
-    Write-Host 'On the first launch, create your Linux user.'
-    Write-Host 'Ensure /etc/wsl.conf enables systemd; bootstrap-home.sh prints exact instructions if needed.'
-    Write-Host "Then run these commands inside ${Distro}:"
-    Write-Host '    sudo apt-get update'
-    Write-Host '    sudo apt-get dist-upgrade'
-    Write-Host '    git clone https://git.tacomafia.net/kylhill/nixos.git ~/nixos'
-    Write-Host '    ~/nixos/scripts/bootstrap-home.sh'
+$linuxBootstrap = Join-Path (Split-Path $PSScriptRoot -Parent) 'scripts\bootstrap-home.sh'
+if (-not (Test-Path $linuxBootstrap -PathType Leaf)) {
+    throw "Linux bootstrap is missing: $linuxBootstrap"
 }
 
 Write-Host "Configuring WSL..."
@@ -72,15 +62,11 @@ if ($installedDistros -contains $Distro) {
 
     Write-Host ""
     Write-Host "Initial WSL installation completed."
-    if (-not $QuietInstructions) {
-        Write-Host "Restart Windows if requested, launch $Distro to create your Linux user, then rerun this script."
-    }
+    Write-Host "Restart Windows if requested, launch $Distro to create the kyleh Linux user, then rerun the bootstrap command."
     # A new distribution needs its first launch/user setup (and often a reboot)
     # before the Linux bootstrap can run. The top-level bootstrap is rerunnable.
     exit 10
 }
-
-if ($Update) { Invoke-Wsl -Arguments @("--update") }
 
 # Prefer WSL2 for all future distributions.
 Invoke-Wsl -Arguments @("--set-default-version", "2")
@@ -111,4 +97,15 @@ if ($distroVersion -eq 1) {
 }
 
 Write-Host "Windows-side WSL setup complete."
-if (-not $QuietInstructions) { Show-StandaloneInstructions }
+# Run the checked-out script through its mounted path. It installs Linux Git
+# before cloning the repository inside Ubuntu; no native Windows Git is needed.
+$wslPathOutput = @(Invoke-Wsl -Arguments @('-d', $Distro, '--exec', 'wslpath', '-a', '-u', $linuxBootstrap))
+if ($wslPathOutput.Count -ne 1) { throw 'wslpath did not return exactly one Linux bootstrap path.' }
+$wslPath = $wslPathOutput[0].ToString().Trim()
+if (-not $wslPath) { throw 'wslpath returned an empty Linux bootstrap path.' }
+Write-Host "Bootstrapping Nix and Home Manager inside ${Distro}..."
+& wsl.exe -d $Distro --exec bash -- $wslPath
+if ($LASTEXITCODE -ne 0) {
+    throw "Linux bootstrap failed with exit code $LASTEXITCODE. Correct the reported issue and rerun the bootstrap command."
+}
+exit 0

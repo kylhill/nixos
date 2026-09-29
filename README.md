@@ -142,9 +142,10 @@ unattended or repeatable invocation, select it explicitly:
 .\windows\bootstrap.ps1 -Profile Home
 .\windows\bootstrap.ps1 -Profile Work
 .\windows\bootstrap.ps1 -Profile Home -Verify
-.\windows\bootstrap.ps1 -Profile Home -WindowsOnly -Verify -VerifyScope Configuration
-.\windows\bootstrap.ps1 -Profile Home -VerifyOnly -Verify -VerifyScope Configuration
-.\windows\bootstrap.ps1 -Profile Home -UpdateWsl
+.\windows\bootstrap.ps1 -Profile Home -WindowsOnly -Verify
+.\windows\verify.ps1 -Scope Configuration
+.\windows\verify.ps1 -Scope Packages -Profile Home
+.\windows\verify.ps1 -Profile Work
 ```
 
 The top-level script applies the shared native state in
@@ -155,18 +156,19 @@ the Work profile adds Google Drive. Package profiles are additive: selecting a
 different profile later does not uninstall packages installed by an earlier
 profile.
 
-`-VerifyScope` selects `Configuration`, `Packages`, or `All` (the default) when
-`-Verify` is used. Verification runs after Windows configuration and before WSL
-setup. `-WindowsOnly` skips WSL setup; `-VerifyOnly` tests without applying
-configuration, enabling WinGet configuration, or running WSL. A configuration-only
-test with `-VerifyOnly -VerifyScope Configuration` does not require `-Profile`.
-Pass `-UpdateWsl` when you want to update the WSL runtime; bootstrap otherwise
-leaves its version alone. The script reports elapsed apply and test time
-per manifest so repeat runs can be compared before changing DSC resource types.
-`-VerifyScope` requires `-Verify`, and `-UpdateWsl` cannot be combined with
-`-WindowsOnly` or `-VerifyOnly`. When called by the top-level bootstrap,
-`bootstrap-wsl.ps1` leaves Linux setup instructions to the top-level script;
-running it directly still prints its standalone next steps.
+`-Verify` tests all three applied manifests after Windows configuration and before
+WSL setup. `-WindowsOnly` skips WSL setup. For verification without applying
+configuration, enabling WinGet configuration, provisioning SSH, or running WSL,
+use `windows/verify.ps1`. Its `-Scope` selects `Configuration`, `Packages`, or
+`All` (the default). Package verification requires `-Profile Home` or `Work`;
+a configuration-only test does not require a profile. Both scripts report elapsed
+time per manifest.
+
+Bootstrap leaves the WSL runtime version alone; use `windows/update.ps1` for
+updates. `bootstrap-wsl.ps1` owns WSL installation and the Linux bootstrap
+handoff. Running it directly follows the same fresh-install pause and mounted
+script invocation as the top-level bootstrap; `-Distro NAME` selects a different
+WSL distribution name.
 Windows Terminal replaces `settings.json` with the declared settings and
 profiles, removing existing entries outside this repository's configuration.
 Its first edit keeps a `settings.json.pre-dsc.bak` copy of the prior file.
@@ -182,7 +184,9 @@ and selects
 `nix-setup-systemd` packages, validates the flake target, and activates the
 Home Manager generation from the repository's locked inputs. If systemd is not
 running, it stops with the required `/etc/wsl.conf` and PowerShell restart
-instructions.
+instructions. Flakes are enabled for the bootstrap process through `NIX_CONFIG`,
+which is explicitly passed to the refreshed user processes; bootstrap does not
+write a user `nix.conf`. Later, `apply.sh` supplies the required feature settings.
 
 The DSC documents own native Windows packages, policies, fonts, and Terminal
 settings. Registry state is grouped into separate machine-wide and current-user
@@ -206,8 +210,10 @@ installs the Windows OpenSSH client config from `windows/ssh-config` at
 `%USERPROFILE%\.ssh\config`, creates `config.d` for drop-ins, and saves an existing
 config once as `config.pre-bootstrap.bak` before replacing it. It then
 decrypts the shared SSH identity in a restricted temporary Windows directory,
-adds it to the automatically started OpenSSH agent, then removes the temporary
-private key. Leaving the prompt blank skips loading the key. The WSL home starts
+adds it to the OpenSSH agent configured by DSC, then removes the temporary
+private key. Standalone SSH provisioning requires the agent to be running with
+Automatic startup; apply `windows/configuration.winget` first. Leaving the prompt
+blank skips loading the key. The WSL home starts
 `wsl2-ssh-agent` as a user service and exposes its socket through `SSH_AUTH_SOCK`;
 WSL does not receive a private key file. Check `ssh-add -l` in PowerShell and a
 new WSL shell after bootstrap. If an older bootstrap created

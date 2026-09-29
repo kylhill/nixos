@@ -99,26 +99,8 @@ command -v nix >/dev/null 2>&1 ||
 # Enable flakes
 # ---------------------------------------------------------------------------
 
-log "Configuring Nix"
-
-mkdir -p "$HOME/.config/nix"
-NIX_CONF="$HOME/.config/nix/nix.conf"
-
-touch "$NIX_CONF"
-
-if ! awk '
-    /^[[:space:]]*(extra-)?experimental-features[[:space:]]*=/ {
-        line = $0
-        sub(/[[:space:]]*#.*/, "", line)
-        if (line ~ /(^|[[:space:]])nix-command([[:space:]]|$)/ &&
-            line ~ /(^|[[:space:]])flakes([[:space:]]|$)/) {
-            found = 1
-        }
-    }
-    END { exit !found }
-' "$NIX_CONF"; then
-    echo 'extra-experimental-features = nix-command flakes' >> "$NIX_CONF"
-fi
+# Enable flakes only for bootstrap; apply.sh supplies the same settings later.
+export NIX_CONFIG="${NIX_CONFIG:-}"$'\nextra-experimental-features = nix-command flakes'
 
 # ---------------------------------------------------------------------------
 # Clone configuration repository
@@ -143,7 +125,7 @@ log "Activating Home Manager configuration: $HM_CONFIG"
 
 cd "$REPO_DIR"
 
-configured_home=$(sudo -u "$BOOTSTRAP_USER" env HOME="$HOME" \
+configured_home=$(sudo -u "$BOOTSTRAP_USER" env HOME="$HOME" NIX_CONFIG="$NIX_CONFIG" \
     nix eval --raw \
     "path:$REPO_DIR#homeConfigurations.${HM_CONFIG}.config.home.homeDirectory") ||
     die "Repository does not expose a usable homeConfigurations.$HM_CONFIG target."
@@ -160,11 +142,11 @@ if ! command -v home-manager >/dev/null 2>&1; then
     activation_env+=("HOME_MANAGER_BACKUP_EXT=pre-home-manager")
 fi
 
-activation_package=$(sudo -u "$BOOTSTRAP_USER" env HOME="$HOME" \
+activation_package=$(sudo -u "$BOOTSTRAP_USER" env HOME="$HOME" NIX_CONFIG="$NIX_CONFIG" \
     nix build --no-link --print-out-paths \
     "path:$REPO_DIR#homeConfigurations.${HM_CONFIG}.activationPackage")
 
-sudo -u "$BOOTSTRAP_USER" env "${activation_env[@]}" "$activation_package/activate"
+sudo -u "$BOOTSTRAP_USER" env NIX_CONFIG="$NIX_CONFIG" "${activation_env[@]}" "$activation_package/activate"
 
 if [[ -e $HOME/.ssh/id_ed25519 ]]; then
     log "A private key from an earlier WSL bootstrap remains at ~/.ssh/id_ed25519. Verify the Windows agent key, then remove this legacy file."
