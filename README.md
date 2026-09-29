@@ -51,8 +51,8 @@ remains enabled. It restricts the Nix glibc locale archive to `en_US.UTF-8`;
 Manager inherits the system locale package natively. The Ubuntu profile disables
 Home Manager's XDG MIME integration; native NixOS homes retain it.
 
-`development.nix` adds direnv, fzf, and bat; `ai.nix` adds Codex, Copilot, MCP
-tools, fd, and ripgrep.
+`development.nix` adds direnv, fzf, bat, fd, and ripgrep; `ai.nix` adds Codex,
+Copilot, and MCP tools.
 `workstation.nix` adds graphical applications, GNOME preferences, and Bash VTE
 integration.
 Standalone and integrated Home Manager use the locked `nixpkgs-unstable`
@@ -296,7 +296,7 @@ codex
 `.envrc` contains only `use flake`. Without direnv, enter `nix develop` once
 before launching Codex. The default `mkShellNoCC` supplies all repository
 development and operator tools: nixfmt, nixfmt-tree (`treefmt`), Statix, Deadnix,
-ShellCheck, jq, ripgrep, fd, nix-eval-jobs, nix-tree, nvd, mcp-nixos, age,
+ShellCheck, jq, ripgrep, fd, nix-eval-jobs, nix-tree, nvd, age,
 sops, and OpenSSL. Use tools directly from `PATH`; routinely
 missing tools belong in this shell. Outputs cover architectures in both inventories.
 
@@ -344,8 +344,10 @@ Use `./test.sh --sandbox SCOPE ...` inside Codex with an explicit scope (below).
 Missing scope, including `--sandbox` alone, exits 2 before any checks; `--help`
 does not require a scope. The runner runs linters directly from `PATH`
 and uses `path:.` to include dirty and untracked files. Dirty-worktree warnings
-are expected; do not stage files just to validate. Outside Codex, `--path`
-includes untracked files while omitting `--sandbox` runs linter check derivations.
+are expected; do not stage files just to validate. Outside Codex, `--path` is a
+flag with no argument: `./test.sh --path --home syntax`. It selects the `path:.`
+flake reference so evaluation includes untracked files. Omitting `--sandbox`
+runs linter check derivations.
 
 | Scope | Checks |
 | --- | --- |

@@ -1,7 +1,9 @@
 {
   programs = {
     bat.enable = true;
+    fd.enable = true;
     fzf.enable = true;
+    ripgrep.enable = true;
 
     direnv = {
       enable = true;

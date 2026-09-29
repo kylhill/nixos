@@ -57,9 +57,6 @@ in
   ];
 
   programs = {
-    fd.enable = true;
-    ripgrep.enable = true;
-
     codex = {
       enable = true;
       package = codexPackage;

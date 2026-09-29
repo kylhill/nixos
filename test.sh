@@ -26,7 +26,7 @@ usage() {
     echo '                  evaluate one non-secret integrated home config option, without lint'
     echo '  --home, --integrated-home and --dev are repeatable and combinable.'
     echo '  --sandbox       direct PATH linters and evaluation including untracked files'
-    echo '  --path          include untracked files outside sandbox mode'
+    echo '  --path          flag with no argument; selects path:. to include untracked files outside sandbox mode'
 }
 die() { echo "$*" >&2; exit 2; }
 safe_attr() { [[ $1 =~ ^[a-zA-Z_][a-zA-Z0-9_-]*$ ]]; }

@@ -43,8 +43,10 @@
   avoid duplicate runs. Establish a baseline when relevant to the change.
   Iterate narrowly, then batch repository-wide completion lint and selected
   context checks; rerun successful checks only when their relevant inputs change.
-- Use `./test.sh --sandbox SCOPE ...` with an explicit scope for repository checks and `path:.` when evaluation
-  must include untracked files. See README for Codex permission/cache diagnostics.
+- Use `./test.sh --sandbox SCOPE ...` with an explicit scope for repository checks.
+  Outside Codex, use the standalone `--path` flag (no argument) to include untracked
+  files; `path:.` is the Nix flake reference, not an argument to `--path`.
+  See README for Codex permission/cache diagnostics.
 - Complete independent checks when one check is blocked, and report the exact
   failure plus an outside-Codex handoff command when needed.
 - Add narrow evaluations, generated-config inspections, or small fixture builds
