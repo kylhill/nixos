@@ -11,13 +11,16 @@ let
   codexPackage =
     if config.targets.genericLinux.enable then
       # Bypass nixpkgs' PATH wrapper so Ubuntu's bwrap takes precedence.
-      pkgs.writeShellApplication {
+      (pkgs.writeShellApplication {
         name = "codex";
         runtimeInputs = [ systemBubblewrap ];
         text = ''
           exec ${pkgs.codex}/bin/.codex-wrapped "$@"
         '';
-      }
+      }).overrideAttrs
+        (_: {
+          version = pkgs.codex.version;
+        })
     else
       pkgs.codex;
 
