@@ -37,7 +37,7 @@
         '';
         windows.windows = {
           title = "Windows";
-          efiDeviceHandle = "FS2";
+          efiDeviceHandle = "HD0e";
         };
       };
       efi = {
