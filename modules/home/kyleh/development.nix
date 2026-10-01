@@ -3,6 +3,7 @@
     bat.enable = true;
     fd.enable = true;
     fzf.enable = true;
+    gh.enable = true;
     ripgrep.enable = true;
 
     direnv = {

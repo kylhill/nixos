@@ -51,7 +51,7 @@ remains enabled. It restricts the Nix glibc locale archive to `en_US.UTF-8`;
 Manager inherits the system locale package natively. The Ubuntu profile disables
 Home Manager's XDG MIME integration; native NixOS homes retain it.
 
-`development.nix` adds direnv, fzf, bat, fd, and ripgrep; `ai.nix` adds Codex,
+`development.nix` adds direnv, fzf, bat, fd, ripgrep, and GitHub CLI; `ai.nix` adds Codex,
 Copilot, and MCP tools.
 `workstation.nix` adds graphical applications, GNOME preferences, and Bash VTE
 integration.
