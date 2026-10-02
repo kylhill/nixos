@@ -26,3 +26,10 @@ resources:
     source: winget
   metadata:
     description: Install Steam
+- type: Microsoft.WinGet/Package
+  name: PackageWireGuard
+  properties:
+    id: WireGuard.WireGuard
+    source: winget
+  metadata:
+    description: Install WireGuard

@@ -151,7 +151,7 @@ unattended or repeatable invocation, select it explicitly:
 The top-level script applies the shared native state in
 `windows/configuration.winget`, the applications in
 `windows/packages-common.winget`, and the selected `packages-home.winget` or
-`packages-work.winget`. The Home profile adds Deluge, Nextcloud, and Steam;
+`packages-work.winget`. The Home profile adds Deluge, Nextcloud, Steam, and WireGuard;
 the Work profile adds Google Drive. Package profiles are additive: selecting a
 different profile later does not uninstall packages installed by an earlier
 profile.
