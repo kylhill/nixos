@@ -19,7 +19,7 @@ On `pang14`, Home Manager and Nixvim replace Dotbot, lazy.nvim, and Mason.
   host-specific policy.
 - `modules/nixos/` contains reusable system capabilities and roles.
 - `modules/home/kyleh/` contains portable Home Manager capabilities.
-- `lib/inventory.nix` contains stable, non-secret host, user, and network data.
+- `lib/inventory.nix` contains stable, non-secret host, user, network, and shared package data.
 - `secrets/` contains only sops-encrypted values; `.sops.yaml` declares the age
   recipient policy. Private age identities remain outside the repository.
 
@@ -43,13 +43,15 @@ with fd, ripgrep, Treesitter, completion, and ShellCheck linting. It accepts
 (connection names and ports), and the pinned `inputs` as module arguments.
 Shared home modules do not depend on NixOS's `osConfig`.
 
-`ubuntu.nix` is explicitly selected by all three standalone homes. It retains
+`ubuntu.nix` is explicitly selected by all four standalone homes. It retains
 Home Manager's Bash, Git, readline, and less configuration while using Ubuntu's
 Bash, Git, less, and man executables (`package = null`). Manual-page support
 remains enabled. It restricts the Nix glibc locale archive to `en_US.UTF-8`;
 `pang14` restricts its system locales to the same locale, and integrated Home
 Manager inherits the system locale package natively. The Ubuntu profile disables
 Home Manager's XDG MIME integration; native NixOS homes retain it.
+`systemctl` Bash completion comes from the host's systemd package: NixOS
+exposes it through the system profile, and Ubuntu ships it under `/usr/share`.
 
 `development.nix` adds direnv, fzf, bat, fd, ripgrep, and GitHub CLI; `ai.nix` adds Codex,
 Copilot, and MCP tools.

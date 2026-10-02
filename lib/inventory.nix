@@ -2,6 +2,11 @@ let
   userName = "kyleh";
 in
 {
+  sharedUnfreePackages = [
+    "github-copilot-cli"
+    "vscode"
+  ];
+
   hosts = {
     pang14 = {
       hostId = "ab5f3534";

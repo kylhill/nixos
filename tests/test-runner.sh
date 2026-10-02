@@ -5,12 +5,13 @@ repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 fixture_dir="$PWD/.runner-fixture-$$"
 mkdir -m 700 "$fixture_dir"
 trap 'rm -rf -- "$fixture_dir"' EXIT
-mkdir -p "$fixture_dir/repo/tests/fixtures" "$fixture_dir/tools/bin"
+mkdir -p "$fixture_dir/repo/scripts" "$fixture_dir/repo/tests/fixtures" "$fixture_dir/tools/bin"
 # Only these real utilities may cross the fake-tool boundary.
 for tool in bash cat chmod cp dirname git grep ln mkdir mv rm; do
     ln -s "$(command -v "$tool")" "$fixture_dir/tools/bin/$tool"
 done
 cp "$repo_dir/test.sh" "$repo_dir/apply.sh" "$repo_dir/update.sh" "$repo_dir/flake.lock" "$fixture_dir/repo/"
+cp "$repo_dir/scripts/bootstrap-home.sh" "$fixture_dir/repo/scripts/"
 cp "$repo_dir/tests/test-apply.sh" "$repo_dir/tests/test-runner.sh" "$fixture_dir/repo/tests/"
 cp "$repo_dir/tests/fixtures/apply-tool" "$repo_dir/tests/fixtures/validation-tool" "$fixture_dir/repo/tests/fixtures/"
 for tool in nix nixfmt statix deadnix shellcheck; do
@@ -90,6 +91,7 @@ reject_call 'homeConfigurations'
 reject_call 'devShells'
 reject_call 'nixosConfigurations'
 require_call 'nixfmt'
+require_call 'scripts/bootstrap-home.sh'
 require_call 'existing.nix'
 require_call 'untracked.nix'
 reject_call 'deleted.nix'

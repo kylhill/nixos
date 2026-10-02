@@ -111,6 +111,7 @@ shell_files=(
     apply.sh
     test.sh
     update.sh
+    scripts/bootstrap-home.sh
     tests/test-apply.sh
     tests/test-runner.sh
     tests/fixtures/apply-tool

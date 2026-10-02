@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  sharedUnfreePackages,
   ...
 }:
 {
@@ -40,12 +41,13 @@
 
   nixpkgs.config.allowUnfreePredicate =
     package:
-    builtins.elem (lib.getName package) [
-      "corefonts"
-      "github-copilot-cli"
-      "vista-fonts"
-      "vscode"
-    ];
+    builtins.elem (lib.getName package) (
+      sharedUnfreePackages
+      ++ [
+        "corefonts"
+        "vista-fonts"
+      ]
+    );
 
   time.timeZone = config.infrastructure.host.timeZone;
 }

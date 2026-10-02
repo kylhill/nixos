@@ -2,6 +2,7 @@
   config,
   inputs,
   lib,
+  sharedUnfreePackages,
   ...
 }:
 let
@@ -59,11 +60,7 @@ in
         ../home/kyleh/nix-index.nix
       ];
       nixpkgs.config.allowUnfreePredicate =
-        package:
-        builtins.elem (lib.getName package) [
-          "github-copilot-cli"
-          "vscode"
-        ];
+        package: builtins.elem (lib.getName package) sharedUnfreePackages;
     };
   };
 }

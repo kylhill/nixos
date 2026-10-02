@@ -45,13 +45,10 @@
       };
     };
 
-    kernelParams = [
-      "zswap.enabled=1"
-      "zswap.compressor=zstd"
-      "zswap.zpool=zsmalloc"
-      "zswap.max_pool_percent=20"
-      "zswap.shrinker_enabled=1"
-    ];
+    zswap = {
+      enable = true;
+      maxPoolPercent = 20;
+    };
 
     zfs = {
       # This pool belongs exclusively to pang14. Forced import is an explicit

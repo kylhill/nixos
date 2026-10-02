@@ -56,21 +56,19 @@
       );
       forAllSystems = nixpkgs.lib.genAttrs devSystems;
       pkgsFor = system: nixpkgs.legacyPackages.${system};
-      unfreePackages = [
-        "github-copilot-cli"
-        "vscode"
-      ];
       mkPkgs =
         nixpkgsInput: system:
         import nixpkgsInput {
           inherit system;
-          config.allowUnfreePredicate = package: builtins.elem (nixpkgs.lib.getName package) unfreePackages;
+          config.allowUnfreePredicate =
+            package: builtins.elem (nixpkgs.lib.getName package) inventory.sharedUnfreePackages;
         };
       mkHost =
         hostName: host:
         nixpkgs.lib.nixosSystem {
           specialArgs = {
             inherit inputs;
+            inherit (inventory) sharedUnfreePackages;
           };
           modules = [
             ./modules/nixos/infrastructure.nix
