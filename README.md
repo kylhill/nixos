@@ -33,8 +33,8 @@ file intentionally does not duplicate the operator procedures below.
 ## Home Manager composition
 
 `modules/nixos/admin-tools.nix` provides system administration tools on
-`pang14`, including curl, dnsutils, ncdu, rsync, and wget. On standalone Ubuntu
-hosts, Ubuntu/Ansible supplies these utilities instead of Home Manager.
+`pang14`, including ethtool, gparted, ncdu, smartmontools, and wget. On
+standalone Ubuntu hosts, system administration tools remain Ubuntu/Ansible-owned.
 
 `modules/home/kyleh/default.nix` is the common CLI profile: Bash, readline,
 Starship, basic command-line utilities, Git, SSH, htop, and shared Neovim/Nixvim

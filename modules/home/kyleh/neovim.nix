@@ -86,11 +86,8 @@ in
         (mkSnacksMap "<leader>/" "Snacks.picker.grep()" "Grep")
         (mkSnacksMap "<leader>:" "Snacks.picker.command_history()" "Command History")
         (mkSnacksMap "<leader>e" "Snacks.explorer()" "Explorer")
-        (mkSnacksMap "<leader>fb" "Snacks.picker.buffers()" "Buffers")
-        (mkSnacksMap "<leader>ff" "Snacks.picker.files()" "Find Files")
         (mkSnacksMap "<leader>fr" "Snacks.picker.recent()" "Recent Files")
         (mkSnacksMap "<leader>sb" "Snacks.picker.lines()" "Buffer Lines")
-        (mkSnacksMap "<leader>sg" "Snacks.picker.grep()" "Grep")
         (
           (mkSnacksMap "<leader>sw" "Snacks.picker.grep_word()" "Visual Selection or Word")
           // {
