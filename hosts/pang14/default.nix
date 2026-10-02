@@ -36,7 +36,7 @@
           ${pkgs.gnugrep}/bin/grep -qx 'default @saved' /boot/loader/loader.conf
         '';
         windows.windows = {
-          title = "Windows";
+          title = "Windows 11";
           efiDeviceHandle = "HD0e";
         };
       };
