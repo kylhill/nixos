@@ -29,7 +29,7 @@
     loader = {
       systemd-boot = {
         enable = true;
-        configurationLimit = 5;
+        configurationLimit = 3;
         editor = false;
         extraInstallCommands = ''
           ${pkgs.gnused}/bin/sed -i 's/^default .*/default @saved/' /boot/loader/loader.conf
@@ -61,6 +61,8 @@
       forceImportAll = false;
     };
   };
+
+  environment.systemPackages = [ pkgs.efibootmgr ];
 
   services.zfs = {
     autoScrub = {
