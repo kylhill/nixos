@@ -30,10 +30,8 @@ in
             privateKeySecretName = "wireguard/private-key";
             presharedKeySecretName = "wireguard/preshared-key";
             dns = "192.168.6.1";
-            addresses = [
-              "192.168.6.8/24"
-              "fd06:4f9a:934d:6::8/64"
-            ];
+            ipv4Address = "192.168.6.8/24";
+            ipv6Address = "fd06:4f9a:934d:6::8/64";
           };
 
           wg-oci = {
@@ -47,10 +45,8 @@ in
             privateKeySecretName = "wireguard/private-key";
             presharedKeySecretName = "wireguard/preshared-key";
             dns = "10.60.60.1";
-            addresses = [
-              "10.60.60.5/24"
-              "fd60:60ed:4bbc::5/64"
-            ];
+            ipv4Address = "10.60.60.5/24";
+            ipv6Address = "fd60:60ed:4bbc::5/64";
           };
         };
       };
