@@ -43,7 +43,6 @@
 
   outputs =
     inputs@{
-      self,
       nixpkgs,
       disko,
       ...
@@ -56,6 +55,20 @@
       );
       forAllSystems = nixpkgs.lib.genAttrs devSystems;
       pkgsFor = system: nixpkgs.legacyPackages.${system};
+      shellFiles = builtins.filter (file: file != "") (
+        nixpkgs.lib.splitString "\n" (builtins.readFile ./tests/shell-files)
+      );
+      checkSource =
+        files:
+        nixpkgs.lib.fileset.toSource {
+          root = ./.;
+          fileset = nixpkgs.lib.fileset.unions (map (file: ./. + "/${file}") files);
+        };
+      shellSource = checkSource (shellFiles ++ [ "tests/shell-files" ]);
+      nixSource = nixpkgs.lib.fileset.toSource {
+        root = ./.;
+        fileset = nixpkgs.lib.fileset.fileFilter (file: file.hasExt "nix") ./.;
+      };
       mkPkgs =
         nixpkgsInput: system:
         import nixpkgsInput {
@@ -123,23 +136,49 @@
           pkgs = pkgsFor system;
           fixtureCheck =
             suite:
+            let
+              source =
+                if suite == "runner" then
+                  shellSource
+                else if suite == "apply" then
+                  checkSource [
+                    "apply.sh"
+                    "tests/test-apply.sh"
+                    "tests/fixtures/apply-tool"
+                  ]
+                else
+                  checkSource [
+                    "windows"
+                    "tests/test-windows.ps1"
+                    "tests/test-windows.sh"
+                  ];
+            in
             pkgs.runCommand "${suite}-fixtures"
               {
-                nativeBuildInputs = [
-                  pkgs.bash
-                  pkgs.coreutils
-                  pkgs.git
-                  pkgs.gnugrep
-                ];
+                nativeBuildInputs =
+                  if suite == "windows" then
+                    [
+                      pkgs.bash
+                      pkgs.coreutils
+                      pkgs.powershell
+                    ]
+                  else
+                    [
+                      pkgs.bash
+                      pkgs.coreutils
+                      pkgs.git
+                      pkgs.gnugrep
+                    ];
               }
               ''
-                bash ${self}/tests/${suite}.sh
+                bash ${source}/tests/test-${suite}.sh
                 touch $out
               '';
         in
         {
-          apply-fixtures = fixtureCheck "test-apply";
-          runner-fixtures = fixtureCheck "test-runner";
+          apply-fixtures = fixtureCheck "apply";
+          runner-fixtures = fixtureCheck "runner";
+          windows-fixtures = fixtureCheck "windows";
 
           formatting =
             pkgs.runCommand "nixfmt-check"
@@ -150,30 +189,22 @@
                 ];
               }
               ''
-                find ${self} -type f -name '*.nix' -exec nixfmt --check {} +
+                find ${nixSource} -type f -name '*.nix' -exec nixfmt --check {} +
                 touch $out
               '';
 
           statix = pkgs.runCommand "statix-check" { nativeBuildInputs = [ pkgs.statix ]; } ''
-            statix check ${self}
+            statix check ${nixSource}
             touch $out
           '';
 
           deadnix = pkgs.runCommand "deadnix-check" { nativeBuildInputs = [ pkgs.deadnix ]; } ''
-            deadnix --fail ${self}
+            deadnix --fail ${nixSource}
             touch $out
           '';
 
           shellcheck = pkgs.runCommand "shellcheck" { nativeBuildInputs = [ pkgs.shellcheck ]; } ''
-            shellcheck \
-              ${self}/apply.sh \
-              ${self}/scripts/bootstrap-home.sh \
-              ${self}/test.sh \
-              ${self}/update.sh \
-              ${self}/tests/test-apply.sh \
-              ${self}/tests/test-runner.sh \
-              ${self}/tests/fixtures/apply-tool \
-              ${self}/tests/fixtures/validation-tool
+            shellcheck ${nixpkgs.lib.escapeShellArgs (map (file: "${shellSource}/${file}") shellFiles)}
             touch $out
           '';
         }
@@ -215,6 +246,7 @@
               pkgs.nixfmt
               pkgs.nixfmt-tree
               pkgs.ripgrep
+              (pkgs.lib.getBin pkgs.powershell)
               pkgs.shellcheck
               pkgs.statix
               (pkgs.lib.getBin pkgs.nix-eval-jobs)

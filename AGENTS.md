@@ -36,22 +36,13 @@
 
 ## Validation
 
-- Match checks to the change. Use the `nix-development` skill to select consumers
-  and inspect generated configuration; use README's lightweight-check section
-  for commands and scope mechanics. Do not stage files just to validate.
-- Select affected contexts and checks up front, with one validation owner to
-  avoid duplicate runs. Establish a baseline when relevant to the change.
-  Iterate narrowly, then batch repository-wide completion lint and selected
-  context checks; rerun successful checks only when their relevant inputs change.
-- Use `./test.sh --sandbox SCOPE ...` with an explicit scope for repository checks.
-  Outside Codex, use the standalone `--path` flag (no argument) to include untracked
-  files; `path:.` is the Nix flake reference, not an argument to `--path`.
-  See README for Codex permission/cache diagnostics.
-- Complete independent checks when one check is blocked, and report the exact
-  failure plus an outside-Codex handoff command when needed.
-- Add narrow evaluations, generated-config inspections, or small fixture builds
-  when they test the change. Read-only reviews need only checks that substantiate
-  findings. Do not repeat successful checks without a new reason.
+- Follow the [nix-development skill](.agents/skills/nix-development/SKILL.md)
+  to select checks and consumers; use [README's lightweight checks](README.md#1-inspect-and-run-lightweight-checks)
+  for commands, scope mechanics, and permission/cache diagnostics.
+- Use `./test.sh --sandbox SCOPE ...` with an explicit scope inside Codex.
+  Do not stage files just to validate. Read-only reviews need only checks that
+  substantiate findings. Complete independent checks when another is blocked;
+  report the exact failure and an outside-Codex handoff command when needed.
 - Never build full system/Home Manager closures, VMs, `nixosConfigurations`
   targets, or host checks. Never run `apply.sh`, `nixos-rebuild`, activation,
   switching, or rebooting; the user owns full builds and live deployment.

@@ -9,11 +9,18 @@ homes=()
 integrated_hosts=()
 integrated_users=()
 dev_systems=()
+system_hosts=()
+fixtures=()
 option_ref=
+check_system=
 usage() {
     echo 'usage: ./test.sh [--sandbox] [--path] SCOPE ...'
-    echo '  An explicit scope is required; --lint, --full and --ci are exclusive.'
-    echo '  --ci            full validation plus current-system fixture checks'
+    echo '  An explicit scope is required; --lint, --full and --ci exclude selected outputs.'
+    echo '  --ci            full validation plus all fixture suites'
+    echo '  --fixtures SUITE lint and runner/apply/windows/all fixtures; repeatable and combinable'
+    echo '  --system HOST   lint and evaluate system assertions, without a system build'
+    echo '  --option-system HOST OPTION'
+    echo '                  evaluate one non-secret NixOS config option, without lint'
     echo '  --full          lint, evaluate all flake outputs and standalone homes (no host build)'
     echo '  --lint          source checks only; no host, home, or development output evaluation'
     echo '  --home NAME     lint and evaluate a selected home activation derivation; repeatable'
@@ -24,13 +31,21 @@ usage() {
     echo '                  evaluate one non-secret standalone home config option, without lint'
     echo '  --option-integrated-home HOST USER OPTION'
     echo '                  evaluate one non-secret integrated home config option, without lint'
-    echo '  --home, --integrated-home and --dev are repeatable and combinable.'
+    echo '  --home, --integrated-home, --system and --dev are repeatable and combinable.'
+    echo '  --fixtures combines with lint, selected outputs or full evaluation; option scopes are exclusive.'
     echo '  --sandbox       direct PATH linters and evaluation including untracked files'
     echo '  --path          flag with no argument; selects path:. to include untracked files outside sandbox mode'
 }
 die() { echo "$*" >&2; exit 2; }
 safe_attr() { [[ $1 =~ ^[a-zA-Z_][a-zA-Z0-9_-]*$ ]]; }
 safe_option() { [[ $1 =~ ^[a-zA-Z_][a-zA-Z0-9_-]*(\.[a-zA-Z_][a-zA-Z0-9_-]*)*$ ]]; }
+add_fixture() {
+    local suite=$1 existing
+    for existing in "${fixtures[@]}"; do
+        [[ $existing != "$suite" ]] || return 0
+    done
+    fixtures+=("$suite")
+}
 while (($#)); do
     case "$1" in
         --sandbox) sandbox=true ;;
@@ -39,13 +54,27 @@ while (($#)); do
             [[ -z $mode || $mode == "${1#--}" ]] || die 'Do not combine --lint/--full/--ci with another scope.'
             mode=${1#--}
             ;;
-        --home|--dev)
+        --fixtures)
+            [[ $# -ge 2 ]] || die '--fixtures requires runner, apply, windows or all.'
+            [[ $mode != option ]] || die 'An option check cannot be combined with fixtures.'
+            case "$2" in
+                runner|apply|windows) add_fixture "$2" ;;
+                all) for suite in runner apply windows; do add_fixture "$suite"; done ;;
+                *) die '--fixtures requires runner, apply, windows or all.' ;;
+            esac
+            shift
+            ;;
+        --home|--dev|--system)
             if [[ $# -lt 2 ]] || ! safe_attr "$2"; then
                 die "$1 requires a safe attribute identifier (letter/underscore, then letters, digits, underscores or hyphens)."
             fi
             [[ -z $mode || $mode == selected ]] || die 'Do not combine --lint/--full with selected outputs.'
             mode=selected
-            if [[ $1 == --home ]]; then homes+=("$2"); else dev_systems+=("$2"); fi
+            case "$1" in
+                --home) homes+=("$2") ;;
+                --dev) dev_systems+=("$2") ;;
+                --system) system_hosts+=("$2") ;;
+            esac
             shift
             ;;
         --integrated-home)
@@ -58,13 +87,17 @@ while (($#)); do
             integrated_users+=("$3")
             shift 2
             ;;
-        --option-home)
+        --option-home|--option-system)
             if [[ $# -lt 3 ]] || ! safe_attr "$2" || ! safe_option "$3"; then
-                die '--option-home requires NAME and a dotted OPTION path.'
+                die "$1 requires NAME and a dotted OPTION path."
             fi
             [[ -z $mode ]] || die 'An option check cannot be combined with another scope.'
             mode=option
-            option_ref="homeConfigurations.$2.config.$3"
+            if [[ $1 == --option-home ]]; then
+                option_ref="homeConfigurations.$2.config.$3"
+            else
+                option_ref="nixosConfigurations.$2.config.$3"
+            fi
             shift 2
             ;;
         --option-integrated-home)
@@ -81,7 +114,12 @@ while (($#)); do
     esac
     shift
 done
+if [[ -z $mode && ${#fixtures[@]} -gt 0 ]]; then mode=selected; fi
 [[ -n $mode ]] || die 'An explicit scope is required. See --help.'
+[[ $mode != option || ${#fixtures[@]} == 0 ]] || die 'An option check cannot be combined with fixtures.'
+if [[ $mode == ci ]]; then
+    for suite in runner apply windows; do add_fixture "$suite"; done
+fi
 export NIX_CONFIG="${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flakes'
 cd "$repo_dir"
 nix_cmd=(nix)
@@ -103,25 +141,22 @@ run_stage() {
     if ((status)); then failed=1; fi
     return "$status"
 }
-printf 'Validation scope: %s; homes: %s; dev systems: %s\n' "$mode" "${homes[*]:-none}" "${dev_systems[*]:-none}"
+printf 'Validation scope: %s; homes: %s; systems: %s; dev systems: %s; fixtures: %s\n' \
+    "$mode" "${homes[*]:-none}" "${system_hosts[*]:-none}" "${dev_systems[*]:-none}" "${fixtures[*]:-none}"
 for i in "${!integrated_hosts[@]}"; do
     printf 'Integrated home: %s/%s\n' "${integrated_hosts[i]}" "${integrated_users[i]}"
 done
-shell_files=(
-    apply.sh
-    test.sh
-    update.sh
-    scripts/bootstrap-home.sh
-    tests/test-apply.sh
-    tests/test-runner.sh
-    tests/fixtures/apply-tool
-    tests/fixtures/validation-tool
-)
+mapfile -t shell_files < tests/shell-files
 run_stage 'Worktree whitespace' git diff --check || :
 run_stage 'Staged whitespace' git diff --cached --check || :
-for script in "${shell_files[@]}"; do
-    run_stage "Shell syntax: $script" bash -n "$script" || :
-done
+check_shell_syntax() {
+    local script status=0
+    for script in "${shell_files[@]}"; do
+        bash -n "$script" || status=1
+    done
+    return "$status"
+}
+run_stage 'Shell syntax' check_shell_syntax || :
 
 if "$sandbox"; then
     for tool in nixfmt statix deadnix shellcheck; do
@@ -149,10 +184,10 @@ if "$sandbox"; then
         run_stage "Lint: $tool" "${runner[@]}" "${args[@]}" || :
     done
 else
-    if system=$("${nix_cmd[@]}" eval --impure --raw --expr builtins.currentSystem); then
+    if check_system=$("${nix_cmd[@]}" eval --impure --raw --expr builtins.currentSystem); then
         for check in formatting statix deadnix shellcheck; do
             run_stage "Lint: $check" "${nix_cmd[@]}" build --no-link --no-update-lock-file \
-                "$flake_ref#checks.$system.$check" || :
+                "$flake_ref#checks.$check_system.$check" || :
         done
     else
         failed=1
@@ -168,15 +203,6 @@ if ((failed == 0)); then
         run_stage 'All standalone home activation derivations' "${nix_cmd[@]}" eval \
             "$flake_ref#homeConfigurations" --no-update-lock-file --json \
             --apply 'homes: builtins.mapAttrs (_: home: home.activationPackage.drvPath) homes' || :
-        if [[ $mode == ci ]]; then
-            if system=$("${nix_cmd[@]}" eval --impure --raw --expr builtins.currentSystem); then
-                run_stage "Fixture checks: $system" "${nix_cmd[@]}" build --no-link --no-update-lock-file \
-                    "$flake_ref#checks.$system.runner-fixtures" \
-                    "$flake_ref#checks.$system.apply-fixtures" || :
-            else
-                failed=1
-            fi
-        fi
     else
         for home in "${homes[@]}"; do
             run_stage "Home: $home activation derivation" "${nix_cmd[@]}" eval \
@@ -189,6 +215,11 @@ if ((failed == 0)); then
                 "$flake_ref#nixosConfigurations.$host.config.home-manager.users.$user.home.activationPackage.drvPath" \
                 --json --no-update-lock-file || :
         done
+        for host in "${system_hosts[@]}"; do
+            run_stage "System: $host assertions" "${nix_cmd[@]}" eval \
+                "$flake_ref#nixosConfigurations.$host.config.assertions" --json --no-update-lock-file \
+                --apply 'assertions: let failed = builtins.filter (item: !item.assertion) assertions; in if failed == [] then true else throw (builtins.concatStringsSep "\n" (map (item: item.message) failed))' || :
+        done
         for system in "${dev_systems[@]}"; do
             run_stage "Development shells: $system" "${nix_cmd[@]}" eval \
                 "$flake_ref#devShells.$system" --json --no-update-lock-file \
@@ -198,6 +229,19 @@ if ((failed == 0)); then
 else
     echo 'Source checks incomplete or failed; output evaluation skipped.' >&2
 fi
+# Fixtures are independent of source/output failures and always get a chance to run.
+for suite in "${fixtures[@]}"; do
+    if "$sandbox"; then
+        run_stage "Fixtures: $suite" bash "tests/test-$suite.sh" || :
+    else
+        if [[ -n $check_system ]]; then
+            run_stage "Fixtures: $suite ($check_system)" "${nix_cmd[@]}" build --no-link --no-update-lock-file \
+                "$flake_ref#checks.$check_system.$suite-fixtures" || :
+        else
+            failed=1
+        fi
+    fi
+done
 if ((failed)); then
     echo "Validation incomplete or failed (scope: $mode). No full build or activation ran." >&2
     exit 1
