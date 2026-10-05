@@ -2,7 +2,6 @@
   config,
   inputs,
   lib,
-  pkgs,
   ...
 }:
 let
@@ -11,11 +10,6 @@ let
     mode = "n";
     action = "<cmd>lua ${command}<cr>";
     options = { inherit desc; };
-  };
-  solarizedNvim = pkgs.vimUtils.buildVimPlugin {
-    pname = "solarized.nvim";
-    version = inputs.solarized-nvim.shortRev or "unstable";
-    src = inputs.solarized-nvim;
   };
 in
 {
@@ -40,8 +34,10 @@ in
         git.enable = false;
       };
 
-      colorscheme = "solarized";
-      extraPlugins = [ solarizedNvim ];
+      colorschemes.base16 = {
+        enable = true;
+        colorscheme = "solarized-dark";
+      };
 
       globals = {
         mapleader = " ";
@@ -131,7 +127,6 @@ in
             scroll.enabled = true;
           };
         };
-        todo-comments.enable = true;
         treesitter = {
           enable = true;
           highlight.enable = true;

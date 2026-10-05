@@ -9,7 +9,7 @@ The flake exposes `nixosConfigurations.pang14`. Home Manager is integrated into
 that system configuration, so system and user changes activate together.
 
 For hosts not yet represented here, Ansible and dotfiles remain authoritative.
-On `pang14`, Home Manager and Nixvim replace Dotbot, lazy.nvim, and Mason.
+On `pang14`, Home Manager owns the user environment and editor configuration.
 
 ## Repository map
 
@@ -32,43 +32,35 @@ file intentionally does not duplicate the operator procedures below.
 
 ## Home Manager composition
 
-`modules/nixos/admin-tools.nix` provides system administration tools on
-`pang14`, including ethtool, gparted, ncdu, smartmontools, and wget. On
-standalone Ubuntu hosts, system administration tools remain Ubuntu/Ansible-owned.
+System administration tools on `pang14` are declared in
+[admin-tools.nix](modules/nixos/admin-tools.nix). On standalone Ubuntu hosts,
+system administration tools remain Ubuntu/Ansible-owned.
 
-`modules/home/kyleh/default.nix` is the common CLI profile: Bash, readline,
-Starship, basic command-line utilities, Git, SSH, htop, and shared Neovim/Nixvim
-with fd, ripgrep, Treesitter, completion, and ShellCheck linting. It accepts
-`homeIdentity` (`fullName`, `email`, used by Git), `networkHosts`
+[default.nix](modules/home/kyleh/default.nix) composes the common CLI profile.
+It accepts `homeIdentity` (`fullName`, `email`), `networkHosts`
 (connection names and ports), and the pinned `inputs` as module arguments.
 Shared home modules do not depend on NixOS's `osConfig`.
 
-`ubuntu.nix` is explicitly selected by all four standalone homes. It retains
-Home Manager's Bash, Git, readline, and less configuration while using Ubuntu's
-Bash, Git, less, and man executables (`package = null`). Manual-page support
-remains enabled. It restricts the Nix glibc locale archive to `en_US.UTF-8`;
-`pang14` restricts its system locales to the same locale, and integrated Home
-Manager inherits the system locale package natively. The Ubuntu profile disables
-Home Manager's XDG MIME integration; native NixOS homes retain it.
-`systemctl` Bash completion comes from the host's systemd package: NixOS
-exposes it through the system profile, and Ubuntu ships it under `/usr/share`.
+[ubuntu.nix](modules/home/kyleh/ubuntu.nix) defines the standalone Ubuntu
+boundary: selected programs retain Home Manager configuration while using
+host-provided executables (`package = null`). It also owns locale and desktop
+integration differences. Integrated Home Manager inherits the system locale
+package natively. Shell completion for system service management comes from
+the host's system profile.
 
-`development.nix` adds direnv, fzf, bat, fd, ripgrep, and GitHub CLI; `ai.nix` adds Codex,
-Copilot, and MCP tools.
-`workstation.nix` adds graphical applications, GNOME preferences, and Bash VTE
-integration.
-NixOS and all homes use the locked stable `nixpkgs` package set. Integrated
-Home Manager shares the system package set through `useGlobalPkgs`. An explicit
-`unstablePkgs` argument supplies the freshness exceptions: Codex, Copilot CLI,
-Grafana MCP, NixOS MCP, and VS Code. The `mcp-nixos` flake app also uses unstable.
-Nixvim follows its matching stable release branch. Neovim and its plugins,
-Firefox, Python, and the other home tools use stable;
-the separately pinned Solarized plugin source remains independent of that choice.
-The workstation also installs Python alongside VS Code so extensions and tasks
-can use it outside project-specific development environments.
-Nixvim and nix-index-database module imports live with the home capabilities
-that use them. The NixOS user boundary selects nix-index; standalone Ubuntu
-homes omit it.
+[development.nix](modules/home/kyleh/development.nix),
+[ai.nix](modules/home/kyleh/ai.nix), and
+[workstation.nix](modules/home/kyleh/workstation.nix) compose optional capabilities.
+Their imports, options, and package declarations are the source of truth for
+what each profile includes.
+
+NixOS and all homes default to the locked stable `nixpkgs` package set.
+Integrated Home Manager shares the system package set through `useGlobalPkgs`.
+Modules select freshness exceptions explicitly through `unstablePkgs`; consult
+their declarations rather than maintaining a separate exception list here.
+Input sources and release branches are declared in [flake.nix](flake.nix), with
+exact revisions in [flake.lock](flake.lock). External module imports live with
+the capabilities that use them.
 
 On `pang14`, `modules/nixos/user-kyleh.nix` adapts the system inventory into
 Home Manager's identity/network arguments and selects the common profile.
@@ -80,18 +72,12 @@ environment rather than relying on its presence in system packages. Account
 creation, groups, authorized keys, and SSH secret provisioning remain system
 responsibilities.
 
-Standalone Ubuntu profiles are kept separately in
-`lib/home-inventory.nix`. `homeConfigurations.gateway` and
-`homeConfigurations.oci` select the common Bash, Git, htop, and SSH baseline,
-the Ubuntu boundary, and the shared Nixvim profile; OCI targets AArch64.
-`homeConfigurations.wsl` adds direnv to that x86_64 baseline.
-`homeConfigurations.syntax` additionally supplies direnv, AI tools, tmux with
-automatic login attachment, and a persistent local SSH agent. Syntax and OCI
-both select Docker shell helpers. MCP servers
-are project-scoped; Grafana MCP configuration and its encrypted credential belong
-to the infrastructure repository. Ubuntu's
-account, groups, sudo policy, authorized keys, Nix bootstrap, and systemd linger
-remain Ansible-owned.
+Standalone Ubuntu profiles are listed in
+[lib/home-inventory.nix](lib/home-inventory.nix), with capability composition in
+[homes/](homes/). These declarations own architecture and profile differences.
+MCP servers are project-scoped; service configuration and encrypted credentials
+belong to the repository that uses them. Ubuntu's account, groups, sudo policy,
+authorized keys, Nix bootstrap, and systemd linger remain Ansible-owned.
 
 The standalone flake constructor initializes `home.username` from the shared
 user inventory and `home.homeDirectory` and `home.stateVersion` from the home
@@ -156,8 +142,8 @@ unattended or repeatable invocation, select it explicitly:
 The top-level script applies the shared native state in
 `windows/configuration.winget`, the applications in
 `windows/packages-common.winget`, and the selected `packages-home.winget` or
-`packages-work.winget`. The Home profile adds Deluge, Nextcloud, Steam, and WireGuard;
-the Work profile adds Google Drive. Package profiles are additive: selecting a
+`packages-work.winget`. These manifests are the source of truth for application
+selection. Package profiles are additive: selecting a
 different profile later does not uninstall packages installed by an earlier
 profile.
 
@@ -207,8 +193,8 @@ AI Actions have no verified Pro policy here; neither has an undocumented
 registry workaround. Edge Secure Network, Office surveys/feedback controls,
 taskbar End Task, and some shell/lock-screen promotions are not forced until
 a current supported mechanism is verified for this baseline. Some Edge for
-Business policies only affect applicable work profiles. TVRename remains a
-manual install unless a reliable WinGet package is identified.
+Business policies only affect applicable work profiles. Application selection
+and installation exceptions belong in the package manifests.
 
 Windows bootstrap prompts without echo for an optional SOPS age secret key. It
 installs the Windows OpenSSH client config from `windows/ssh-config` at
@@ -300,11 +286,11 @@ codex
 ```
 
 `.envrc` contains only `use flake`. Without direnv, enter `nix develop` once
-before launching Codex. The default `mkShellNoCC` supplies all repository
-development and operator tools: nixfmt, nixfmt-tree (`treefmt`), Statix, Deadnix,
-ShellCheck, jq, ripgrep, fd, PowerShell, nix-eval-jobs, nix-tree, nvd, age,
-sops, and OpenSSL. Use tools directly from `PATH`; routinely
-missing tools belong in this shell. Outputs cover architectures in both inventories.
+before launching Codex. The default development shell supplies repository
+development and operator tools; its package declarations in
+[flake.nix](flake.nix) are authoritative. Use tools directly from `PATH`;
+routinely missing tools belong in this shell. Outputs cover architectures in
+both inventories.
 
 Git must already be available from Ubuntu or the user's Home Manager profile;
 the development shell does not install it.
