@@ -17,8 +17,7 @@
     ../../modules/nixos/base.nix
     ../../modules/nixos/graphical-boot.nix
     ../../modules/nixos/laptop.nix
-    ../../modules/nixos/networkmanager-wireguard.nix
-    ../../modules/nixos/networkmanager-wifi.nix
+    ../../modules/nixos/networkmanager-profiles.nix
     ../../modules/nixos/secrets.nix
     ../../modules/nixos/user-kyleh.nix
     ../../modules/nixos/workstation.nix
@@ -84,7 +83,7 @@
     };
 
     script = ''
-      socket_dir="${config.infrastructure.user.homeDirectory}/.cache/ssh"
+      socket_dir="${config.users.users.${config.infrastructure.user.name}.home}/.cache/ssh"
 
       if [[ -d "$socket_dir" ]]; then
         ${pkgs.findutils}/bin/find "$socket_dir" \

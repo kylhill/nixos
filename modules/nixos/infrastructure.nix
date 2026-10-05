@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ lib, ... }:
 let
   inherit (lib) mkOption types;
 in
@@ -20,11 +20,6 @@ in
       email = mkOption {
         type = types.str;
         description = "Email address used by user-scoped tools such as Git.";
-      };
-      homeDirectory = mkOption {
-        type = types.str;
-        default = "/home/${config.infrastructure.user.name}";
-        description = "Absolute home directory of the primary managed user.";
       };
       sshPublicKey = mkOption {
         type = types.str;
