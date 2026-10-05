@@ -26,39 +26,6 @@
       "matchDatasources": [
         "docker"
       ],
-      "commitMessageTopic": "container {{depName}}",
-      "prBodyDefinitions": {
-        "Type": "container"
-      }
-    },
-    {
-      "matchManagers": [
-        "nix"
-      ],
-      "commitMessageTopic": "Nix flake input {{depName}}"
-    },
-    {
-      "matchManagers": [
-        "github-actions"
-      ],
-      "matchDepTypes": [
-        "action"
-      ],
-      "commitMessageTopic": "CI action {{depName}}"
-    },
-    {
-      "matchManagers": [
-        "github-actions"
-      ],
-      "matchDepTypes": [
-        "workflow"
-      ],
-      "commitMessageTopic": "CI workflow {{depName}}"
-    },
-    {
-      "matchDatasources": [
-        "docker"
-      ],
       "matchUpdateTypes": [
         "digest",
         "pinDigest"
