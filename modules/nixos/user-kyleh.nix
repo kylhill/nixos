@@ -1,13 +1,12 @@
 {
   config,
   inputs,
-  lib,
-  sharedUnfreePackages,
+  unstablePkgs,
   ...
 }:
 let
-  homeManagerLib = import "${inputs.home-manager}/modules/lib/stdlib-extended.nix" inputs.nixpkgs-unstable.lib;
   user = config.infrastructure.user;
+  sshDirectory = "${config.users.users.${user.name}.home}/.ssh";
 in
 {
   sops.secrets = {
@@ -17,14 +16,14 @@ in
       owner = user.name;
       group = "users";
       mode = "0600";
-      path = "${user.sshDirectory}/id_ed25519";
+      path = "${sshDirectory}/id_ed25519";
     };
     "ssh/public-key" = {
       sopsFile = ../../secrets/home.yaml;
       owner = user.name;
       group = "users";
       mode = "0644";
-      path = "${user.sshDirectory}/id_ed25519.pub";
+      path = "${sshDirectory}/id_ed25519.pub";
     };
   };
 
@@ -45,22 +44,18 @@ in
 
   home-manager = {
     extraSpecialArgs = {
-      inherit inputs;
-      lib = homeManagerLib;
+      inherit inputs unstablePkgs;
       homeIdentity = {
         inherit (config.infrastructure.user) fullName email;
       };
       networkHosts = config.infrastructure.network.hosts;
     };
-    useGlobalPkgs = false;
+    useGlobalPkgs = true;
     users.${config.infrastructure.user.name} = {
-      _module.args.pkgsPath = inputs.nixpkgs-unstable;
       imports = [
         ../home/kyleh
         ../home/kyleh/nix-index.nix
       ];
-      nixpkgs.config.allowUnfreePredicate =
-        package: builtins.elem (lib.getName package) sharedUnfreePackages;
     };
   };
 }

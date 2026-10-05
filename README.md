@@ -57,10 +57,13 @@ exposes it through the system profile, and Ubuntu ships it under `/usr/share`.
 Copilot, and MCP tools.
 `workstation.nix` adds graphical applications, GNOME preferences, and Bash VTE
 integration.
-Standalone and integrated Home Manager use the locked `nixpkgs-unstable`
-package set, while the NixOS system uses the locked `nixpkgs` input. The AI
-profile uses the home package set for Codex and Copilot; the workstation uses
-it for Firefox and VS Code.
+NixOS and all homes use the locked stable `nixpkgs` package set. Integrated
+Home Manager shares the system package set through `useGlobalPkgs`. An explicit
+`unstablePkgs` argument supplies the freshness exceptions: Codex, Copilot CLI,
+Grafana MCP, NixOS MCP, and VS Code. The `mcp-nixos` flake app also uses unstable.
+Nixvim follows its matching stable release branch. Neovim and its plugins,
+Firefox, Python, and the other home tools use stable;
+the separately pinned Solarized plugin source remains independent of that choice.
 The workstation also installs Python alongside VS Code so extensions and tasks
 can use it outside project-specific development environments.
 Nixvim and nix-index-database module imports live with the home capabilities
@@ -224,7 +227,8 @@ agent contains the key.
 
 On WSL, `./apply.sh switch` always selects the generic `wsl` home rather than
 the Windows-derived hostname. Update locked inputs separately with
-`./update.sh`; ordinary bootstrap and activation do not update them.
+`./update.sh` (or `./update.sh INPUT` for a selected input); ordinary bootstrap
+and activation do not update them.
 
 Moving tools from Ansible's latest-release installers to Nix also moves their
 updates to the inputs locked by this flake. `pang14` continues to activate Home

@@ -1,5 +1,4 @@
 {
-  config,
   lib,
   sharedUnfreePackages,
   ...
@@ -48,6 +47,4 @@
         "vista-fonts"
       ]
     );
-
-  time.timeZone = config.infrastructure.host.timeZone;
 }

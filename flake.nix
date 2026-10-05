@@ -31,8 +31,8 @@
     };
 
     nixvim = {
-      url = "github:nix-community/nixvim";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      url = "github:nix-community/nixvim/nixos-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     solarized-nvim = {
@@ -81,6 +81,8 @@
         nixpkgs.lib.nixosSystem {
           specialArgs = {
             inherit inputs;
+            hostNetwork = host.network;
+            unstablePkgs = mkPkgs inputs.nixpkgs-unstable host.system;
             inherit (inventory) sharedUnfreePackages;
           };
           modules = [
@@ -88,10 +90,13 @@
             (./hosts + "/${hostName}")
             {
               infrastructure = {
-                host = builtins.removeAttrs host [ "system" ];
                 inherit (inventory) user network;
               };
-              networking.hostName = hostName;
+              networking = {
+                inherit hostName;
+                hostId = host.hostId or null;
+              };
+              time.timeZone = host.timeZone;
               nixpkgs.hostPlatform = host.system;
               nix.registry.nixpkgs.flake = inputs.nixpkgs;
               nix.nixPath = [ "nixpkgs=${inputs.nixpkgs.outPath}" ];
@@ -101,9 +106,10 @@
       mkHome =
         homeName: home:
         inputs.home-manager.lib.homeManagerConfiguration {
-          pkgs = mkPkgs inputs.nixpkgs-unstable home.system;
+          pkgs = mkPkgs inputs.nixpkgs home.system;
           extraSpecialArgs = {
             inherit inputs;
+            unstablePkgs = mkPkgs inputs.nixpkgs-unstable home.system;
             homeIdentity = {
               inherit (inventory.user) fullName email;
             };
@@ -211,25 +217,19 @@
       );
       formatter = forAllSystems (system: (pkgsFor system).nixfmt-tree);
 
-      apps = forAllSystems (
-        system:
-        let
-          pkgs = pkgsFor system;
-        in
-        {
-          disko = {
-            type = "app";
-            program = "${disko.packages.${system}.disko}/bin/disko";
-            meta.description = "Declaratively partition and format disks with Disko";
-          };
+      apps = forAllSystems (system: {
+        disko = {
+          type = "app";
+          program = "${disko.packages.${system}.disko}/bin/disko";
+          meta.description = "Declaratively partition and format disks with Disko";
+        };
 
-          mcp-nixos = {
-            type = "app";
-            program = "${pkgs.mcp-nixos}/bin/mcp-nixos";
-            meta.description = "Query version-matched NixOS and Home Manager documentation";
-          };
-        }
-      );
+        mcp-nixos = {
+          type = "app";
+          program = "${inputs.nixpkgs-unstable.legacyPackages.${system}.mcp-nixos}/bin/mcp-nixos";
+          meta.description = "Query version-matched NixOS and Home Manager documentation";
+        };
+      });
 
       devShells = forAllSystems (
         system:

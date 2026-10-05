@@ -4,18 +4,6 @@ let
 in
 {
   options.infrastructure = {
-    host = {
-      hostId = mkOption {
-        type = types.nullOr (types.strMatching "[0-9a-fA-F]{8}");
-        default = null;
-        description = "Stable ZFS host identifier, required only by hosts composing a ZFS capability.";
-      };
-      timeZone = mkOption {
-        type = types.str;
-        description = "IANA time zone used by this host.";
-      };
-    };
-
     user = {
       name = mkOption {
         type = types.str;
@@ -37,11 +25,6 @@ in
         type = types.str;
         default = "/home/${config.infrastructure.user.name}";
         description = "Absolute home directory of the primary managed user.";
-      };
-      sshDirectory = mkOption {
-        type = types.str;
-        default = "${config.infrastructure.user.homeDirectory}/.ssh";
-        description = "Absolute directory containing the user's SSH identities.";
       };
       sshPublicKey = mkOption {
         type = types.str;

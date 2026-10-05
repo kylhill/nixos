@@ -9,7 +9,6 @@
   ];
 
   home = {
-    enableNixpkgsReleaseCheck = false;
     preferXdgDirectories = true;
   };
 

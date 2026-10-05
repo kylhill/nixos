@@ -1,15 +1,11 @@
-{ config, lib, ... }:
+{ config, ... }:
 {
   assertions = [
     {
-      assertion = config.infrastructure.host.hostId != null;
-      message = "The ZFS root capability requires infrastructure.host.hostId.";
+      assertion = config.networking.hostId != null;
+      message = "The ZFS root capability requires networking.hostId.";
     }
   ];
-
-  networking.hostId = lib.mkIf (
-    config.infrastructure.host.hostId != null
-  ) config.infrastructure.host.hostId;
 
   boot.supportedFilesystems = [ "zfs" ];
 }

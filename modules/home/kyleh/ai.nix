@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  unstablePkgs,
   ...
 }:
 let
@@ -15,19 +16,19 @@ let
         name = "codex";
         runtimeInputs = [ systemBubblewrap ];
         text = ''
-          exec ${pkgs.codex}/bin/.codex-wrapped "$@"
+          exec ${unstablePkgs.codex}/bin/.codex-wrapped "$@"
         '';
       }).overrideAttrs
         (_: {
-          version = pkgs.codex.version;
+          version = unstablePkgs.codex.version;
         })
     else
-      pkgs.codex;
+      unstablePkgs.codex;
 
   mcpGrafana = pkgs.writeShellApplication {
     name = "mcp-grafana";
     runtimeInputs = [
-      pkgs.mcp-grafana
+      unstablePkgs.mcp-grafana
       pkgs.sops
     ];
     text = ''
@@ -48,7 +49,7 @@ in
 
   home.packages = [
     mcpGrafana
-    pkgs.mcp-nixos
+    unstablePkgs.mcp-nixos
   ];
 
   programs = {
@@ -58,7 +59,7 @@ in
     };
     github-copilot-cli = {
       enable = true;
-      package = pkgs.github-copilot-cli;
+      package = unstablePkgs.github-copilot-cli;
     };
   };
 }

@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, unstablePkgs, ... }:
 {
   home = {
     packages = [
@@ -31,7 +31,7 @@
 
     vscode = {
       enable = true;
-      package = pkgs.vscode;
+      package = unstablePkgs.vscode;
     };
   };
 
