@@ -81,6 +81,7 @@
         ll = "ls -alFh --color=auto";
         ls = "ls --color=auto -h";
         grep = "grep --color=auto";
+        v = "sudo virsh --connect qemu:///system";
       };
 
       initExtra = ''
