@@ -6,7 +6,8 @@ repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 export NIX_CONFIG="${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flakes'
 
 cd "$repo_dir"
-nix flake update "$@"
+# Update the working tree without asking Nix's Git fetcher to stage the lock file.
+nix flake update --flake path:. "$@"
 
 echo
 git --no-pager diff --stat -- flake.lock

@@ -584,3 +584,5 @@ git diff -- flake.lock
 ```
 
 Commit the reviewed lock-file update separately from unrelated changes.
+`update.sh` uses `path:.` so updating the lock file does not require writing to
+the Git index, including inside Codex's sandbox.

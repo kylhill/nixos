@@ -68,6 +68,17 @@ reject_checks() {
     [[ $(< "$fixture_dir/output") != *'==>'* ]]
 }
 
+# Updates must work with a read-only Git index and preserve selected input args.
+: > "$FIXTURE_LOG"
+bash "$fixture_dir/repo/update.sh" nixpkgs > "$fixture_dir/output" 2>&1
+calls=$(< "$FIXTURE_LOG")
+require_call 'flake update --flake path:. nixpkgs'
+: > "$FIXTURE_LOG"
+status=0
+FAIL_NIX_MATCH='flake update' bash "$fixture_dir/repo/update.sh" > "$fixture_dir/output" 2>&1 || status=$?
+[[ $status == 1 ]]
+[[ $(< "$fixture_dir/output") != *'Inputs updated.'* ]]
+
 run_case 2
 reject_checks
 run_case 2 --sandbox
