@@ -46,11 +46,10 @@
 
   networking = {
     modemmanager.enable = false;
-    networkmanager.enable = true;
     nftables.enable = true;
   };
 
-  security.rtkit.enable = true;
+  systemd.oomd.enableUserSlices = true;
 
   services = {
     avahi = {
@@ -63,7 +62,6 @@
     desktopManager.gnome.enable = true;
     dleyna.enable = false;
     gnome = {
-      gcr-ssh-agent.enable = true;
       gnome-remote-desktop.enable = false;
       gnome-user-share.enable = false;
       rygel.enable = false;
@@ -125,7 +123,6 @@
     ];
 
     fontconfig = {
-      antialias = true;
       defaultFonts = {
         sansSerif = [
           "Adwaita Sans"
@@ -143,18 +140,8 @@
           "Noto Sans Mono"
           "DejaVu Sans Mono"
         ];
-
-        emoji = [ "Noto Color Emoji" ];
       };
-      hinting = {
-        enable = true;
-        autohint = false;
-        style = "slight";
-      };
-      subpixel = {
-        rgba = "rgb";
-        lcdfilter = "default";
-      };
+      subpixel.rgba = "rgb";
     };
   };
 }

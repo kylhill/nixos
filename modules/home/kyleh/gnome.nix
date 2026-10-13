@@ -144,15 +144,6 @@ let
 in
 {
   dconf.settings = {
-    "org/freedesktop/tracker/miner/files".index-recursive-directories = [
-      "$HOME"
-      "&DOCUMENTS"
-      "&DOWNLOAD"
-      "&MUSIC"
-      "&PICTURES"
-      "&VIDEOS"
-    ];
-
     "org/gnome/desktop/background" = {
       picture-uri = "file://${pkgs.gnome-backgrounds}/share/backgrounds/gnome/pixel-pusher-d.jxl";
       picture-uri-dark = "file://${pkgs.gnome-backgrounds}/share/backgrounds/gnome/pixel-pusher-d.jxl";

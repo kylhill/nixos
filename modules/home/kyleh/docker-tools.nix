@@ -2,7 +2,10 @@ _: {
   programs.lazydocker.enable = true;
 
   programs.bash = {
-    shellAliases.dsh = "dbash";
+    shellAliases = {
+      dsh = "dbash";
+      dtail = "docker logs -tf --tail=150";
+    };
 
     initExtra = ''
       dbash() {
@@ -22,10 +25,6 @@ _: {
         }
 
         docker exec -it "$1" "$shell"
-      }
-
-      dtail() {
-        docker logs -tf --tail="150" "$@"
       }
 
       _complete_docker_containers() {
