@@ -22,6 +22,14 @@
       presets = [ "nerd-font-symbols" ];
       settings = {
         add_newline = false;
+        palette = "solarized_dark";
+        palettes.solarized_dark = {
+          blue = "#268bd2";
+          cyan = "#2aa198";
+          green = "#859900";
+          yellow = "#b58900";
+          red = "#dc322f";
+        };
         format = "$username$hostname$directory$nix_shell$git_branch$git_status$character";
         username = {
           format = "[$user]($style)";
