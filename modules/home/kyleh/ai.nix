@@ -11,12 +11,12 @@ let
 
   codexPackage =
     if config.targets.genericLinux.enable then
-      # Bypass nixpkgs' PATH wrapper so Ubuntu's bwrap takes precedence.
+      # Keep Ubuntu's bwrap ahead of the packaged sandbox fallback.
       (pkgs.writeShellApplication {
         name = "codex";
         runtimeInputs = [ systemBubblewrap ];
         text = ''
-          exec ${unstablePkgs.codex}/bin/.codex-wrapped "$@"
+          exec ${unstablePkgs.codex}/bin/codex "$@"
         '';
       }).overrideAttrs
         (_: {

@@ -301,6 +301,11 @@ the test runner enables them for its own invocations.
 
 ### Codex permissions and cache
 
+On Ubuntu, [ai.nix](modules/home/kyleh/ai.nix) wraps Codex's public `bin/codex`
+entrypoint and puts the host's `/usr/bin/bwrap` first on `PATH`. This preserves
+Ubuntu's Bubblewrap integration without depending on nixpkgs' private wrapper
+filenames, which can change between input updates.
+
 Trusted project configuration in `.codex/config.toml` selects
 `nixos-development`, extending `:workspace` with network access and an explicit
 allow entry for `/nix/var/nix/daemon-socket/socket`. Sandboxing stays enabled;
