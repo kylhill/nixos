@@ -70,6 +70,7 @@
         "extglob"
         "globstar"
         "checkjobs"
+        "checkwinsize"
         "cdspell"
         "dirspell"
         "lithist"

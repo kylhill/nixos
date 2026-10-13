@@ -88,6 +88,10 @@ in
       bind BTab select-pane -t :.-
       bind C-a last-window
 
+      bind -T copy-mode-vi v send-keys -X begin-selection
+      bind -T copy-mode-vi C-v send-keys -X rectangle-toggle
+      bind -T copy-mode-vi y send-keys -X copy-selection-and-cancel
+
       bind c new-window -c "#{pane_current_path}"
       bind C-c new-window -c "#{pane_current_path}"
       bind | split-window -h -c "#{pane_current_path}"
