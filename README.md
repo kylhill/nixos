@@ -340,33 +340,49 @@ stage before proceeding.
 Use the [nix-development skill](.agents/skills/nix-development/SKILL.md) to
 select the validation loop and representative consumers for each change.
 Run `./test.sh --sandbox SCOPE ...` inside Codex with an explicit scope.
-Missing scope exits 2 before any checks; `--help` needs no scope. Sandbox mode
-uses tools directly from `PATH` and evaluates `path:.`, including dirty and
-untracked files. Dirty warnings are expected; do not stage files to validate.
-Outside Codex, `--path` is a flag with no argument, selecting the same flake
-reference: `./test.sh --path --home syntax`. Without `--sandbox`, source and
-fixture checks build their small native check derivations.
+Missing scope exits 2 before any checks; `--help` needs no scope. Ordinary scopes
+use tools directly from `PATH` and evaluate `path:.`, including dirty and
+untracked files, both inside and outside Codex. Dirty warnings are expected; do
+not stage files to validate. `--sandbox` explicitly selects this direct loop and
+excludes native checks. `--path` remains a compatibility flag with no argument;
+all scopes already use `path:.`.
+
+For reproducibility checks outside Codex, explicitly select `--native-checks`.
+It builds the four small native lint derivations and any selected fixture suites
+in one `nix build --keep-going` invocation, without host/home evaluation. It
+excludes ordinary lint/full/CI, selected outputs and option scopes. Inside Codex,
+use the explicit small `nix build` commands below when check wiring changes.
+
+Multiple selected outputs share one `nix eval` through `lib.validation`, including
+standalone/integrated homes, system assertions and development shells. Only
+requested values are forced. A failed batch retries its members individually to retain detailed
+diagnostics and collect independent failures. Single selections remain direct.
 
 | Scope | Checks |
 | --- | --- |
-| `--lint` | Whitespace, shell syntax, Nixfmt, Statix, Deadnix and ShellCheck; no Nix invocation in sandbox mode |
-| `--fixtures SUITE` | Source checks and `runner`, `apply`, `windows`, or `all` fixtures |
+| `--lint` | Whitespace, shell syntax, Nixfmt, Statix, Deadnix and ShellCheck; no Nix invocation |
+| `--fixtures SUITE` | Source checks and `runner`, `eval`, `apply`, `windows`, or `all` fixtures |
 | `--home NAME` | Source checks and selected standalone home activation `drvPath` |
 | `--integrated-home HOST USER` | Source checks and selected integrated home activation `drvPath`, without evaluating the system toplevel |
 | `--system HOST` | Source checks and system assertions; fails with assertion messages, without a system build |
 | `--dev SYSTEM` | Source checks and all development shell `drvPath`s for the architecture |
-| `--option-home NAME OPTION` | One non-secret standalone home `config.OPTION`, without source checks |
-| `--option-integrated-home HOST USER OPTION` | One non-secret integrated home `OPTION`, without source checks |
-| `--option-system HOST OPTION` | One non-secret NixOS `config.OPTION`, without source checks |
+| `--option-home NAME OPTION` | Non-secret standalone home `config.OPTION` inspections, without source checks |
+| `--option-integrated-home HOST USER OPTION` | Non-secret integrated home `OPTION` inspections, without source checks |
+| `--option-system HOST OPTION` | Non-secret NixOS `config.OPTION` inspections, without source checks |
 | `--full` | Source checks, all-system flake evaluation without builds, and every standalone home activation `drvPath` |
 | `--ci` | Full validation and all fixture suites |
+| `--native-checks` | Whitespace, shell syntax, native lint builds and any selected fixture builds; no host/home evaluation |
 
 Home, integrated-home, system and development scopes are repeatable and
 combinable. Fixture selection is repeatable, deduplicated, and combines with
-selected scopes, lint, or full evaluation. Lint/full/CI cannot combine with
-selected output scopes. Option scopes are exclusive and print JSON; names and
-dotted option components must start with a letter or underscore and contain
-only letters, digits, underscores or hyphens. Use option scopes only for
+selected scopes, lint, full evaluation, or native checks. Exclusive scopes cannot
+combine with selected output scopes. Option inspections are repeatable and can
+mix standalone-home, integrated-home and system options, but exclude completion
+scopes and fixtures. One inspection prints its original JSON value; multiple
+inspections share one evaluation and print a map keyed by their full option paths.
+A failed inspection batch exits nonzero without partial JSON or completion checks.
+Names and dotted option components must start with a letter or underscore and
+contain only letters, digits, underscores or hyphens. Use option scopes only for
 non-secret values: terminal output and logs are visible.
 
 The runner collects independent failures. Failed source checks suppress output
@@ -375,15 +391,39 @@ suppress other fixtures. No scope builds or activates a home/system closure.
 System assertions check configuration assumptions, not every service definition
 or runtime state; inspect affected options/generated files as well.
 
+During edits, inspect the changed option or generated file, or run the relevant
+fixture suite directly. Run source checks and affected activation/assertion scopes
+once at completion. Select consumers by tracing the changed module's imports;
+cover distinct architectures and affected conditionals/integration paths, rather
+than every host that imports it. The current home contexts are:
+
+| Consumer | Distinct context |
+| --- | --- |
+| `gateway` | Basic headless standalone home on x86_64 Linux |
+| `oci` | Headless standalone home on aarch64 Linux, with Docker tools |
+| `syntax` | Headless home with development, AI, tmux and SOPS integration |
+| `wsl` | Development home with Windows SSH-agent integration |
+| `pang14/kyleh` | Integrated NixOS home with workstation configuration |
+
+For example, a shared Git edit can iterate with `--option-home syntax
+programs.git.enable`, then complete with selected home activation scopes covering
+the affected contexts. A WSL-agent edit targets `wsl`; a Docker-tools edit targets
+its consumers and relevant architecture differences. Reserve `--full` for
+configuration composition/input changes or uncertain scope, and add fixtures with
+`--ci` when the orchestration boundary also needs coverage. Changes confined to
+check wiring or filtered check inputs need affected check derivations on supported architectures
+and affected native checks; they do not need host/home evaluation.
+
 ```bash
 # Iterate on the changed option, then batch the affected completion contexts.
-./test.sh --sandbox --option-home syntax programs.git.enable
+./test.sh --sandbox --option-home syntax programs.git.enable \
+  --option-home syntax home.homeDirectory
 ./test.sh --sandbox --home gateway --home oci --integrated-home pang14 kyleh
 ./test.sh --sandbox --option-system pang14 services.openssh.enable
 ./test.sh --sandbox --system pang14
 
 # Script changes need no home/system evaluation.
-./test.sh --sandbox --fixtures runner
+./test.sh --sandbox --fixtures runner --fixtures eval
 ./test.sh --sandbox --fixtures apply
 ./test.sh --sandbox --fixtures windows
 ./test.sh --sandbox --fixtures all --dev x86_64-linux --dev aarch64-linux
@@ -400,7 +440,13 @@ solely for documentation changes.
 
 `test.sh` orchestrates independently executable fixture suites. Runner/apply
 fixtures use fake tools, isolated temporary directories, and no real builds or
-activation. Windows fixtures use `pwsh -NoLogo -NoProfile`, parse every Windows
+activation. The `eval` suite runs real Nix against a minimal flake with no inputs;
+it checks mixed selections, option-batch JSON, laziness and assertion-failure
+fallback without repository host modules or any builds. Its temporary home,
+configuration, cache and local store are isolated for native-check compatibility
+and removed at exit; ordinary validation continues to reuse configured caches.
+Windows fixtures own launcher checks (missing PowerShell, arguments, startup
+isolation, exit status and cleanup), then use `pwsh -NoLogo -NoProfile`, parse every Windows
 script, and mock WinGet/WSL for verification/update behavior. They neither need
 administrator privileges nor change Windows state. The shell wrapper also
 isolates PowerShell startup cache/config/data in a temporary directory. Other
@@ -409,6 +455,7 @@ behavior remain Windows operator checks. Run a suite directly during iteration:
 
 ```bash
 bash tests/test-runner.sh
+bash tests/test-eval.sh
 bash tests/test-apply.sh
 bash tests/test-windows.sh
 ```
@@ -416,19 +463,41 @@ bash tests/test-windows.sh
 The shell-file manifest in `tests/shell-files` is shared by direct syntax/lint,
 native ShellCheck, and runner-fixture setup; add new shell scripts there. Native
 checks use filtered source inputs: Nix linters receive Nix files, ShellCheck and
-runner fixtures receive the manifest's files, apply fixtures receive their own
-script/helper, and Windows fixtures receive Windows files and their suite.
-Documentation-only edits therefore preserve check derivations. Check-input
-changes should be validated by evaluating affected check derivations and building
-only the small checks for the current architecture:
+syntax checks receive the manifest's files. Runner fixtures receive only the
+runner/update scripts, shell manifest and runner suite/helper. All nested suites
+are stubbed uniformly, and unrelated manifest scripts are replaced with
+syntax-valid stubs. Eval fixtures receive the runner, eval suite and minimal
+fixture flake; apply fixtures receive their own script/helper; Windows fixtures
+receive Windows files, their suite and launcher. Unrelated shell edits therefore preserve
+the runner-fixture derivation while still receiving syntax and ShellCheck coverage.
+Documentation-only edits therefore preserve check derivations. For check-input or
+check-wiring changes, evaluate the affected checks on supported architectures and
+build only the affected small checks for the current architecture. For example,
+an evaluation-runner change uses:
 
 ```bash
+./test.sh --sandbox --fixtures runner --fixtures eval
+nix eval --json --no-update-lock-file path:.#checks \
+  --apply 'checks: builtins.mapAttrs (_: systemChecks: {
+    runner = systemChecks.runner-fixtures.drvPath;
+    eval = systemChecks.eval-fixtures.drvPath;
+  }) checks'
 system=$(nix eval --impure --raw --expr builtins.currentSystem)
-nix build --no-link --no-update-lock-file \
-  "path:.#checks.$system.runner-fixtures" \
-  "path:.#checks.$system.apply-fixtures" \
-  "path:.#checks.$system.windows-fixtures"
+nix build --keep-going --no-link --no-update-lock-file \
+  "path:.#checks.$system.runner-fixtures" "path:.#checks.$system.eval-fixtures"
 ```
+
+Outside Codex, run the complete native lint set plus chosen fixtures with:
+
+```bash
+./test.sh --native-checks --fixtures runner
+# All native lint and fixture checks:
+./test.sh --native-checks --fixtures all
+```
+
+Ordinary `--ci` uses direct tools and fixtures. It does not additionally build
+the same native checks; run the explicit native scope when their wiring changes
+or reproducibility needs verification.
 
 `nix flake check --no-build` evaluates check derivations without executing them.
 Full `nix flake check` builds checks and is broader than the ordinary loop.

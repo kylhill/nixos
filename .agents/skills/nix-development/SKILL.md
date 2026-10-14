@@ -14,12 +14,13 @@ for commands, scope mechanics, generated-file inspection, and troubleshooting.
 | Change | Iterate with | Complete with |
 | --- | --- | --- |
 | Documentation or skill guidance | Referenced paths/commands | Worktree and staged whitespace checks; validate skill metadata when changed |
-| Runner or apply helper | Relevant fake-tool fixtures | Source checks and selected fixtures in one runner invocation |
+| Runner or apply helper | Relevant fake-tool fixtures; eval fixtures for runner selection changes | Source checks and selected fixtures in one runner invocation |
 | Windows scripts | PowerShell parser and mocked orchestration fixtures | Source checks and Windows fixtures; identify behavior requiring Windows |
 | Home Manager options | Changed non-secret option or generated configuration | Source checks and selected home activation derivations |
 | NixOS options | Changed non-secret system option or generated configuration | Source checks and selected system assertions; identify live/root-only behavior |
 | Development shell | Selected shell derivations; exercise shell behavior only when changed | Source checks and affected architectures |
-| Imports, shared package sets/arguments, flake composition, or lock | Focused affected outputs | Full evaluation and relevant fixtures; small native check builds for changed check wiring |
+| Check wiring or filtered check inputs only | Affected fixtures/check derivations | Source checks, affected check derivations on supported architectures, and small native builds for affected checks |
+| Configuration imports/composition, shared package sets/arguments, or lock | Focused affected outputs | Full evaluation and relevant fixtures |
 
 Trace imports before selecting consumers. Cover distinct architectures,
 conditionals, package sets, module arguments, or integration paths relevant to
@@ -28,7 +29,9 @@ force every service option or prove runtime behavior: also inspect the changed
 option and its generated configuration where relevant. Home option evaluation
 does not replace the selected activation derivation check. An integrated home
 option change alone does not require full flake evaluation. Use full evaluation
-when the affected boundary remains uncertain.
+when the affected boundary remains uncertain. Edits confined to `checks` or their
+filtered source inputs do not require host/home evaluation. Changes to shared
+helpers also used by configuration outputs still require full evaluation.
 
 Select checks before editing. Establish a baseline when investigating a failure
 or when existing behavior is uncertain, rather than routinely repeating every
@@ -49,8 +52,9 @@ output failures; a failed inspection must not prevent completion checks.
   fixtures with temporary home/config directories and explicit dependencies.
   Avoid login shells, credentials, real services, and activation scripts.
 - Runner fixtures test argument handling, scope isolation, and failure propagation
-  with fake tools. Also exercise actual selected outputs after changing evaluation
-  wiring. Apply fixtures must mock hostname and kernel detection so they work on
+  with fake tools; eval fixtures check selection semantics against an input-free
+  flake with real Nix. Also exercise actual selected outputs after changing
+  evaluation wiring. Apply fixtures must mock hostname and kernel detection so they work on
   both native Linux and WSL.
 - Windows fixtures parse all scripts and mock verification/update orchestration.
   They do not prove DSC resource behavior, provisioning, or WSL installation.

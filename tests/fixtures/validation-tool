@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 tool=${0##*/}
-printf '%s NIX_REMOTE=%s NIX_CACHE_HOME=%s XDG_CACHE_HOME=%s %s\n' \
-    "$tool" "${NIX_REMOTE:-}" "${NIX_CACHE_HOME:-}" "${XDG_CACHE_HOME:-}" "$*" >> "$FIXTURE_LOG"
+# NUL fields preserve empty arguments, spaces and embedded newlines. Each call
+# has a tool, three environment fields, argc, then exactly argc arguments.
+printf '%s\0' "$tool" "${NIX_REMOTE:-}" "${NIX_CACHE_HOME:-}" "${XDG_CACHE_HOME:-}" "$#" "$@" >> "$FIXTURE_LOG"
 if [[ $tool != nix ]]; then
     [[ ${FAIL_TOOL:-} != "$tool" ]]
     exit
 fi
-if [[ -n ${FAIL_NIX_MATCH:-} && $* == *"$FAIL_NIX_MATCH"* ]]; then
-    exit 1
+for arg in "$@"; do
+    if [[ -n ${FAIL_NIX_MATCH:-} && $arg == *"$FAIL_NIX_MATCH"* ]]; then exit 1; fi
+    case "$arg" in
+        *homeConfigurations.missing*) exit 1 ;;
+    esac
+done
+if [[ ${1:-} == eval && ${*: -1} == builtins.currentSystem ]]; then
+    printf x86_64-linux
+else
+    printf '{}\n'
 fi
-case "$*" in
-    *builtins.currentSystem*) printf x86_64-linux ;;
-    *homeConfigurations.missing*) exit 1 ;;
-    *) printf '{}\n' ;;
-esac

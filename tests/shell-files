@@ -4,6 +4,8 @@ update.sh
 scripts/bootstrap-home.sh
 tests/test-apply.sh
 tests/test-runner.sh
+tests/test-eval.sh
 tests/test-windows.sh
+tests/run-windows.sh
 tests/fixtures/apply-tool
 tests/fixtures/validation-tool

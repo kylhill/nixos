@@ -71,13 +71,15 @@
           config.allowUnfreePredicate =
             package: builtins.elem (nixpkgs.lib.getName package) inventory.sharedUnfreePackages;
         };
+      homePkgs = forAllSystems (mkPkgs inputs.nixpkgs);
+      unstablePkgsFor = forAllSystems (mkPkgs inputs.nixpkgs-unstable);
       mkHost =
         hostName: host:
         nixpkgs.lib.nixosSystem {
           specialArgs = {
             inherit inputs;
             hostNetwork = host.network;
-            unstablePkgs = mkPkgs inputs.nixpkgs-unstable host.system;
+            unstablePkgs = unstablePkgsFor.${host.system};
             inherit (inventory) sharedUnfreePackages;
           };
           modules = [
@@ -101,10 +103,10 @@
       mkHome =
         homeName: home:
         inputs.home-manager.lib.homeManagerConfiguration {
-          pkgs = mkPkgs inputs.nixpkgs home.system;
+          pkgs = homePkgs.${home.system};
           extraSpecialArgs = {
             inherit inputs;
-            unstablePkgs = mkPkgs inputs.nixpkgs-unstable home.system;
+            unstablePkgs = unstablePkgsFor.${home.system};
             homeIdentity = {
               inherit (inventory.user) fullName email;
             };
@@ -131,6 +133,12 @@
       nixosConfigurations = nixpkgs.lib.mapAttrs mkHost inventory.hosts;
       homeConfigurations = nixpkgs.lib.mapAttrs mkHome homeInventory;
 
+      # A named installable lets the runner batch mixed selections without
+      # builtins.getFlake or forcing unrelated configuration values.
+      lib.validation = {
+        inherit (inputs.self) nixosConfigurations homeConfigurations devShells;
+      };
+
       checks = forAllSystems (
         system:
         let
@@ -140,7 +148,19 @@
             let
               source =
                 if suite == "runner" then
-                  shellSource
+                  checkSource [
+                    "test.sh"
+                    "update.sh"
+                    "tests/shell-files"
+                    "tests/test-runner.sh"
+                    "tests/fixtures/validation-tool"
+                  ]
+                else if suite == "eval" then
+                  checkSource [
+                    "test.sh"
+                    "tests/test-eval.sh"
+                    "tests/fixtures/eval-flake.nix"
+                  ]
                 else if suite == "apply" then
                   checkSource [
                     "apply.sh"
@@ -152,6 +172,7 @@
                     "windows"
                     "tests/test-windows.ps1"
                     "tests/test-windows.sh"
+                    "tests/run-windows.sh"
                   ];
             in
             pkgs.runCommand "${suite}-fixtures"
@@ -169,6 +190,10 @@
                       pkgs.coreutils
                       pkgs.git
                       pkgs.gnugrep
+                    ]
+                    ++ nixpkgs.lib.optionals (suite == "eval") [
+                      (pkgs.lib.getBin pkgs.nix)
+                      (pkgs.lib.getBin pkgs.jq)
                     ];
               }
               ''
@@ -179,6 +204,7 @@
         {
           apply-fixtures = fixtureCheck "apply";
           runner-fixtures = fixtureCheck "runner";
+          eval-fixtures = fixtureCheck "eval";
           windows-fixtures = fixtureCheck "windows";
 
           formatting =
