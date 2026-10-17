@@ -49,7 +49,7 @@ jobs:
           touch -h "$cache_root"
 
       - name: Validate repository
-        run: ./test.sh --ci
+        run: nix develop --command ./test.sh --ci
 
       - name: Maintain Nix cache
         if: always()
