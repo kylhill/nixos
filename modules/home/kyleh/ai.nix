@@ -49,7 +49,8 @@ in
 
   home.packages = [
     mcpGrafana
-    unstablePkgs.mcp-nixos
+    # Stable keeps FastMCP on the compatible MCP 1 dependency set.
+    pkgs.mcp-nixos
   ];
 
   programs = {

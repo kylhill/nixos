@@ -247,7 +247,7 @@
 
         mcp-nixos = {
           type = "app";
-          program = "${inputs.nixpkgs-unstable.legacyPackages.${system}.mcp-nixos}/bin/mcp-nixos";
+          program = "${(pkgsFor system).mcp-nixos}/bin/mcp-nixos";
           meta.description = "Query version-matched NixOS and Home Manager documentation";
         };
       });
