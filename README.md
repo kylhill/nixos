@@ -66,7 +66,13 @@ Renovate policy is local to this repository in [renovate.json](renovate.json).
 A dedicated PR workflow checks configuration changes with
 `renovate-config-validator --strict --no-global renovate.json`, using the same
 pinned Renovate image as the scheduled bot. Branch concurrency inherits the
-unlimited PR limit.
+unlimited PR limit. The scheduled bot and PR validator share one image pin
+through a YAML anchor in the same workflow. A short source check requires
+matching Nixpkgs, Home Manager and Nixvim release references.
+
+Distribution release transitions are manual: update all three release branches
+in `flake.nix` together, then use `./update.sh` and the documented validation
+loop. Renovate still refreshes `flake.lock` within the configured branches.
 
 On `pang14`, `modules/nixos/user-kyleh.nix` adapts the system inventory into
 Home Manager's identity/network arguments and selects the common profile.

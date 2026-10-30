@@ -22,6 +22,20 @@
   },
   "packageRules": [
     {
+      "description": "Keep distribution release transitions manual; routine flake lock maintenance remains enabled",
+      "matchManagers": [
+        "nix"
+      ],
+      "matchDepNames": [
+        "nixpkgs"
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor"
+      ],
+      "enabled": false
+    },
+    {
       "matchDatasources": [
         "docker"
       ],
