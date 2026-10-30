@@ -62,6 +62,12 @@ Input sources and release branches are declared in [flake.nix](flake.nix), with
 exact revisions in [flake.lock](flake.lock). External module imports live with
 the capabilities that use them.
 
+Renovate policy is local to this repository in [renovate.json](renovate.json).
+A dedicated PR workflow checks configuration changes with
+`renovate-config-validator --strict --no-global renovate.json`, using the same
+pinned Renovate image as the scheduled bot. Branch concurrency inherits the
+unlimited PR limit.
+
 On `pang14`, `modules/nixos/user-kyleh.nix` adapts the system inventory into
 Home Manager's identity/network arguments and selects the common profile.
 Integrated Home Manager inherits `home.username` and `home.homeDirectory`
