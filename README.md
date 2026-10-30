@@ -66,8 +66,8 @@ Renovate policy is local to this repository in [renovate.json](renovate.json).
 A dedicated PR workflow checks configuration changes with
 `renovate-config-validator --strict --no-global renovate.json`, using the same
 pinned Renovate image as the scheduled bot. Branch concurrency inherits the
-unlimited PR limit. The scheduled bot and PR validator share one image pin
-through a YAML anchor in the same workflow. A short source check requires
+unlimited PR limit. The scheduled bot and PR validator use explicit matching image pins.
+Update both pins together; cross-job YAML anchors fail during Forgejo job dispatch. A short source check requires
 matching Nixpkgs, Home Manager and Nixvim release references.
 
 Distribution release transitions are manual: update all three release branches
