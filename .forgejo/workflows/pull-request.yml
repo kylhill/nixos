@@ -16,16 +16,18 @@ jobs:
     runs-on: oci-deps
     timeout-minutes: 60
     container:
-      image: docker.io/library/node:26.13.0-bookworm-slim@sha256:bc0a2afd3b74ce12222fc8bab99271e66257f021078f5f4a5d687a77d280c1d9
       volumes:
         - /opt/cache/nix:/nix
-    env:
-      DEBIAN_FRONTEND: noninteractive
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Install job prerequisites
+        shell: sh
         run: |
-          apt-get update
-          apt-get install --no-install-recommends --yes ca-certificates curl git sudo xz-utils
+          # Bash is needed by subsequent steps and the Nix installer action.
+          # GNU tools keep the installer and persistent-cache operations consistent.
+          apk add --no-cache bash ca-certificates coreutils curl findutils git sudo tar xz
           git config --system init.defaultBranch main
 
       - name: Checkout
