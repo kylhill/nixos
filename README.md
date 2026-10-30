@@ -70,6 +70,14 @@ unlimited PR limit. The scheduled bot and PR validator use explicit matching ima
 Update both pins together; cross-job YAML anchors fail during Forgejo job dispatch. A short source check requires
 matching Nixpkgs, Home Manager and Nixvim release references.
 
+`pull-request.yml` runs independent Configuration and repository-validation
+jobs. Repository validation uses `./test.sh --ci`; superseded PR runs are
+cancelled. `renovate.yml` is the Maintenance workflow: its weekly schedule and
+manual dispatch run independent Renovate and validation jobs. Scheduled
+validation repeats `./test.sh --ci` with the committed lockfile, without updating
+inputs, building full system/home closures, or activating configuration.
+Maintenance runs queue rather than cancelling each other.
+
 Distribution release transitions are manual: update all three release branches
 in `flake.nix` together, then use `./update.sh` and the documented validation
 loop. Renovate still refreshes `flake.lock` within the configured branches.
