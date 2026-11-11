@@ -319,6 +319,36 @@ Ubuntu baseline is 26.04 LTS, with `nix-bin` and `nix-setup-systemd` installed.
 Enable `nix-command` and `flakes` on the host for direct flake commands;
 the test runner enables them for its own invocations.
 
+### Codex remote control
+
+The AI profile enables the Home Manager user service `codex-remote-control`
+on Syntax and Pang14. It runs the packaged Codex in the foreground with
+`remote-control --no-daemon`, so systemd supervises the process and restarts
+it on failure. It uses the same `CODEX_HOME` as interactive Codex and includes
+the Home Manager profile and host tools on `PATH`. An explicit `UMask=0077`
+keeps temporary socket directories private even when the user manager inherits
+a group-writable umask; Codex rejects group-writable socket parents.
+
+After applying the Home Manager configuration, sign in with `codex login`
+if needed. Manage this instance through systemd rather than starting another
+instance with `codex remote-control start` or daemon bootstrap:
+
+```bash
+systemctl --user status codex-remote-control
+journalctl --user -u codex-remote-control -n 50
+systemctl --user restart codex-remote-control
+systemctl --user stop codex-remote-control
+```
+
+Stop any previously managed remote-control daemon before the first service
+start. Syntax's Ansible-managed linger keeps user services running without a
+login; Pang14 starts the service with its user manager. Authentication,
+pairing, and connectivity remain runtime state, not Nix configuration.
+
+Background services do not inherit a terminal's direnv environment. Projects
+with development-shell-only MCP tools must load that environment explicitly
+in their MCP launch command, as infra does with `direnv exec`.
+
 ### Codex permissions and cache
 
 On Ubuntu, [ai.nix](modules/home/kyleh/ai.nix) wraps Codex's public `bin/codex`
@@ -329,7 +359,7 @@ filenames, which can change between input updates.
 Trusted project configuration in `.codex/config.toml` selects
 `nixos-development`, extending `:workspace` with network access and an explicit
 allow entry for `/nix/var/nix/daemon-socket/socket`. Sandboxing stays enabled;
-`/nix` is not generally writable. MCP executes `mcp-nixos` directly from `PATH`.
+`/nix` is not generally writable.
 
 Codex's shell environment policy inherits the development environment and sets
 `NIX_CACHE_HOME=/tmp/nixos-codex-nix-cache` and `NIX_REMOTE=daemon`.
@@ -562,7 +592,6 @@ Use the installed tools for non-building inspection:
 | `nvd` | Readable package/version and size deltas between two existing closures; `list` inventories one closure | Strong review tool; its Python runtime may already be shared with other tools |
 | `nix-tree` | Interactive dependency browsing; `--dot` exports a graph for noninteractive analysis | Prefer Nix JSON/text for routine agent work; the TUI is mainly useful to operators |
 | `nix-eval-jobs` | Bounded parallel evaluation of a selected derivation set, emitting JSON lines; optional cache-status checks | Useful for larger matrices, not automatically faster for one home; workers consume memory, and JSON can contain per-job errors |
-| `mcp-nixos` | Connected package/option discovery for NixOS, Home Manager and related projects | Look for callable `mcp__nixos__*` tools, including deferred tools; the server exposes tools rather than MCP resources. Verify results against locked sources |
 
 For an existing realized closure, replace `ROOT`, `DEPENDENCY`, `OLD` and
 `NEW` below with explicit `/nix/store/...` paths. A standalone home generation

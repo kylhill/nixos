@@ -2,6 +2,8 @@ let
   colors = import ./solarized.nix;
 in
 {
+  imports = [ ./neovim.nix ];
+
   programs = {
     bat = {
       enable = true;
@@ -41,7 +43,6 @@ in
         shellIntegrationOptions = [ "-p 80%,60%" ];
       };
     };
-    gh.enable = true;
     ripgrep.enable = true;
 
     direnv = {

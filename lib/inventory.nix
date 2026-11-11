@@ -3,7 +3,6 @@ let
 in
 {
   sharedUnfreePackages = [
-    "github-copilot-cli"
     "vscode"
   ];
 

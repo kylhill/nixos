@@ -19,9 +19,3 @@ ignore_default_excludes = false
 [shell_environment_policy.set]
 NIX_CACHE_HOME = "/tmp/nixos-codex-nix-cache"
 NIX_REMOTE = "daemon"
-
-[mcp_servers.nixos]
-command = "mcp-nixos"
-
-[mcp_servers.nixos.tools.nix]
-approval_mode = "approve"

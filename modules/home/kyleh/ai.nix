@@ -24,38 +24,6 @@ let
         })
     else
       unstablePkgs.codex;
-
-  # FastMCP 3.2.3's stateful-proxy tests fail during cancel-scope teardown
-  # with the pinned dependency set. Keep the rest of its checks enabled.
-  mcpNixos = pkgs.mcp-nixos.override {
-    python3Packages = pkgs.python3Packages.overrideScope (
-      _final: prev: {
-        fastmcp = prev.fastmcp.overridePythonAttrs (old: {
-          disabledTests = (old.disabledTests or [ ]) ++ [
-            "test_concurrent_log_requests_no_mixing"
-            "test_stateful_proxy"
-            "test_multi_proxies_no_mixing"
-          ];
-        });
-      }
-    );
-  };
-
-  mcpGrafana = pkgs.writeShellApplication {
-    name = "mcp-grafana";
-    runtimeInputs = [
-      unstablePkgs.mcp-grafana
-      pkgs.sops
-    ];
-    text = ''
-      GRAFANA_SERVICE_ACCOUNT_TOKEN=$(sops --decrypt \
-        --extract '["grafana"]["service-account-token"]' \
-        "${config.home.homeDirectory}/infra/secrets/mcp-grafana.yaml")
-      export GRAFANA_SERVICE_ACCOUNT_TOKEN
-      export GRAFANA_URL="https://stats.tacomafia.net"
-      exec mcp-grafana --disable-write "$@"
-    '';
-  };
 in
 {
   home.file.".config/codex/packages/standalone/current/codex" = {
@@ -63,19 +31,27 @@ in
     force = true;
   };
 
-  home.packages = [
-    mcpGrafana
-    mcpNixos
-  ];
+  programs.codex = {
+    enable = true;
+    package = codexPackage;
+  };
 
-  programs = {
-    codex = {
-      enable = true;
-      package = codexPackage;
+  systemd.user.services.codex-remote-control = {
+    Unit.Description = "Codex remote control";
+    Service = {
+      Type = "simple";
+      # Codex rejects group-writable temporary socket directories.
+      UMask = "0077";
+      ExecStart = "${codexPackage}/bin/codex remote-control --no-daemon";
+      WorkingDirectory = config.home.homeDirectory;
+      Environment = [
+        "CODEX_HOME=${config.home.sessionVariables.CODEX_HOME}"
+        "PATH=${config.home.profileDirectory}/bin:/run/current-system/sw/bin:/usr/local/bin:/usr/bin:/bin"
+      ];
+      Restart = "on-failure";
+      RestartSec = 10;
+      TimeoutStopSec = 30;
     };
-    github-copilot-cli = {
-      enable = true;
-      package = unstablePkgs.github-copilot-cli;
-    };
+    Install.WantedBy = [ "default.target" ];
   };
 }

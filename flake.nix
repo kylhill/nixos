@@ -244,12 +244,6 @@
           program = "${disko.packages.${system}.disko}/bin/disko";
           meta.description = "Declaratively partition and format disks with Disko";
         };
-
-        mcp-nixos = {
-          type = "app";
-          program = "${(pkgsFor system).mcp-nixos}/bin/mcp-nixos";
-          meta.description = "Query version-matched NixOS and Home Manager documentation";
-        };
       });
 
       devShells = forAllSystems (

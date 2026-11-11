@@ -24,7 +24,7 @@ in
       defaultEditor = true;
       vimAlias = true;
       vimdiffAlias = true;
-      waylandSupport = lib.mkDefault true;
+      waylandSupport = lib.mkDefault (!config.targets.genericLinux.enable);
       withPython3 = false;
       withRuby = false;
 

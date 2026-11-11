@@ -28,11 +28,6 @@
   required tool that is absent belongs in the default development shell.
 - For tool selection and closure commands, see
   [README.md](README.md#review-tools-and-closure-analysis).
-- For Nix questions, inspect the callable tool inventory, including deferred
-  tools, for `mcp__nixos__*`. Do not infer that mcp-nixos is unavailable from
-  `list_mcp_resources` or `list_mcp_resource_templates`; it exposes tools rather
-  than resources. When `mcp__nixos__nix` is available, use it as directed and
-  verify repository-specific claims against evaluation or pinned source.
 
 ## Validation
 

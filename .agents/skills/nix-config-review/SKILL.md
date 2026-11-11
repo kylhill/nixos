@@ -20,9 +20,9 @@ home modules, package sets, custom options, generated files, and package selecti
 Trace imports and callers before recommending removal or moving policy.
 
 Ground repository-specific findings in narrow evaluation or sources pinned by
-`flake.lock`. Use the available Nix MCP tools as directed by AGENTS.md, and
-verify results against those pinned inputs. Consult authoritative upstream
-documentation when needed; identify version differences that affect a finding.
+`flake.lock`. Inspect evaluated declarations and pinned input sources directly.
+Consult authoritative upstream documentation when needed; identify version
+differences that affect a finding.
 
 Distinguish native-option replacements and unnecessary indirection from
 intentional capability modules, platform boundaries, and explicit composition.

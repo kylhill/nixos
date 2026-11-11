@@ -4,8 +4,6 @@
 
   programs = {
     bash.package = null;
-    git.package = null;
-    less.package = null;
     man = {
       enable = true;
       package = null;
