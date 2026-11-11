@@ -249,6 +249,9 @@ else
     else
         echo 'Source checks incomplete or failed; output evaluation skipped.' >&2
     fi
+    if [[ $mode == ci ]]; then
+        run_stage 'CI cache fixtures' bash tests/test-ci-cache.sh || :
+    fi
     # Fixtures are independent of source/output failures and always run.
     for suite in "${fixtures[@]}"; do
         run_stage "Fixtures: $suite" bash "tests/test-$suite.sh" || :

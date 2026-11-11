@@ -78,6 +78,25 @@ validation repeats `./test.sh --ci` with the committed lockfile, without updatin
 inputs, building full system/home closures, or activating configuration.
 Maintenance runs queue rather than cancelling each other.
 
+Both validation jobs keep `/nix` and its database job-local. They mount only
+`/opt/cache/nix:/opt/cache/nix` and use `scripts/ci/with-nix-cache.sh` to share
+compressed binary archives with the infra repository under `binary-v1/YYYY-MM`.
+The helper trusts only this runner-local cache, retaining upstream signature
+checks. The existing same-repository PR restriction defines its write trust
+boundary. It checks the development tools, exports the shell closure, and runs
+validation. Export failures warn; build, probe, and validation failures fail CI.
+
+The current and previous UTC months are retained. Jobs restore from either and
+publish into the current month. Cleanup removes complete older generations at
+startup only when an exclusive lifecycle lock is available. All readers and
+publishers hold the shared lock through validation; busy caches defer cleanup.
+Infra and nixos use the same lock protocol. Retention bounds months, not bytes.
+The old shared Nix store is ignored and left untouched. No runner apply is needed.
+
+`./test.sh --ci` also runs disposable cache fixtures. For focused local checks,
+run `./test.sh --sandbox --lint` and `bash tests/test-ci-cache.sh`. No real cache,
+credentials, full system/home builds, or activation is used by these fixtures.
+
 Distribution release transitions are manual: update all three release branches
 in `flake.nix` together, then use `./update.sh` and the documented validation
 loop. Renovate still refreshes `flake.lock` within the configured branches.
