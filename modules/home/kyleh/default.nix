@@ -1,4 +1,5 @@
-{ lib, ... }: {
+{ lib, pkgs, ... }:
+{
   _module.args.wslAgent = lib.mkDefault false;
   imports = [
     ./bash.nix
@@ -9,6 +10,7 @@
 
   home = {
     preferXdgDirectories = true;
+    packages = [ pkgs.ncdu ];
   };
 
   programs.home-manager.enable = true;

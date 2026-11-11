@@ -7,7 +7,6 @@
     pkgs.gparted
     pkgs.lm_sensors
     pkgs.lsof
-    pkgs.ncdu
     pkgs.nvme-cli
     pkgs.pciutils
     pkgs.powertop

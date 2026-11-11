@@ -3,14 +3,9 @@ let
   colors = import ./solarized.nix;
 in
 {
-  # tmux-cpu uses iostat for sampled CPU usage and free for RAM usage.
-  home.packages = with pkgs; [
-    coreutils
-    gawk
-    gnused
-    procps
-    sysstat
-  ];
+  # tmux-cpu needs iostat; Ubuntu and NixOS supply awk, sed, core utilities,
+  # and procps (free/ps) in the host environment.
+  home.packages = [ pkgs.sysstat ];
 
   programs.tmux = {
     enable = true;
