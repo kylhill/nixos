@@ -1,3 +1,6 @@
+let
+  colors = import ./solarized.nix;
+in
 {
   programs = {
     bat = {
@@ -8,19 +11,19 @@
     fzf = {
       enable = true;
       colors = {
-        bg = "#002b36";
-        "bg+" = "#073642";
-        fg = "#839496";
-        "fg+" = "#93a1a1";
-        hl = "#b58900";
-        "hl+" = "#b58900";
-        border = "#586e75";
-        info = "#268bd2";
-        prompt = "#859900";
-        pointer = "#d33682";
-        marker = "#2aa198";
-        spinner = "#b58900";
-        header = "#268bd2";
+        bg = colors.base03;
+        "bg+" = colors.base02;
+        fg = colors.base0;
+        "fg+" = colors.base1;
+        hl = colors.yellow;
+        "hl+" = colors.yellow;
+        border = colors.base01;
+        info = colors.blue;
+        prompt = colors.green;
+        pointer = colors.magenta;
+        marker = colors.cyan;
+        spinner = colors.yellow;
+        header = colors.blue;
       };
       defaultCommand = "fd --type f --hidden --exclude .git";
       fileWidgetCommand = "fd --type f --hidden --exclude .git";
