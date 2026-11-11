@@ -24,13 +24,8 @@ jobs:
       run:
         shell: bash
     steps:
-      - name: Install job prerequisites
-        shell: sh
-        run: |
-          # Bash is needed by subsequent steps and the Nix installer action.
-          # GNU tools keep the installer consistent across runner images.
-          apk add --no-cache bash ca-certificates coreutils curl findutils flock git sudo tar xz
-          git config --system init.defaultBranch main
+      - name: Configure Git
+        run: git config --system init.defaultBranch main
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
