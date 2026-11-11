@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 {
   _module.args.wslAgent = true;
 
@@ -7,6 +7,8 @@
     ../modules/home/kyleh/development.nix
     ../modules/home/kyleh/ubuntu-headless.nix
   ];
+
+  programs.fzf.tmux.enableShellIntegration = lib.mkForce false;
 
   home.packages = [
     pkgs.wsl2-ssh-agent

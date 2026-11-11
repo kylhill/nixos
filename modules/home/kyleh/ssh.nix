@@ -2,6 +2,7 @@
   config,
   lib,
   networkHosts,
+  pkgs,
   wslAgent,
   ...
 }:
@@ -14,6 +15,7 @@ in
 
   programs.ssh = {
     enable = true;
+    package = pkgs.opensshWithKerberos;
     enableDefaultConfig = false;
     settings = {
       syntax.HostName = hosts.syntax.fqdn;
