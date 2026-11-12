@@ -4,8 +4,9 @@ set -euo pipefail
 repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 fixture_dir=$(mktemp -d)
 trap 'chmod -R u+w -- "$fixture_dir"; rm -rf -- "$fixture_dir"' EXIT
-mkdir -p "$fixture_dir/repo/tests" "$fixture_dir/bin" "$fixture_dir/home"
+mkdir -p "$fixture_dir/repo/scripts" "$fixture_dir/repo/tests" "$fixture_dir/bin" "$fixture_dir/home"
 cp "$repo_dir/test.sh" "$fixture_dir/repo/"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture_dir/repo/scripts/check-releases.sh"
 cp "$repo_dir/tests/fixtures/eval-flake.nix" "$fixture_dir/repo/flake.nix"
 printf 'test.sh\n' > "$fixture_dir/repo/tests/shell-files"
 for tool in nixfmt statix deadnix shellcheck; do

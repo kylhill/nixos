@@ -167,6 +167,7 @@ check_shell_syntax() {
     return "$status"
 }
 run_stage 'Shell syntax' check_shell_syntax || :
+run_stage 'Matching distribution releases' bash scripts/check-releases.sh || :
 
 build_native_checks() {
     local system check

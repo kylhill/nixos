@@ -63,22 +63,17 @@ exact revisions in [flake.lock](flake.lock). External module imports live with
 the capabilities that use them.
 
 Renovate policy is local to this repository in [renovate.json](renovate.json).
-A dedicated PR workflow checks configuration changes with
-`renovate-config-validator --strict --no-global renovate.json`, using the same
-pinned Renovate image as the scheduled bot. Branch concurrency inherits the
-unlimited PR limit. The scheduled bot and PR validator use explicit matching image pins.
-Update both pins together; cross-job YAML anchors fail during Forgejo job dispatch. A short source check requires
-matching Nixpkgs, Home Manager and Nixvim release references.
+Validate substantial policy changes manually with
+`renovate-config-validator --strict --no-global renovate.json` using the central
+bot image. Branch concurrency inherits the unlimited PR limit.
+`test.sh` checks that Nixpkgs, Home Manager and Nixvim release references match.
 
-`pull-request.yml` runs independent Configuration and repository-validation
-jobs. Repository validation uses `./test.sh --ci`; superseded PR runs are
-cancelled. `renovate.yml` is the Maintenance workflow: its weekly schedule and
-manual dispatch run independent Renovate and validation jobs. Scheduled
-validation repeats `./test.sh --ci` with the committed lockfile, without updating
-inputs, building full system/home closures, or activating configuration.
-Maintenance runs queue rather than cancelling each other.
+`pull-request.yml` runs repository validation through `./test.sh --ci`;
+superseded PR runs are
+cancelled. Dependency updates run from infra's central Maintenance workflow;
+this repository has no scheduled maintenance or validation workflow.
 
-Both validation jobs keep `/nix` and its database job-local. They mount only
+The repository-validation job keeps `/nix` and its database job-local. They mount only
 `/opt/cache/nix:/opt/cache/nix` and use `scripts/ci/with-nix-cache.sh` to share
 compressed binary archives with the infra repository under `binary-v1/YYYY-MM`.
 The helper trusts only this runner-local cache, retaining upstream signature
@@ -728,3 +723,16 @@ git diff -- flake.lock
 Commit the reviewed lock-file update separately from unrelated changes.
 `update.sh` uses `path:.` so updating the lock file does not require writing to
 the Git index, including inside Codex's sandbox.
+
+
+Dependency update scheduling is owned by infra's Maintenance workflow. Its
+explicit allowlist covers `kylhill/infra`, `kylhill/nixos`, and
+`kylhill/docker-nginx`. Weekly maintenance validation jobs have been removed; PR and local validation
+remain available. The central bot token must have access to all three repositories;
+Validate substantial Renovate policy changes manually with the bot image.
+Deploy the central workflow and disable the old per-repository bot jobs together
+to avoid overlapping bot runs. No credential change is automated.
+
+Each repository keeps a self-contained `scripts/ci/with-nix-cache.sh`.
+The scripts are independent copies: neither repository fetches or synchronizes
+cache-helper code from the other. Validate changes with the local cache fixtures.

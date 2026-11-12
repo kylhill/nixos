@@ -4,6 +4,25 @@ set -euo pipefail
 repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 fixture_dir=$(mktemp -d)
 trap 'rm -rf -- "$fixture_dir"' EXIT
+# Exercise the real release guard before entering the fake-tool boundary.
+release_fixture="$fixture_dir/releases.nix"
+release_source='"github:NixOS/nixpkgs/nixos-26.05"
+"github:nix-community/home-manager/release-26.05"
+"github:nix-community/nixvim/nixos-26.05"'
+printf '%s\n' "$release_source" > "$release_fixture"
+bash "$repo_dir/scripts/check-releases.sh" "$release_fixture"
+printf '%s\n' "${release_source/release-26.05/release-99.99}" > "$release_fixture"
+if bash "$repo_dir/scripts/check-releases.sh" "$release_fixture" 2>/dev/null; then
+    echo 'Mismatched releases were accepted' >&2; exit 1
+fi
+printf '%s\n' "${release_source/github:nix-community\/nixvim\/nixos-/missing:}" > "$release_fixture"
+if bash "$repo_dir/scripts/check-releases.sh" "$release_fixture" 2>/dev/null; then
+    echo 'Missing release was accepted' >&2; exit 1
+fi
+printf '%s\n%s\n' "$release_source" "$release_source" > "$release_fixture"
+if bash "$repo_dir/scripts/check-releases.sh" "$release_fixture" 2>/dev/null; then
+    echo 'Duplicate releases were accepted' >&2; exit 1
+fi
 mkdir -p "$fixture_dir/repo/scripts" "$fixture_dir/repo/tests/fixtures" "$fixture_dir/tools/bin"
 # Only these real utilities may cross the fake-tool boundary.
 for tool in bash cat chmod cp dirname git grep ln mkdir mktemp mv rm; do

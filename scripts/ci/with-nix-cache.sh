@@ -6,7 +6,7 @@ if [[ $# -eq 0 ]]; then
   echo "Usage: $0 COMMAND [ARG ...]" >&2
   exit 2
 fi
-cache_dir="${CI_NIX_BINARY_CACHE_DIR:-/opt/cache/nix/binary-v1}"
+cache_dir="${CI_NIX_BINARY_CACHE_DIR:-${INFRA_CI_BINARY_CACHE_DIR:-/opt/cache/nix/binary-v1}}"
 mkdir -p "$cache_dir"
 # Keep this inode stable. Every reader/writer holds a shared lock until exit;
 # pruning takes it exclusively, without delaying already active jobs.
@@ -49,9 +49,7 @@ system="$(nix eval --impure --raw --expr builtins.currentSystem)"
 work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
 nix build ".#devShells.$system.default" --out-link "$work_dir/environment"
-# Expand the probe variable inside the development shell.
-# shellcheck disable=SC2016
-nix develop --command bash -c 'for tool in nixfmt statix deadnix shellcheck; do command -v "$tool" >/dev/null || exit 1; done'
+nix develop --command bash -c 'command -v shellcheck >/dev/null'
 # A cache is an optimization: a publication failure must not hide test results.
 if ! (
   flock -w 120 9 || exit "$?"

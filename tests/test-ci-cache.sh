@@ -95,10 +95,9 @@ export FAIL_COPY=1 COMMAND_STATUS=7
 run_case 7
 grep -q 'could not publish' "$fixture_dir/output"
 unset FAIL_COPY COMMAND_STATUS
-# Both CI jobs mount archives rather than a shared writable /nix store.
-for workflow in pull-request renovate; do
+# PR validation mounts archives rather than a shared writable /nix store.
+workflow=pull-request
     grep -Fq '/opt/cache/nix:/opt/cache/nix' "$repo_dir/.forgejo/workflows/$workflow.yml"
     if grep -Fq '/opt/cache/nix:/nix' "$repo_dir/.forgejo/workflows/$workflow.yml"; then exit 1; fi
     grep -Fq 'bash scripts/ci/with-nix-cache.sh ./test.sh --ci' "$repo_dir/.forgejo/workflows/$workflow.yml"
-done
 echo 'CI binary cache fixtures passed.'

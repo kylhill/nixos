@@ -11,3 +11,4 @@ tests/fixtures/apply-tool
 tests/fixtures/validation-tool
 scripts/ci/with-nix-cache.sh
 tests/test-ci-cache.sh
+scripts/check-releases.sh
