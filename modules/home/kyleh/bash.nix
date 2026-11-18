@@ -48,7 +48,7 @@ in
         directory = {
           format = "[$path]($style) ";
           style = "cyan";
-          truncation_length = 3;
+          truncation_length = 0;
         };
         nix_shell = {
           format = "[$symbol]($style) ";
