@@ -11,6 +11,8 @@
     ../modules/home/kyleh/ai.nix
     ../modules/home/kyleh/development.nix
     ../modules/home/kyleh/docker-tools.nix
+    ../modules/home/kyleh/postgres-operator.nix
+    ../modules/home/kyleh/mariadb-operator.nix
     ../modules/home/kyleh/tmux.nix
     ../modules/home/kyleh/ubuntu-headless.nix
   ];
